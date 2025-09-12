@@ -297,5 +297,7 @@
   "action_cancel": "Abbrechen",
   "action_delete": "Löschen",
   "error_required": "Pflichtfeld.",
-  "error_endBeforeStart": "Ende muss nach dem Start liegen."
+  "error_endBeforeStart": "Ende muss nach dem Start liegen.",
+  "savedSuccessfully": "Erfolgreich gespeichert"
+
 }

@@ -519,5 +519,5 @@ class AppLocalizationsDe extends AppLocalizations {
   String get error_endBeforeStart => 'Ende muss nach dem Start liegen.';
 
   @override
-  String get savedSuccessfully => 'Saved successfully';
+  String get savedSuccessfully => 'Erfolgreich gespeichert';
 }

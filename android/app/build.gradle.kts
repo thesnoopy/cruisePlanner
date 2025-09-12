@@ -6,7 +6,7 @@ plugins {
 }
 
 android {
-    namespace = "com.example.cruise_app"
+    namespace = "de.mailsmart.cruise_app"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
