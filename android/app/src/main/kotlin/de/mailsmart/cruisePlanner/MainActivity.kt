@@ -1,4 +1,4 @@
-package de.mailsmart.cruise_app
+package de.mailsmart.cruisePlanner
 
 import io.flutter.embedding.android.FlutterActivity
 
