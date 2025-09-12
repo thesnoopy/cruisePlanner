@@ -1,0 +1,369 @@
+import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:cruise_app/gen/l10n/app_localizations.dart';
+
+import 'package:cruise_app/models/cruise.dart';
+import 'package:cruise_app/models/excursion.dart';
+import 'package:cruise_app/models/travel.dart';
+
+import 'package:cruise_app/screens/cruise_details_read_only_page.dart';
+import 'package:cruise_app/screens/excursion_list_page.dart';
+
+// NEU: ausgelagerte Travel-Screens
+import 'package:cruise_app/screens/travel/travel_overview_page.dart';
+
+import 'package:cruise_app/data/cruise_repository.dart';
+
+class CruiseDetailPage extends StatefulWidget {
+  final Cruise cruise;
+  final CruiseRepository repo;
+
+  const CruiseDetailPage({
+    super.key,
+    required this.cruise,
+    required this.repo,
+  });
+
+  @override
+  State<CruiseDetailPage> createState() => _CruiseDetailPageState();
+}
+
+class _CruiseDetailPageState extends State<CruiseDetailPage> {
+  late Cruise _current; // lokaler Bearbeitungsstand
+  bool _dirty = false;  // wurde etwas geändert?
+
+  @override
+  void initState() {
+    super.initState();
+    _current = widget.cruise;
+  }  
+
+  Future<void> _applyUpdatedCruise(Cruise updated) async {
+  setState(() {
+    _current = updated;
+    _dirty = true; // damit beim Back ein aktualisiertes Objekt nach oben gereicht wird
+  });
+
+  try {
+    // NUTZE die passende Repo-Methode deines Projekts:
+    // z.B. saveCruise / upsertCruise / saveAll — bitte ggf. anpassen.
+    await widget.repo.upsertCruise(updated);
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(AppLocalizations.of(context)!.savedSuccessfully)),
+    );
+  } catch (e) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Speichern fehlgeschlagen: $e')),
+    );
+  }
+}
+
+  @override
+  Widget build(BuildContext context) {
+    final translations = AppLocalizations.of(context)!;
+    final localeTag = Localizations.localeOf(context).toLanguageTag();
+    final df = DateFormat.yMMMMd(localeTag);
+
+    final cruise = _current;
+    final start = cruise.period.start;
+    final end = cruise.period.end;
+
+    final excursions = List<Excursion>.from(cruise.excursions ?? const <Excursion>[])
+      ..sort((a, b) => a.date.compareTo(b.date));
+
+    final now = DateTime.now();
+    final today0 = DateTime(now.year, now.month, now.day);
+    final nextExcursions = excursions.where((e) => !e.date.isBefore(today0)).toList();
+    final Excursion? next = nextExcursions.isNotEmpty ? nextExcursions.first : null;
+
+    final total = excursions.length;
+    final futureCount = nextExcursions.length;
+
+    String rangeText(DateTime s, DateTime e) => "${df.format(s)} → ${df.format(e)}";
+    String? formatMoney(num? value, String? code) {
+      if (value == null || code == null || code.isEmpty) return null;
+      return NumberFormat.currency(locale: localeTag, name: code).format(value);
+    }
+
+    return WillPopScope(
+      onWillPop: () async {
+        if (_dirty) {
+          Navigator.of(context).pop(_current); // an Home zurückgeben
+          return false;
+        }
+        return true;
+      },
+      child:  Scaffold(
+        appBar: AppBar(
+          title: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(cruise.title),
+              Text(
+                "${cruise.ship.name} • ${cruise.ship.shippingLine}",
+                style: Theme.of(context).textTheme.labelSmall,
+              ),
+            ],
+          ),
+        ),
+        body: ListView(
+          padding: const EdgeInsets.all(16),
+          children: [
+            // Cruise-Details
+            _OverviewCard(
+              title: translations.cruiseDetailsTitle,
+              rows: [
+                _IconText(Icons.directions_boat, "${cruise.ship.name} • ${cruise.ship.shippingLine}"),
+                _IconText(Icons.event, rangeText(start, end)),
+                _IconText(Icons.flag, "$total ${translations.excursionsCountLabel}"),
+              ],
+              trailingLabel: translations.seeDetailsCta,
+              onTap: () async {
+                final updated = await Navigator.of(context).push<Cruise>(
+                  MaterialPageRoute(
+                    builder: (_) => CruiseDetailsReadOnlyPage(cruise: cruise, repo: widget.repo),
+                  ),
+                );
+                if (updated != null) {
+                  await _applyUpdatedCruise(updated);
+                } else {
+                  setState(() {});
+                }
+              },
+            ),
+
+            const SizedBox(height: 16),
+
+            // Nächster Ausflug
+            _OverviewCard(
+              title: translations.nextExcursionTitle,
+              rows: [
+                _IconText(Icons.text_fields, next?.title ?? translations.dash),
+                _IconText(Icons.event, next != null ? df.format(next.date) : translations.nonePlanned),
+                _IconText(Icons.place, (next?.port?.isNotEmpty ?? false) ? next!.port! : translations.dash),
+                _IconText(Icons.meeting_room, (next?.meetingPoint?.isNotEmpty ?? false) ? next!.meetingPoint! : translations.dash),
+                _IconText(Icons.attach_money, formatMoney(next?.price, next?.currency) ?? translations.dash),
+              ],
+              chips: [
+                "$total ${translations.totalLabel}",
+                "$futureCount ${translations.upcomingLabel}",
+              ],
+              trailingLabel: translations.seeAllExcursionsCta,
+              onTap: () async {
+                await Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => ExcursionListPage(cruise: cruise, repo: widget.repo)),
+                );
+                setState(() {});
+              },
+            ),
+
+            const SizedBox(height: 16),
+
+            // NEU: An- & Abreise (kompakter Teaser)
+            _TravelSectionTeaser(
+              cruise: cruise,
+              onUpdated: (updatedCruise) async {
+                await _applyUpdatedCruise(updatedCruise);
+              },
+            ),
+          ],
+        ),
+      )
+    );
+  }
+}
+
+class _OverviewCard extends StatelessWidget {
+  final String title;
+  final List<_IconText> rows;
+  final List<String>? chips;
+  final String trailingLabel;
+  final VoidCallback onTap;
+
+  const _OverviewCard({
+    required this.title,
+    required this.rows,
+    required this.trailingLabel,
+    required this.onTap,
+    this.chips,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Card(
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(title, style: theme.textTheme.titleLarge),
+              const SizedBox(height: 12),
+              ...rows.map((r) => Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 4),
+                    child: Row(
+                      children: [
+                        Icon(r.icon),
+                        const SizedBox(width: 12),
+                        Expanded(child: Text(r.text)),
+                      ],
+                    ),
+                  )),
+              if (chips != null && chips!.isNotEmpty) ...[
+                const SizedBox(height: 12),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: chips!
+                      .map((c) => Chip(label: Text(c), visualDensity: VisualDensity.compact))
+                      .toList(),
+                ),
+              ],
+              const SizedBox(height: 12),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  Text(trailingLabel, style: theme.textTheme.labelLarge),
+                  const SizedBox(width: 6),
+                  const Icon(Icons.chevron_right),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _IconText {
+  final IconData icon;
+  final String text;
+  const _IconText(this.icon, this.text);
+}
+/// ------------------------------------------------------------
+/// Kompakter Travel-Teaser (tap auf die ganze Karte -> Overview)
+/// ------------------------------------------------------------
+class _TravelSectionTeaser extends StatelessWidget {
+  final Cruise cruise;
+  final ValueChanged<Cruise> onUpdated;
+  const _TravelSectionTeaser({required this.cruise, required this.onUpdated});
+
+  @override
+  Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
+    final locale = Localizations.localeOf(context).toLanguageTag();
+    final df = DateFormat.yMMMMd(locale).add_Hm();
+
+    final items = List<TravelItem>.from(cruise.travel)..sort((a, b) => a.start.compareTo(b.start));
+    final next = cruise.nextTravelItem(DateTime.now());
+
+    Widget body;
+    if (items.isEmpty) {
+      body = Row(
+        children: [
+          const Icon(Icons.info_outline),
+          const SizedBox(width: 8),
+          Expanded(child: Text(t.travelEmptyHint)),
+        ],
+      );
+    } else {
+      final i = next ?? items.first;
+      final hasEnd = i.end != null;
+      final timeStr = hasEnd ? t.label_timeRange(df.format(i.start), df.format(i.end!)) : df.format(i.start);
+      final route = _route(i);
+
+      body = Row(
+        children: [
+          _travelIcon(i.type, context),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(timeStr, style: Theme.of(context).textTheme.titleSmall),
+                const SizedBox(height: 2),
+                Text(route, maxLines: 1, overflow: TextOverflow.ellipsis),
+                const SizedBox(height: 2),
+                Text(i.summaryId(), style: Theme.of(context).textTheme.bodySmall),
+              ],
+            ),
+          ),
+          if (i.price != null && i.currency != null) ...[
+            const SizedBox(width: 8),
+            Chip(
+              visualDensity: VisualDensity.compact,
+              label: Text(
+                NumberFormat.currency(locale: locale, name: i.currency!).format(i.price),
+              ),
+            ),
+          ],
+        ],
+      );
+    }
+
+    return Card(
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: () async {
+          // Direkt in die Overview (Detailsicht) springen
+          final updated = await Navigator.of(context).push<Cruise>(
+            MaterialPageRoute(builder: (_) => TravelOverviewPage(cruise: cruise)),
+          );
+          if (updated != null && context.mounted) {
+            // wie zuvor: aktualisierte Cruise nach oben zurückgeben
+            onUpdated(updated);
+          }
+        },
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Header (ohne "Alle anzeigen")
+              Row(
+                children: [
+                  Icon(Icons.route, color: Theme.of(context).colorScheme.primary),
+                  const SizedBox(width: 8),
+                  Text(t.travelSectionTitle, style: Theme.of(context).textTheme.titleLarge),
+                ],
+              ),
+              const SizedBox(height: 10),
+              body,
+              // Kein "Neues Segment"-Button mehr
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  static String _route(TravelItem i) {
+    final a = (i.from ?? '').trim();
+    final b = (i.to ?? '').trim();
+    if (a.isEmpty && b.isEmpty) return '—';
+    if (a.isEmpty) return b;
+    if (b.isEmpty) return a;
+    return '$a → $b';
+  }
+
+  static Widget _travelIcon(TravelKind type, BuildContext context) {
+    final color = Theme.of(context).colorScheme.primary;
+    switch (type) {
+      case TravelKind.flight:
+        return Icon(Icons.flight_takeoff, color: color);
+      case TravelKind.train:
+        return Icon(Icons.train, color: color);
+      case TravelKind.transfer:
+        return Icon(Icons.airport_shuttle, color: color);
+      case TravelKind.rentalCar:
+        return Icon(Icons.directions_car, color: color);
+    }
+  }
+}

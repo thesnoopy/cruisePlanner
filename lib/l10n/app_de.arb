@@ -1,0 +1,301 @@
+{
+  "@@locale": "de",
+
+"@@home_screen.dart": "",
+
+  "appTitle": "Kreuzfahrt App",
+  "menuExcursions": "Ausflüge",
+  "menuSettings": "Einstellungen",
+  "cruises": "Kreuzfahrten",
+  "webDavConfigured": "WebDAV konfiguriert",
+  "couldNotLoadData": "Konnte Daten nicht laden: ",
+  "pleaseEnterWebdavCredentials": "Bitte WebDAV-Zugangsdaten hinterlegen",
+  "uploadOk": "Upload (neu) ok",
+  "downloadOk": "Download ok",
+  "remoteWasNewerEtag": "Remote war neuer (ETag) → Download",
+  "localWasNewerUpload": "Lokal war neuer → Upload",
+  "alreadyUpToDate": "Bereits aktuell",
+  "remoteWasNewerDownload": "Remote war neuer → Download",
+  "syncError": "SYNC ERROR: ",
+  "syncFailed": "Sync fehlgeschlagen: ",
+  "stored": "Gespeichert: ",
+  "storingFailed": "Speichern fehlgeschlagen: ",
+  "syncWithWebdav": "Mit WebDAV synchronisieren",
+  "settings": "Einstellungen",
+  "noCruiseYet": "Noch keine Cruises. Tippe auf +",
+  "noTitle": "(ohne Titel)",
+
+"@@cruise_wizard_page.dart": "",
+
+  "pleaseCheckEntries": "Bitte Eingaben prüfen",
+  "finished": "Fertig",
+  "next": "Weiter",
+  "cancel": "Abbrechen",
+  "back": "Zurück",
+  "wizardTitleNewCruise": "Neue Kreuzfahrt",
+  "cruiseTitleLabel": "Titel",
+  "cruiseTitleHintText": "z. B. Mittelmeer 2026",
+  "titleMustNotBeEmpty": "Titel darf nicht leer sein",
+  "shipLabel": "Schiff",
+  "shipName": "Schiffsname",
+  "shipNameHintText": "z. B. AIDAcosma",
+  "pleaseEnterShipName": "Bitte Schiffsname angeben",
+  "cruiseCompany": "Reederei",
+  "cruiseCompanyHintText": "z. B. AIDA Cruises",
+  "pleaseEnterCruiseCompany": "Bitte Reederei angeben",
+  "periodLabel": "Zeitraum",
+  "startDate": "Startdatum",
+  "endDate": "Enddatum",
+  "endMustAfterStart": "Ende darf nicht vor Start liegen",
+
+"@@cruice_detail_page": "",
+
+  "excursionsCount": "{count, plural, =0{Keine Ausflüge} =1{1 Ausflug} other{{count} Ausflüge}}",
+  "@excursionsCount": {
+    "description": "Pluralisierte Anzahl-Anzeige für Ausflüge",
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "createExcursion": "Neuen Ausflug anlegen",
+  "noExcursions": "Noch keine Ausflüge",
+  "deleteExcursion": "'Ausflug löschen?",
+  "reallyDelete": " wirklich löschen?",
+  "delete": "Löschen",
+
+"@@excursion_wizard_page.dart": "",
+
+  "changeExcursion": "Ausflug bearbeiten",
+  "titleStar": "Titel *",
+  "titelStarHintText": "z.B. Stadtrundgang Halifax",
+  "titleMustNotBEEmpty": "Titel darf nicht leer sein.",
+  "mustBeBetween": "Muss zwischen ",
+  "and": " und ",
+  "lie": "liegen",
+  "harbourOptional": "Hafen (optional)",
+  "harbourOptionalHintText": "z.B. Halifax",
+  "meetingPoint": "Treffpunkt",
+  "meetingPointHintText": "z.B. Hafenausgang",
+  "notesOptional": "Notizen (optional)",
+  "priceOptional": "Preis (optional)",
+  "priceOptionalHintText": "z.B. 49.90",
+  "currencyOptional": "Währung (optional)",
+  "currencyOptionalHintText": "z.B. EUR, USD, CAD",
+  "store": "Speichern",
+  "create": "Anlegen",
+
+"@@webdav_settings_page.dart": "",
+
+  "connectionOk": "Verbindung ok",
+  "connectionFailed": "Verbindung fehlgeschlagen: ",
+  "storingFailed": "Speichern fehlgeschlagen: ",
+  "webdavSettings": "WebDAV Einstellungen",
+  "baseUrl": "Base URL",
+  "baseUrlHintText": "https://server/remote.php/dav/files/USERNAME/",
+  "pleaseEnterBaseUrl": "Bitte Base URL angeben",
+  "urlMustStartWithHttp": "URL muss mit http/https beginnen",
+  "username": "Username",
+  "pleaseEnterUsername": "Bitte Username angeben",
+  "password": "Passwort",
+  "pleaseEnterPassword": "Bitte Passwort angeben",
+  "remotePath": "Remote Pfad",
+  "pleaseEnterPath": "Bitte Pfad angeben",
+  "testConnection": "Verbindung testen",
+
+
+  "excursionTitleLabel": "Titel",
+  "dateLabel": "Datum",
+  "portLabel": "Hafen",
+  "notesLabel": "Notizen",
+  "priceLabel": "Preis",
+  "currencyLabel": "Währung",
+
+  "tapToAddExcursion": "Tippe, um einen Ausflug hinzuzufügen",
+  "validationRequired": "Dieses Feld ist erforderlich",
+  "invalidPrice": "Ungültiger Preis",
+
+  "excursionOn": "Ausflug am {date}",
+  "@excursionOn": {
+    "description": "Label mit formatiertem Datum, von der UI eingesetzt",
+    "placeholders": {
+      "date": { "type": "String" }
+    }
+  },
+
+  "cruiseDetailsTitle": "Cruise-Details",
+  "@cruiseDetailsTitle": {
+    "description": "Titelkarte für die Cruise-Details auf der Übersicht"
+  },
+
+  "excursionsCountLabel": "Ausflüge geplant",
+  "@excursionsCountLabel": {
+    "description": "Statischer Zusatztext hinter einer Anzahl, z.B. '3 Ausflüge geplant'"
+  },
+
+  "seeDetailsCta": "Details ansehen",
+  "@seeDetailsCta": {
+    "description": "CTA-Text am Ende der Cruise-Details-Karte"
+  },
+
+  "nextExcursionTitle": "Nächster Ausflug",
+  "@nextExcursionTitle": {
+    "description": "Titelkarte für den nächsten anstehenden Ausflug"
+  },
+
+  "nonePlanned": "Kein Ausflug geplant",
+  "@nonePlanned": {
+    "description": "Text, wenn es keinen zukünftigen Ausflug gibt"
+  },
+
+  "dash": "—",
+  "@dash": {
+    "description": "Platzhalter für fehlende/optionale Felder"
+  },
+
+  "totalLabel": "gesamt",
+  "@totalLabel": {
+    "description": "Chip-Label: Gesamtanzahl (z.B. Ausflüge gesamt)"
+  },
+
+  "upcomingLabel": "zukünftig",
+  "@upcomingLabel": {
+    "description": "Chip-Label: Anzahl zukünftiger Elemente"
+  },
+
+  "seeAllExcursionsCta": "Alle Ausflüge",
+  "@seeAllExcursionsCta": {
+    "description": "CTA-Text zum Öffnen der Ausflugsliste"
+  },
+
+  "excursionsTitle": "Ausflüge",
+  "@excursionsTitle": {
+    "description": "AppBar-Titel der Ausflugsliste"
+  },
+
+  "addNew": "Neu hinzufügen",
+  "@addNew": {
+    "description": "Allgemeines Label für Buttons/Aktionen zum Erstellen"
+  },
+
+  "noExcursionsYet": "Noch keine Ausflüge.",
+  "@noExcursionsYet": {
+    "description": "Empty-State-Text in der Ausflugsliste"
+  },
+
+  "excursionDetailsTitle": "Ausflugdetails",
+  "@excursionDetailsTitle": {
+    "description": "AppBar-Titel der Ausflug-Detailseite (read-only)"
+  },
+
+  "meetingPointLabel": "Treffpunkt",
+  "@meetingPointLabel": {
+    "description": "Label für den Treffpunkt eines Ausflugs"
+  },
+
+  "notesLabel": "Notizen",
+  "@notesLabel": {
+    "description": "Label für Notizen/Kommentar eines Ausflugs"
+  },
+
+  "priceLabel": "Preis",
+  "@priceLabel": {
+    "description": "Label für den Preis eines Ausflugs"
+  },
+
+  "edit": "Bearbeiten",
+  "@edit": {
+    "description": "Allgemeines Label für eine Bearbeiten-Aktion"
+  },
+  "delete": "Löschen",
+  "@delete": {"description": "Allgemeines Löschen-Label"},
+
+  "deleteCruiseTitle": "Reise löschen?",
+  "@deleteCruiseTitle": {"description": "Titel des Bestätigungsdialogs beim Löschen einer Reise"},
+
+  "deleteCruiseMessage": "„{title}“ wirklich löschen?",
+  "@deleteCruiseMessage": {"description": "Frage im Bestätigungsdialog", "placeholders": {"title": {"type":"String"}}},
+
+  "deleteConfirm": "Löschen",
+  "@deleteConfirm": {"description": "Bestätigungsbutton im Dialog"},
+
+  "deleteCancel": "Abbrechen",
+  "@deleteCancel": {"description": "Abbrechen-Button im Dialog"},
+
+  "deletedCruiseSnack": "„{title}“ gelöscht",
+  "@deletedCruiseSnack": {"description": "Snackbar-Text nach dem Löschen", "placeholders": {"title": {"type":"String"}}},
+
+  "undo": "Rückgängig",
+  "@undo": {"description": "Undo-Label in Snackbars"},
+  "travelSectionTitle": "An- & Abreise",
+  "travelEmptyHint": "Noch keine Segmente vorhanden. Lege dein erstes Segment an.",
+  "travelShowAll": "Alle anzeigen",
+  "travelAddNew": "Neues Segment",
+  "travelChooseTypeTitle": "Typ auswählen",
+  "travelOverviewTitle": "Reiseplan",
+  "travelOverviewSubtitle": "für {cruiseTitle}",
+  "@travelOverviewSubtitle": {
+    "placeholders": {
+      "cruiseTitle": { "type": "String" }
+    }
+  },
+
+  "travelKind_flight": "Flug",
+  "travelKind_train": "Bahn",
+  "travelKind_transfer": "Transfer",
+  "travelKind_rentalCar": "Mietwagen",
+
+  "transferMode_shuttle": "Shuttle",
+  "transferMode_taxi": "Taxi",
+  "transferMode_privateDriver": "Privatfahrer",
+  "transferMode_rideshare": "Ride-Sharing",
+
+  "label_from": "Von",
+  "label_to": "Nach",
+  "label_pickup": "Abholung",
+  "label_dropoff": "Rückgabe",
+  "label_start": "Start",
+  "label_end": "Ende",
+  "label_timeRange": "{start} \u2192 {end}",
+  "@label_timeRange": {
+    "placeholders": {
+      "start": { "type": "String" },
+      "end": { "type": "String" }
+    }
+  },
+  "label_price": "Preis",
+  "label_currency": "Währung",
+
+  "flight_airline": "Fluggesellschaft",
+  "flight_number": "Flugnr.",
+  "flight_bookingRef": "Buchungsnr.",
+  "flight_bookingClass": "Klasse",
+  "flight_seat": "Sitz",
+  "flight_terminalDep": "Terminal (Abflug)",
+  "flight_terminalArr": "Terminal (Ankunft)",
+  "flight_baggagePieces": "Gepäckstücke",
+
+  "train_operator": "Betreiber",
+  "train_number": "Zugnr.",
+  "train_coach": "Wagen",
+  "train_seat": "Platz",
+
+  "transfer_provider": "Anbieter",
+  "transfer_confirmation": "Bestätigung",
+  "transfer_pax": "Personen",
+
+  "rental_company": "Vermieter",
+  "rental_reservation": "Reservierung",
+  "rental_vehicleClass": "Fahrzeugklasse",
+  "rental_pickupLocation": "Abholort",
+  "rental_dropoffLocation": "Rückgabeort",
+
+  "travel_count": "{count, plural, =0{Keine Segmente} one{# Segment} other{# Segmente}}",
+  "@travel_count": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "action_save": "Speichern",
+  "action_cancel": "Abbrechen",
+  "action_delete": "Löschen",
+  "error_required": "Pflichtfeld.",
+  "error_endBeforeStart": "Ende muss nach dem Start liegen."
+}

@@ -1,0 +1,293 @@
+{
+  "@@locale": "en",
+  "appTitle": "Cruise App",
+  "menuExcursions": "Excursions",
+  "menuSettings": "Settings",
+  "cruises": "Cruises",
+  "webDavConfigured": "WebDAV configured",
+  "couldNotLoadData": "Could not load data: ",
+  "pleaseEnterWebdavCredentials": "Please enter WebDAV credentials",
+  "uploadOk": "Upload (new) OK",
+  "downloadOk": "Download OK",
+  "remoteWasNewerEtag": "Remote was newer (ETag) → Download",
+  "localWasNewerUpload": "Local was newer → Upload",
+  "alreadyUpToDate": "Already up to date",
+  "remoteWasNewerDownload": "Remote was newer → Download",
+  "syncError": "SYNC ERROR: ",
+  "syncFailed": "Sync failed: ",
+  "stored": "Saved: ",
+  "storingFailed": "Save failed: ",
+  "syncWithWebdav": "Sync with WebDAV",
+  "settings": "Settings",
+  "noCruiseYet": "No cruises yet. Tap +",
+  "noTitle": "(no title)",
+
+  "pleaseCheckEntries": "Please check your entries",
+  "finished": "Done",
+  "next": "Next",
+  "cancel": "Cancel",
+  "back": "Back",
+  "wizardTitleNewCruise": "New Cruise",
+  "cruiseTitleLabel": "Title",
+  "cruiseTitleHintText": "e.g., Mediterranean 2026",
+  "titleMustNotBeEmpty": "Title must not be empty",
+  "shipLabel": "Ship",
+  "shipName": "Ship name",
+  "shipNameHintText": "e.g., AIDAcosma",
+  "pleaseEnterShipName": "Please enter the ship name",
+  "cruiseCompany": "Cruise line",
+  "cruiseCompanyHintText": "e.g., AIDA Cruises",
+  "pleaseEnterCruiseCompany": "Please enter the cruise line",
+  "periodLabel": "Period",
+  "startDate": "Start date",
+  "endDate": "End date",
+  "endMustAfterStart": "End date must be after start date",
+
+  "excursionsCount": "{count, plural, =0{No excursions} =1{1 excursion} other{{count} excursions}}",
+  "@excursionsCount": {
+    "description": "Pluralized count label for excursions",
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "createExcursion": "Create new excursion",
+  "noExcursions": "No excursions yet",
+  "deleteExcursion": "Delete excursion?",
+  "reallyDelete": "Really delete?",
+  "delete": "Delete",
+
+  "changeExcursion": "Edit excursion",
+  "titleStar": "Title *",
+  "titelStarHintText": "e.g., Halifax city tour",
+  "titleMustNotBEEmpty": "Title must not be empty.",
+  "mustBeBetween": "Must be between ",
+  "and": " and ",
+  "lie": "",
+  "harbourOptional": "Port (optional)",
+  "harbourOptionalHintText": "e.g., Halifax",
+  "meetingPoint": "Meeting point",
+  "meetingPointHintText": "e.g., port exit",
+  "notesOptional": "Notes (optional)",
+  "priceOptional": "Price (optional)",
+  "priceOptionalHintText": "e.g., 49.90",
+  "currencyOptional": "Currency (optional)",
+  "currencyOptionalHintText": "e.g., EUR, USD, CAD",
+  "store": "Store",
+  "create": "Create",
+
+  "connectionOk": "Connection OK",
+  "connectionFailed": "Connection failed: ",
+  "storingFailed": "Save failed: ",
+  "webdavSettings": "WebDAV Settings",
+  "baseUrl": "Base URL",
+  "baseUrlHintText": "https://server/remote.php/dav/files/USERNAME/",
+  "pleaseEnterBaseUrl": "Please enter the Base URL",
+  "urlMustStartWithHttp": "URL must start with http/https",
+  "username": "Username",
+  "pleaseEnterUsername": "Please enter the username",
+  "password": "Password",
+  "pleaseEnterPassword": "Please enter the password",
+  "remotePath": "Remote path",
+  "pleaseEnterPath": "Please enter the path",
+  "testConnection": "Test connection",
+
+  "excursionTitleLabel": "Title",
+  "dateLabel": "Date",
+  "portLabel": "Port",
+  "notesLabel": "Notes",
+  "priceLabel": "Price",
+  "currencyLabel": "Currency",
+
+  "tapToAddExcursion": "Tap to add an excursion",
+  "validationRequired": "This field is required",
+  "invalidPrice": "Invalid price",
+
+  "excursionOn": "Excursion on {date}",
+  "@excursionOn": {
+    "description": "Label with a formatted date injected by the UI",
+    "placeholders": {
+      "date": { "type": "String" }
+    }
+  },
+
+  "cruiseDetailsTitle": "Cruise details",
+  "@cruiseDetailsTitle": {
+    "description": "Card title for cruise details on the overview"
+  },
+
+  "excursionsCountLabel": "excursions planned",
+  "@excursionsCountLabel": {
+    "description": "Static suffix after a number, e.g. '3 excursions planned'"
+  },
+
+  "seeDetailsCta": "See details",
+  "@seeDetailsCta": {
+    "description": "CTA text at the end of the cruise details card"
+  },
+
+  "nextExcursionTitle": "Next excursion",
+  "@nextExcursionTitle": {
+    "description": "Card title for the next upcoming excursion"
+  },
+
+  "nonePlanned": "No excursion planned",
+  "@nonePlanned": {
+    "description": "Shown when there is no upcoming excursion"
+  },
+
+  "dash": "—",
+  "@dash": {
+    "description": "Placeholder for missing/optional fields"
+  },
+
+  "totalLabel": "total",
+  "@totalLabel": {
+    "description": "Chip label: total count (e.g., excursions total)"
+  },
+
+  "upcomingLabel": "upcoming",
+  "@upcomingLabel": {
+    "description": "Chip label: count of future items"
+  },
+
+  "seeAllExcursionsCta": "All excursions",
+  "@seeAllExcursionsCta": {
+    "description": "CTA text to open the excursion list"
+  },
+
+  "excursionsTitle": "Excursions",
+  "@excursionsTitle": {
+    "description": "AppBar title of the excursion list"
+  },
+
+  "addNew": "Add new",
+  "@addNew": {
+    "description": "Generic label for create actions"
+  },
+
+  "noExcursionsYet": "No excursions yet.",
+  "@noExcursionsYet": {
+    "description": "Empty state text in the excursion list"
+  },
+
+  "excursionDetailsTitle": "Excursion details",
+  "@excursionDetailsTitle": {
+    "description": "AppBar title of the read-only excursion detail page"
+  },
+
+  "meetingPointLabel": "Meeting point",
+  "@meetingPointLabel": {
+    "description": "Label for the excursion meeting point"
+  },
+
+  "notesLabel": "Notes",
+  "@notesLabel": {
+    "description": "Label for notes/comments of an excursion"
+  },
+
+  "priceLabel": "Price",
+  "@priceLabel": {
+    "description": "Label for the price of an excursion"
+  },
+
+  "edit": "Edit",
+  "@edit": {
+    "description": "Generic label for an edit action"
+  },
+
+  "delete": "Delete",
+  "@delete": {"description": "Generic delete label"},
+
+  "deleteCruiseTitle": "Delete trip?",
+  "@deleteCruiseTitle": {"description": "Title of the delete confirmation dialog"},
+
+  "deleteCruiseMessage": "Really delete “{title}”?",
+  "@deleteCruiseMessage": {"description": "Question in the confirmation dialog", "placeholders": {"title": {"type":"String"}}},
+
+  "deleteConfirm": "Delete",
+  "@deleteConfirm": {"description": "Confirm button"},
+
+  "deleteCancel": "Cancel",
+  "@deleteCancel": {"description": "Cancel button"},
+
+  "deletedCruiseSnack": "“{title}” deleted",
+  "@deletedCruiseSnack": {"description": "Snackbar after deletion", "placeholders": {"title": {"type":"String"}}},
+
+  "undo": "Undo",
+  "@undo": {"description": "Undo label in snackbars"},
+
+  "travelSectionTitle": "Arrival & departure",
+  "travelEmptyHint": "No travel segments yet. Add your first segment.",
+  "travelShowAll": "Show all",
+  "travelAddNew": "New segment",
+  "travelChooseTypeTitle": "Choose type",
+  "travelOverviewTitle": "Travel plan",
+  "travelOverviewSubtitle": "for {cruiseTitle}",
+  "@travelOverviewSubtitle": {
+    "placeholders": {
+      "cruiseTitle": { "type": "String" }
+    }
+  },
+
+  "travelKind_flight": "Flight",
+  "travelKind_train": "Train",
+  "travelKind_transfer": "Transfer",
+  "travelKind_rentalCar": "Rental car",
+
+  "transferMode_shuttle": "Shuttle",
+  "transferMode_taxi": "Taxi",
+  "transferMode_privateDriver": "Private driver",
+  "transferMode_rideshare": "Rideshare",
+
+  "label_from": "From",
+  "label_to": "To",
+  "label_pickup": "Pickup",
+  "label_dropoff": "Drop-off",
+  "label_start": "Start",
+  "label_end": "End",
+  "label_timeRange": "{start} \u2192 {end}",
+  "@label_timeRange": {
+    "placeholders": {
+      "start": { "type": "String" },
+      "end": { "type": "String" }
+    }
+  },
+  "label_price": "Price",
+  "label_currency": "Currency",
+
+  "flight_airline": "Airline",
+  "flight_number": "Flight No.",
+  "flight_bookingRef": "Booking ref.",
+  "flight_bookingClass": "Class",
+  "flight_seat": "Seat",
+  "flight_terminalDep": "Terminal (dep.)",
+  "flight_terminalArr": "Terminal (arr.)",
+  "flight_baggagePieces": "Baggage pieces",
+
+  "train_operator": "Operator",
+  "train_number": "Train No.",
+  "train_coach": "Coach",
+  "train_seat": "Seat",
+
+  "transfer_provider": "Provider",
+  "transfer_confirmation": "Confirmation",
+  "transfer_pax": "Pax",
+
+  "rental_company": "Company",
+  "rental_reservation": "Reservation",
+  "rental_vehicleClass": "Vehicle class",
+  "rental_pickupLocation": "Pickup location",
+  "rental_dropoffLocation": "Drop-off location",
+
+  "travel_count": "{count, plural, =0{No segments} one{# segment} other{# segments}}",
+  "@travel_count": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "action_save": "Save",
+  "action_cancel": "Cancel",
+  "action_delete": "Delete",
+  "error_required": "This field is required.",
+  "error_endBeforeStart": "End must be after start.",
+  "savedSuccessfully": "Saved successfully"
+
+}
