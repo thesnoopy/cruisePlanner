@@ -1,0 +1,59 @@
+workflows:
+  ios_prep_unsigned:
+    name: iOS prep (unsigned)
+    environment:
+      flutter: stable
+    scripts:
+      - name: Setup
+        script: |
+          flutter clean
+          flutter pub get
+          flutter analyze
+      - name: Build iOS (unsigned)
+        script: |
+          flutter build ios --release --no-codesign
+      - name: Build Android (optional)
+        script: |
+          flutter build apk --release
+    artifacts:
+      - build/ios/iphoneos/Runner.app
+      - build/app/outputs/**/*.apk
+    cache:
+      cache_paths:
+        - $FLUTTER_ROOT/.pub-cache
+        - ~/.gradle/caches
+
+  ios_testflight_ready:   # Später aktivieren
+    name: iOS TestFlight
+    environment:
+      flutter: stable
+      groups:
+        - app_store_connect     # enthält später die 3 Secrets
+        - app                   # enthält z. B. BUNDLE_ID
+    scripts:
+      - name: Setup
+        script: |
+          flutter clean
+          flutter pub get
+          flutter analyze
+      - name: Build iOS (archive)
+        # Sobald Signing aktiv ist, kannst du auf 'ipa' wechseln:
+        # flutter build ipa --release
+        script: |
+          flutter build ios --release --no-codesign
+    ios_signing:
+      app_store_connect: {}     # Automatisches Signieren (Secrets später füllen)
+      provisioning_profiles:
+        - bundle_identifier: $BUNDLE_ID
+          export_method: app-store
+    publishing:
+      app_store_connect:
+        submit_to_testflight: true
+        beta_groups:
+          - Internal Testers
+    artifacts:
+      - build/ios/ipa/*.ipa
+      - build/ios/iphoneos/Runner.app
+    cache:
+      cache_paths:
+        - $FLUTTER_ROOT/.pub-cache
