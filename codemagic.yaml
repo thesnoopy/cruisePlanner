@@ -38,7 +38,7 @@ workflows:
 
       - name: List installed provisioning profiles
         script: |
-        ls -la ~/Library/MobileDevice/Provisioning\ Profiles || true
+          ls -la ~/Library/MobileDevice/Provisioning\ Profiles || true
 
       - name: Install uploaded certificates
         script: |
