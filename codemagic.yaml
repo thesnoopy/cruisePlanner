@@ -23,6 +23,42 @@ workflows:
         - $FLUTTER_ROOT/.pub-cache
         - ~/.gradle/caches
 
+  ios_testflight_ready:
+    name: iOS TestFlight (auto signing)
+    environment:
+      flutter: stable
+      groups:
+        - app                  # enthält: BUNDLE_ID=de.mailsmart.cruiseplanner
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: $BUNDLE_ID
+    scripts:
+      - name: Setup
+        script: |
+          flutter clean
+          flutter pub get
+
+      - name: Apply signing profiles
+        script: |
+          xcode-project use-profiles
+
+      - name: Build signed IPA
+        script: |
+          flutter build ipa --release
+
+    publishing:
+      app_store_connect:
+        submit_to_testflight: true
+        beta_groups:
+          - Internal Testers
+
+    artifacts:
+      - build/ios/ipa/*.ipa
+
+    cache:
+      cache_paths:
+        - $FLUTTER_ROOT/.pub-cache
+
   ios_testflight_fallback:
     name: iOS TestFlight (fallback)
     environment:
