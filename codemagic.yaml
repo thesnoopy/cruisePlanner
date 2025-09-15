@@ -23,22 +23,30 @@ workflows:
         - $FLUTTER_ROOT/.pub-cache
         - ~/.gradle/caches
 
-  ios_testflight_ready:
-    name: iOS TestFlight (auto signing)
+  ios_testflight_fallback:
+    name: iOS TestFlight (fallback)
     environment:
       flutter: stable
       groups:
-        - app                  # enthält: BUNDLE_ID=de.mailsmart.cruiseplanner
-      ios_signing:
-        distribution_type: app_store
-        bundle_identifier: $BUNDLE_ID
+        - app_store_connect    # APP_STORE_CONNECT_ISSUER_ID / KEY_IDENTIFIER / PRIVATE_KEY
+        - app                  # BUNDLE_ID
     scripts:
       - name: Setup
         script: |
           flutter clean
           flutter pub get
 
-      - name: Apply signing profiles
+      - name: Create or fetch signing files
+        script: |
+          app-store-connect fetch-signing-files \
+            --issuer-id $APP_STORE_CONNECT_ISSUER_ID \
+            --key-id   $APP_STORE_CONNECT_KEY_IDENTIFIER \
+            --private-key "$APP_STORE_CONNECT_PRIVATE_KEY" \
+            --type IOS_APP_STORE \
+            --bundle-id $BUNDLE_ID \
+            --create
+
+      - name: Apply profiles
         script: |
           xcode-project use-profiles
 
@@ -48,13 +56,12 @@ workflows:
 
     publishing:
       app_store_connect:
+        issuer_id: $APP_STORE_CONNECT_ISSUER_ID
+        key_id:   $APP_STORE_CONNECT_KEY_IDENTIFIER
+        api_key:  $APP_STORE_CONNECT_PRIVATE_KEY
         submit_to_testflight: true
         beta_groups:
           - Internal Testers
 
     artifacts:
       - build/ios/ipa/*.ipa
-
-    cache:
-      cache_paths:
-        - $FLUTTER_ROOT/.pub-cache
