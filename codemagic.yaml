@@ -28,18 +28,27 @@ workflows:
     environment:
       flutter: stable
       groups:
-        - app_store_connect   # APP_STORE_CONNECT_ISSUER_ID, APP_STORE_CONNECT_KEY_IDENTIFIER, APP_STORE_CONNECT_PRIVATE_KEY
-        - app                 # BUNDLE_ID = z. B. de.groth.cruiseplanner
+        - app_store_connect   # enthält: APP_STORE_CONNECT_ISSUER_ID, APP_STORE_CONNECT_KEY_IDENTIFIER, APP_STORE_CONNECT_PRIVATE_KEY
+        - app                 # enthält: BUNDLE_ID = de.mailsmart.cruiseplanner
       ios_signing:
         distribution_type: app_store
-        bundle_identifier: $BUNDLE_ID   # exakt wie bei Apple registriert
+        bundle_identifier: $BUNDLE_ID
     scripts:
       - name: Setup
         script: |
           flutter clean
           flutter pub get
           flutter analyze
-      - name: Set up code signing settings on Xcode project
+      - name: Fetch signing files (create if missing)
+        script: |
+          app-store-connect fetch-signing-files \
+            --issuer-id $APP_STORE_CONNECT_ISSUER_ID \
+            --key-id   $APP_STORE_CONNECT_KEY_IDENTIFIER \
+            --api-key  "$APP_STORE_CONNECT_PRIVATE_KEY" \
+            --type IOS_APP_STORE \
+            --bundle-id $BUNDLE_ID \
+            --create
+      - name: Apply profiles to Xcode project
         script: |
           xcode-project use-profiles
       - name: Build signed IPA
