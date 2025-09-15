@@ -36,6 +36,10 @@ workflows:
           flutter clean
           flutter pub get
 
+      - name: List installed provisioning profiles
+        script: |
+        ls -la ~/Library/MobileDevice/Provisioning\ Profiles || true
+
       - name: Install uploaded certificates
         script: |
           # installiert alle in Codemagic hochgeladenen .p12/.mobileprovision
