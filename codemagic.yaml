@@ -23,49 +23,28 @@ workflows:
         - $FLUTTER_ROOT/.pub-cache
         - ~/.gradle/caches
 
-  ios_testflight_ready:
-    name: iOS TestFlight
+  ios_testflight_manual:
+    name: iOS TestFlight (manual signing)
     environment:
       flutter: stable
       groups:
-        - app_store_connect   # APP_STORE_CONNECT_ISSUER_ID, APP_STORE_CONNECT_KEY_IDENTIFIER, APP_STORE_CONNECT_PRIVATE_KEY
-        - app                 # BUNDLE_ID=de.mailsmart.cruiseplanner
-      ios_signing:
-        distribution_type: app_store
-        bundle_identifier: $BUNDLE_ID
+        - app_store_connect        # enthält: APP_STORE_CONNECT_ISSUER_ID, APP_STORE_CONNECT_KEY_IDENTIFIER, APP_STORE_CONNECT_PRIVATE_KEY
+        - app                      # enthält: BUNDLE_ID=de.mailsmart.cruiseplanner
     scripts:
       - name: Setup
         script: |
           flutter clean
           flutter pub get
-          flutter analyze
 
-      - name: Fetch or create signing files
+      - name: Install uploaded certificates
         script: |
-          app-store-connect fetch-signing-files \
-            --issuer-id $APP_STORE_CONNECT_ISSUER_ID \
-            --key-id   $APP_STORE_CONNECT_KEY_IDENTIFIER \
-            --api-key  "$APP_STORE_CONNECT_PRIVATE_KEY" \
-            --type IOS_APP_STORE \
-            --bundle-id $BUNDLE_ID \
-            --create
+          # installiert alle in Codemagic hochgeladenen .p12/.mobileprovision
+          keychain add-certificates
 
-      - name: Debug installed provisioning profiles
+      - name: Apply provisioning profiles to Xcode project
         script: |
-          echo "Listing installed provisioning profiles..."
-          ls -la ~/Library/MobileDevice/Provisioning\ Profiles || true
-          for p in ~/Library/MobileDevice/Provisioning\ Profiles/*.mobileprovision; do
-            echo "----- $p -----"
-            security cms -D -i "$p" > /tmp/profile.plist
-            /usr/libexec/PlistBuddy -c 'Print :Name' /tmp/profile.plist
-            /usr/libexec/PlistBuddy -c 'Print :UUID' /tmp/profile.plist
-            /usr/libexec/PlistBuddy -c 'Print :Entitlements:application-identifier' /tmp/profile.plist
-            /usr/libexec/PlistBuddy -c 'Print :ExpirationDate' /tmp/profile.plist
-          done
-
-      - name: Apply profiles to Xcode project
-        script: |
-          xcode-project use-profiles
+          # weist das passende Profil deiner Bundle-ID zu
+          xcode-project use-profiles --bundle-id $BUNDLE_ID
 
       - name: Build signed IPA
         script: |
@@ -82,7 +61,3 @@ workflows:
 
     artifacts:
       - build/ios/ipa/*.ipa
-
-    cache:
-      cache_paths:
-        - $FLUTTER_ROOT/.pub-cache
