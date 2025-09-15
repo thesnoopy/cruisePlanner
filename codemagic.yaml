@@ -1,45 +1,70 @@
 workflows:
-  ios_testflight_ready:
-    name: iOS TestFlight
+  ios_prep_unsigned:
+    name: iOS prep (unsigned)
     environment:
       flutter: stable
-      groups:
-        - app_store_connect   # enthält die 3 Secrets
-        - app                 de.mailsmart.cruiseplanner
     scripts:
       - name: Setup
         script: |
           flutter clean
           flutter pub get
           flutter analyze
-      - name: Build iOS (signed IPA)
+      - name: Build iOS (unsigned)
+        script: |
+          flutter build ios --release --no-codesign
+      - name: Build Android (optional)
+        script: |
+          flutter build apk --release
+    artifacts:
+      - build/ios/iphoneos/Runner.app
+      - build/app/outputs/**/*.apk
+    cache:
+      cache_paths:
+        - $FLUTTER_ROOT/.pub-cache
+        - ~/.gradle/caches
+
+  ios_testflight_ready:
+    name: iOS TestFlight
+    environment:
+      flutter: stable
+      groups:
+        - app_store_connect   # enthält: APP_STORE_CONNECT_ISSUER_ID, APP_STORE_CONNECT_KEY_IDENTIFIER, APP_STORE_CONNECT_PRIVATE_KEY
+        - app                 # enthält: BUNDLE_ID (z. B. de.groth.cruiseplanner)
+    scripts:
+      - name: Setup
+        script: |
+          flutter clean
+          flutter pub get
+          flutter analyze
+      - name: Fetch signing files & apply profiles
+        script: |
+          # Lädt/erstellt Profile automatisch via App Store Connect API
+          app-store-connect fetch-signing-files \
+            --type IOS_APP_STORE \
+            --bundle-id $BUNDLE_ID
+          # trägt die Profile in dein Xcode-Projekt ein
+          xcode-project use-profiles
+      - name: Build signed IPA
         script: |
           flutter build ipa --release
-    ios_signing:
+    code_signing:
       app_store_connect:
-        issuer_id: 085932f5-7e86-454e-933d-8b46d6abcf97
-        key_id: FJ5698LG5N
-        api_key: -----BEGIN PRIVATE KEY-----/
-MIGTAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBHkwdwIBAQQgQoIe2urDjI48D/XN/
-Y0IOnLws9Ps4NQUKBlse1Z7j36OgCgYIKoZIzj0DAQehRANCAASv/wRG+fE70YHJ/
-2y9blrZcAeu+wh4YeFg91go/9uIGVCHbRCh5+kNW8IIzQEJ38NIWBgr3TMPgWCDh/
-Wr04ydZd/
------END PRIVATE KEY-----
+        issuer_id: $APP_STORE_CONNECT_ISSUER_ID
+        key_id:   $APP_STORE_CONNECT_KEY_IDENTIFIER
+        api_key:  $APP_STORE_CONNECT_PRIVATE_KEY
       provisioning_profiles:
-        - bundle_identifier: de.mailsmart.cruiseplanner
-          export_method: app-store
+        - bundle_identifier: $BUNDLE_ID
+          # export_method ergibt sich aus --type IOS_APP_STORE, daher hier keine Angabe nötig
     publishing:
       app_store_connect:
-        auth:
-          issuer_id: 085932f5-7e86-454e-933d-8b46d6abcf97
-          key_id: FJ5698LG5N
-          api_key: $APP_STORE_CONNECT_PRIVATE_KEY
+        issuer_id: $APP_STORE_CONNECT_ISSUER_ID
+        key_id:   $APP_STORE_CONNECT_KEY_IDENTIFIER
+        api_key:  $APP_STORE_CONNECT_PRIVATE_KEY
         submit_to_testflight: true
         beta_groups:
           - Internal Testers
     artifacts:
       - build/ios/ipa/*.ipa
-      - build/ios/iphoneos/Runner.app
     cache:
       cache_paths:
         - $FLUTTER_ROOT/.pub-cache
