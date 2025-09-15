@@ -23,32 +23,24 @@ workflows:
         - $FLUTTER_ROOT/.pub-cache
         - ~/.gradle/caches
 
-  ios_testflight_manual:
-    name: iOS TestFlight (manual signing)
+  ios_testflight_ready:
+    name: iOS TestFlight (auto signing)
     environment:
       flutter: stable
       groups:
-        - app_store_connect        # enthält: APP_STORE_CONNECT_ISSUER_ID, APP_STORE_CONNECT_KEY_IDENTIFIER, APP_STORE_CONNECT_PRIVATE_KEY
-        - app                      # enthält: BUNDLE_ID=de.mailsmart.cruiseplanner
+        - app                  # enthält: BUNDLE_ID=de.mailsmart.cruiseplanner
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: $BUNDLE_ID
     scripts:
       - name: Setup
         script: |
           flutter clean
           flutter pub get
 
-      - name: List installed provisioning profiles
+      - name: Apply signing profiles
         script: |
-          ls -la ~/Library/MobileDevice/Provisioning\ Profiles || true
-
-      - name: Install uploaded certificates
-        script: |
-          # installiert alle in Codemagic hochgeladenen .p12/.mobileprovision
-          keychain add-certificates
-
-      - name: Apply provisioning profiles to Xcode project
-        script: |
-          # weist das passende Profil deiner Bundle-ID zu
-          xcode-project use-profiles --bundle-id $BUNDLE_ID
+          xcode-project use-profiles
 
       - name: Build signed IPA
         script: |
@@ -56,12 +48,13 @@ workflows:
 
     publishing:
       app_store_connect:
-        issuer_id: $APP_STORE_CONNECT_ISSUER_ID
-        key_id:   $APP_STORE_CONNECT_KEY_IDENTIFIER
-        api_key:  $APP_STORE_CONNECT_PRIVATE_KEY
         submit_to_testflight: true
         beta_groups:
           - Internal Testers
 
     artifacts:
       - build/ios/ipa/*.ipa
+
+    cache:
+      cache_paths:
+        - $FLUTTER_ROOT/.pub-cache
