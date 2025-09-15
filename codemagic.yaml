@@ -1,53 +1,39 @@
 workflows:
-  ios_prep_unsigned:
-    name: iOS prep (unsigned)
-    environment:
-      flutter: stable
-    scripts:
-      - name: Setup
-        script: |
-          flutter clean
-          flutter pub get
-          flutter analyze
-      - name: Build iOS (unsigned)
-        script: |
-          flutter build ios --release --no-codesign
-      - name: Build Android (optional)
-        script: |
-          flutter build apk --release
-    artifacts:
-      - build/ios/iphoneos/Runner.app
-      - build/app/outputs/**/*.apk
-    cache:
-      cache_paths:
-        - $FLUTTER_ROOT/.pub-cache
-        - ~/.gradle/caches
-
-  ios_testflight_ready:   # Später aktivieren
+  ios_testflight_ready:
     name: iOS TestFlight
     environment:
       flutter: stable
       groups:
-        - app_store_connect     # enthält später die 3 Secrets
-        - app                   # enthält z. B. BUNDLE_ID
+        - app_store_connect   # enthält die 3 Secrets
+        - app                 de.mailsmart.cruiseplanner
     scripts:
       - name: Setup
         script: |
           flutter clean
           flutter pub get
           flutter analyze
-      - name: Build iOS (archive)
-        # Sobald Signing aktiv ist, kannst du auf 'ipa' wechseln:
-        # flutter build ipa --release
+      - name: Build iOS (signed IPA)
         script: |
-          flutter build ios --release --no-codesign
+          flutter build ipa --release
     ios_signing:
-      app_store_connect: {}     # Automatisches Signieren (Secrets später füllen)
+      app_store_connect:
+        issuer_id: 085932f5-7e86-454e-933d-8b46d6abcf97
+        key_id: FJ5698LG5N
+        api_key: -----BEGIN PRIVATE KEY-----/
+MIGTAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBHkwdwIBAQQgQoIe2urDjI48D/XN/
+Y0IOnLws9Ps4NQUKBlse1Z7j36OgCgYIKoZIzj0DAQehRANCAASv/wRG+fE70YHJ/
+2y9blrZcAeu+wh4YeFg91go/9uIGVCHbRCh5+kNW8IIzQEJ38NIWBgr3TMPgWCDh/
+Wr04ydZd/
+-----END PRIVATE KEY-----
       provisioning_profiles:
-        - bundle_identifier: $BUNDLE_ID
+        - bundle_identifier: de.mailsmart.cruiseplanner
           export_method: app-store
     publishing:
       app_store_connect:
+        auth:
+          issuer_id: 085932f5-7e86-454e-933d-8b46d6abcf97
+          key_id: FJ5698LG5N
+          api_key: $APP_STORE_CONNECT_PRIVATE_KEY
         submit_to_testflight: true
         beta_groups:
           - Internal Testers
