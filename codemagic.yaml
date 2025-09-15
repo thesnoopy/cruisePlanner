@@ -28,8 +28,8 @@ workflows:
     environment:
       flutter: stable
       groups:
-        - app_store_connect   # enthält: APP_STORE_CONNECT_ISSUER_ID, APP_STORE_CONNECT_KEY_IDENTIFIER, APP_STORE_CONNECT_PRIVATE_KEY
-        - app                 # enthält: BUNDLE_ID = de.mailsmart.cruiseplanner
+        - app_store_connect   # APP_STORE_CONNECT_ISSUER_ID, APP_STORE_CONNECT_KEY_IDENTIFIER, APP_STORE_CONNECT_PRIVATE_KEY
+        - app                 # BUNDLE_ID=de.mailsmart.cruiseplanner
       ios_signing:
         distribution_type: app_store
         bundle_identifier: $BUNDLE_ID
@@ -39,7 +39,8 @@ workflows:
           flutter clean
           flutter pub get
           flutter analyze
-      - name: Fetch signing files (create if missing)
+
+      - name: Fetch or create signing files
         script: |
           app-store-connect fetch-signing-files \
             --issuer-id $APP_STORE_CONNECT_ISSUER_ID \
@@ -48,12 +49,28 @@ workflows:
             --type IOS_APP_STORE \
             --bundle-id $BUNDLE_ID \
             --create
+
+      - name: Debug installed provisioning profiles
+        script: |
+          echo "Listing installed provisioning profiles..."
+          ls -la ~/Library/MobileDevice/Provisioning\ Profiles || true
+          for p in ~/Library/MobileDevice/Provisioning\ Profiles/*.mobileprovision; do
+            echo "----- $p -----"
+            security cms -D -i "$p" > /tmp/profile.plist
+            /usr/libexec/PlistBuddy -c 'Print :Name' /tmp/profile.plist
+            /usr/libexec/PlistBuddy -c 'Print :UUID' /tmp/profile.plist
+            /usr/libexec/PlistBuddy -c 'Print :Entitlements:application-identifier' /tmp/profile.plist
+            /usr/libexec/PlistBuddy -c 'Print :ExpirationDate' /tmp/profile.plist
+          done
+
       - name: Apply profiles to Xcode project
         script: |
           xcode-project use-profiles
+
       - name: Build signed IPA
         script: |
           flutter build ipa --release
+
     publishing:
       app_store_connect:
         issuer_id: $APP_STORE_CONNECT_ISSUER_ID
@@ -62,8 +79,10 @@ workflows:
         submit_to_testflight: true
         beta_groups:
           - Internal Testers
+
     artifacts:
       - build/ios/ipa/*.ipa
+
     cache:
       cache_paths:
         - $FLUTTER_ROOT/.pub-cache
