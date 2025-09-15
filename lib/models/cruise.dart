@@ -8,6 +8,7 @@ import 'excursion.dart';
 import 'period.dart';
 import 'ship.dart';
 import 'travel.dart';
+import 'route_item.dart'; // <- NEU
 
 class Cruise extends Equatable {
   /// UUID als String
@@ -20,6 +21,9 @@ class Cruise extends Equatable {
   /// An-/Abreise-Elemente (Flug/Bahn/Transfer/Mietwagen)
   final List<TravelItem> travel;
 
+  /// Route (Seetage & Hafenaufenthalte)
+  final List<RouteItem> route; // <- NEU
+
   const Cruise({
     required this.id,
     required this.title,
@@ -27,8 +31,10 @@ class Cruise extends Equatable {
     required this.period,
     List<Excursion>? excursions,
     List<TravelItem>? travel,
+    List<RouteItem>? route, // <- NEU
   })  : excursions = excursions ?? const [],
-        travel = travel ?? const [];
+        travel = travel ?? const [],
+        route = route ?? const []; // <- NEU
 
   Cruise copyWith({
     String? id,
@@ -37,6 +43,7 @@ class Cruise extends Equatable {
     Period? period,
     List<Excursion>? excursions,
     List<TravelItem>? travel,
+    List<RouteItem>? route, // <- NEU
   }) {
     return Cruise(
       id: id ?? this.id,
@@ -45,6 +52,7 @@ class Cruise extends Equatable {
       period: period ?? this.period,
       excursions: excursions ?? this.excursions,
       travel: travel ?? this.travel,
+      route: route ?? this.route, // <- NEU
     );
   }
 
@@ -56,6 +64,7 @@ class Cruise extends Equatable {
       'period': period.toMap(),
       'excursions': excursions.map((e) => e.toMap()).toList(growable: false),
       'travel': travel.map((t) => t.toMap()).toList(growable: false),
+      'route': route.map((r) => r.toMap()).toList(growable: false), // <- NEU
     };
   }
 
@@ -112,6 +121,16 @@ class Cruise extends Equatable {
           .toList(growable: false);
     }
 
+    // route robust lesen (alles andere -> [])
+    List<RouteItem> route = const [];
+    final rawRoute = map['route'];
+    if (rawRoute is List) {
+      route = rawRoute
+          .where((e) => e is Map)
+          .map((e) => RouteItem.fromMap(Map<String, dynamic>.from(e as Map)))
+          .toList(growable: false);
+    }
+
     return Cruise(
       id: id,
       title: title,
@@ -119,6 +138,7 @@ class Cruise extends Equatable {
       period: period,
       excursions: excursions,
       travel: travel,
+      route: route, // <- NEU
     );
   }
 
@@ -138,7 +158,7 @@ class Cruise extends Equatable {
   static String newId() => const Uuid().v4();
 
   @override
-  List<Object?> get props => [id, title, ship, period, excursions, travel];
+  List<Object?> get props => [id, title, ship, period, excursions, travel, route]; // <- NEU
 
   @override
   bool get stringify => true;

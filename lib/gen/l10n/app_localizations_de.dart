@@ -520,4 +520,88 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get savedSuccessfully => 'Erfolgreich gespeichert';
+
+  @override
+  String get routeSectionTitle => 'Route';
+
+  @override
+  String get routeTitle => 'Route';
+
+  @override
+  String get routeShowAll => 'Alle anzeigen';
+
+  @override
+  String get routeToday => 'Heute';
+
+  @override
+  String get routeTomorrow => 'Morgen';
+
+  @override
+  String get routeSeaDayLabel => 'Seetag (ganztägig)';
+
+  @override
+  String get routePortCallLabel => 'Hafenaufenthalt';
+
+  @override
+  String get routeChipToday => 'Heute';
+
+  @override
+  String get routeChipTomorrow => 'Morgen';
+
+  @override
+  String get routeEmptyHint => 'Noch keine Routen-Einträge.';
+
+  @override
+  String get routeAddFirstPortCta => 'Ersten Hafen hinzufügen';
+
+  @override
+  String get routeAddTooltip => 'Hafen hinzufügen';
+
+  @override
+  String get routeWizardNewTitle => 'Neuer Hafenaufenthalt';
+
+  @override
+  String get routeWizardEditTitle => 'Hafenaufenthalt bearbeiten';
+
+  @override
+  String get routeWizardSwitchSeaDay => 'Seetag statt Hafen?';
+
+  @override
+  String get routeDateLabel => 'Datum';
+
+  @override
+  String get routeArrivalTimeLabel => 'Ankunft';
+
+  @override
+  String get routeDepartureTimeLabel => 'Abfahrt';
+
+  @override
+  String get routePortNameLabel => 'Hafenname';
+
+  @override
+  String get routeCityLabel => 'Stadt';
+
+  @override
+  String get routeCountryLabel => 'Land';
+
+  @override
+  String get routeTerminalLabel => 'Terminal / Pier';
+
+  @override
+  String get routeDescriptionLabel => 'Beschreibung';
+
+  @override
+  String get routeNotesLabel => 'Notizen';
+
+  @override
+  String get routeSave => 'Speichern';
+
+  @override
+  String get routeCancel => 'Abbrechen';
+
+  @override
+  String get routeErrorRequired => 'Dieses Feld ist erforderlich.';
+
+  @override
+  String get routeErrorCityOrPort => 'Gib mindestens Stadt oder Hafenname an.';
 }

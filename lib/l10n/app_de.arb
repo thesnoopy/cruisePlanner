@@ -298,6 +298,145 @@
   "action_delete": "Löschen",
   "error_required": "Pflichtfeld.",
   "error_endBeforeStart": "Ende muss nach dem Start liegen.",
-  "savedSuccessfully": "Erfolgreich gespeichert"
+  "savedSuccessfully": "Erfolgreich gespeichert",
+  "routeSectionTitle": "Route",
+  "@routeSectionTitle": {
+    "description": "Abschnittsüberschrift für die Route in der Cruise-Detailseite."
+  },
+
+  "routeTitle": "Route",
+  "@routeTitle": {
+    "description": "AppBar-Titel der Routen-Detailseite."
+  },
+
+  "routeShowAll": "Alle anzeigen",
+  "@routeShowAll": {
+    "description": "Aktion, um die vollständige Routenliste zu öffnen."
+  },
+
+  "routeToday": "Heute",
+  "@routeToday": {
+    "description": "Label für den Eintrag von heute."
+  },
+
+  "routeTomorrow": "Morgen",
+  "@routeTomorrow": {
+    "description": "Label für den Eintrag von morgen."
+  },
+
+  "routeSeaDayLabel": "Seetag (ganztägig)",
+  "@routeSeaDayLabel": {
+    "description": "Label für einen Seetag-Eintrag."
+  },
+
+  "routePortCallLabel": "Hafenaufenthalt",
+  "@routePortCallLabel": {
+    "description": "Generisches Label für einen Hafenaufenthalt, wenn keine Stadt/Hafen vorhanden."
+  },
+
+  "routeChipToday": "Heute",
+  "@routeChipToday": {
+    "description": "Chip/Badge-Text für 'Heute' in der Liste."
+  },
+
+  "routeChipTomorrow": "Morgen",
+  "@routeChipTomorrow": {
+    "description": "Chip/Badge-Text für 'Morgen' in der Liste."
+  },
+
+  "routeEmptyHint": "Noch keine Routen-Einträge.",
+  "@routeEmptyHint": {
+    "description": "Platzhaltertext, wenn die Routenliste leer ist."
+  },
+
+  "routeAddFirstPortCta": "Ersten Hafen hinzufügen",
+  "@routeAddFirstPortCta": {
+    "description": "CTA-Button, wenn die Routenliste leer ist."
+  },
+
+  "routeAddTooltip": "Hafen hinzufügen",
+  "@routeAddTooltip": {
+    "description": "FAB-Tooltip auf der Routen-Detailseite."
+  },
+
+  "routeWizardNewTitle": "Neuer Hafenaufenthalt",
+  "@routeWizardNewTitle": {
+    "description": "AppBar-Titel zum Anlegen eines neuen Hafenaufenthalts."
+  },
+
+  "routeWizardEditTitle": "Hafenaufenthalt bearbeiten",
+  "@routeWizardEditTitle": {
+    "description": "AppBar-Titel zum Bearbeiten eines bestehenden Hafenaufenthalts."
+  },
+
+  "routeWizardSwitchSeaDay": "Seetag statt Hafen?",
+  "@routeWizardSwitchSeaDay": {
+    "description": "Umschalter, um das Formular zu einem Seetag zu machen."
+  },
+
+  "routeDateLabel": "Datum",
+  "@routeDateLabel": {
+    "description": "Formularlabel für das Kalenderdatum."
+  },
+
+  "routeArrivalTimeLabel": "Ankunft",
+  "@routeArrivalTimeLabel": {
+    "description": "Formularlabel für die Ankunftszeit."
+  },
+
+  "routeDepartureTimeLabel": "Abfahrt",
+  "@routeDepartureTimeLabel": {
+    "description": "Formularlabel für die Abfahrtszeit."
+  },
+
+  "routePortNameLabel": "Hafenname",
+  "@routePortNameLabel": {
+    "description": "Formularlabel für den Namen des Hafens."
+  },
+
+  "routeCityLabel": "Stadt",
+  "@routeCityLabel": {
+    "description": "Formularlabel für die Stadt."
+  },
+
+  "routeCountryLabel": "Land",
+  "@routeCountryLabel": {
+    "description": "Formularlabel für das Land."
+  },
+
+  "routeTerminalLabel": "Terminal / Pier",
+  "@routeTerminalLabel": {
+    "description": "Formularlabel für Terminal oder Pier."
+  },
+
+  "routeDescriptionLabel": "Beschreibung",
+  "@routeDescriptionLabel": {
+    "description": "Formularlabel für eine Freitextbeschreibung."
+  },
+
+  "routeNotesLabel": "Notizen",
+  "@routeNotesLabel": {
+    "description": "Formularlabel für optionale Notizen."
+  },
+
+  "routeSave": "Speichern",
+  "@routeSave": {
+    "description": "Primäre Aktion zum Speichern eines Routen-Eintrags."
+  },
+
+  "routeCancel": "Abbrechen",
+  "@routeCancel": {
+    "description": "Sekundäre Aktion zum Abbrechen des Wizards."
+  },
+
+  "routeErrorRequired": "Dieses Feld ist erforderlich.",
+  "@routeErrorRequired": {
+    "description": "Allgemeine Fehlermeldung für Pflichtfelder."
+  },
+
+  "routeErrorCityOrPort": "Gib mindestens Stadt oder Hafenname an.",
+  "@routeErrorCityOrPort": {
+    "description": "Validierung, wenn sowohl Stadt als auch Hafenname leer sind."
+  }
 
 }

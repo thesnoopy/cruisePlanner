@@ -1063,6 +1063,174 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Saved successfully'**
   String get savedSuccessfully;
+
+  /// Section header on Cruise Detail page for the itinerary route.
+  ///
+  /// In en, this message translates to:
+  /// **'Route'**
+  String get routeSectionTitle;
+
+  /// AppBar title for the route detail page.
+  ///
+  /// In en, this message translates to:
+  /// **'Route'**
+  String get routeTitle;
+
+  /// Trailing action to open the full route list.
+  ///
+  /// In en, this message translates to:
+  /// **'Show all'**
+  String get routeShowAll;
+
+  /// Label for today's route item.
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get routeToday;
+
+  /// Label for tomorrow's route item.
+  ///
+  /// In en, this message translates to:
+  /// **'Tomorrow'**
+  String get routeTomorrow;
+
+  /// Label used for a sea day entry.
+  ///
+  /// In en, this message translates to:
+  /// **'Sea day (all day)'**
+  String get routeSeaDayLabel;
+
+  /// Generic label for a port call when no city/port is available.
+  ///
+  /// In en, this message translates to:
+  /// **'Port call'**
+  String get routePortCallLabel;
+
+  /// Chip/badge text marking today's entry in the list.
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get routeChipToday;
+
+  /// Chip/badge text marking tomorrow's entry in the list.
+  ///
+  /// In en, this message translates to:
+  /// **'Tomorrow'**
+  String get routeChipTomorrow;
+
+  /// Placeholder text when the route list is empty.
+  ///
+  /// In en, this message translates to:
+  /// **'No route entries yet.'**
+  String get routeEmptyHint;
+
+  /// Call-to-action button when the route list is empty.
+  ///
+  /// In en, this message translates to:
+  /// **'Add first port call'**
+  String get routeAddFirstPortCta;
+
+  /// FAB tooltip on the route detail page.
+  ///
+  /// In en, this message translates to:
+  /// **'Add port call'**
+  String get routeAddTooltip;
+
+  /// AppBar title for creating a new port call.
+  ///
+  /// In en, this message translates to:
+  /// **'New port call'**
+  String get routeWizardNewTitle;
+
+  /// AppBar title for editing an existing port call.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit port call'**
+  String get routeWizardEditTitle;
+
+  /// Toggle to switch the form to a sea day entry.
+  ///
+  /// In en, this message translates to:
+  /// **'Sea day instead of port?'**
+  String get routeWizardSwitchSeaDay;
+
+  /// Form label for the calendar date.
+  ///
+  /// In en, this message translates to:
+  /// **'Date'**
+  String get routeDateLabel;
+
+  /// Form label for arrival time.
+  ///
+  /// In en, this message translates to:
+  /// **'Arrival'**
+  String get routeArrivalTimeLabel;
+
+  /// Form label for departure time.
+  ///
+  /// In en, this message translates to:
+  /// **'Departure'**
+  String get routeDepartureTimeLabel;
+
+  /// Form label for the port name.
+  ///
+  /// In en, this message translates to:
+  /// **'Port name'**
+  String get routePortNameLabel;
+
+  /// Form label for the city.
+  ///
+  /// In en, this message translates to:
+  /// **'City'**
+  String get routeCityLabel;
+
+  /// Form label for the country.
+  ///
+  /// In en, this message translates to:
+  /// **'Country'**
+  String get routeCountryLabel;
+
+  /// Form label for the cruise terminal or pier.
+  ///
+  /// In en, this message translates to:
+  /// **'Terminal / Pier'**
+  String get routeTerminalLabel;
+
+  /// Form label for a free-text description.
+  ///
+  /// In en, this message translates to:
+  /// **'Description'**
+  String get routeDescriptionLabel;
+
+  /// Form label for optional notes.
+  ///
+  /// In en, this message translates to:
+  /// **'Notes'**
+  String get routeNotesLabel;
+
+  /// Primary action to save the route item.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get routeSave;
+
+  /// Secondary action to cancel the wizard.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get routeCancel;
+
+  /// Generic required-field validation message.
+  ///
+  /// In en, this message translates to:
+  /// **'This field is required.'**
+  String get routeErrorRequired;
+
+  /// Validation when both city and port name are empty.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter at least a city or a port name.'**
+  String get routeErrorCityOrPort;
 }
 
 class _AppLocalizationsDelegate

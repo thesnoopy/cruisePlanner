@@ -519,4 +519,88 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get savedSuccessfully => 'Saved successfully';
+
+  @override
+  String get routeSectionTitle => 'Route';
+
+  @override
+  String get routeTitle => 'Route';
+
+  @override
+  String get routeShowAll => 'Show all';
+
+  @override
+  String get routeToday => 'Today';
+
+  @override
+  String get routeTomorrow => 'Tomorrow';
+
+  @override
+  String get routeSeaDayLabel => 'Sea day (all day)';
+
+  @override
+  String get routePortCallLabel => 'Port call';
+
+  @override
+  String get routeChipToday => 'Today';
+
+  @override
+  String get routeChipTomorrow => 'Tomorrow';
+
+  @override
+  String get routeEmptyHint => 'No route entries yet.';
+
+  @override
+  String get routeAddFirstPortCta => 'Add first port call';
+
+  @override
+  String get routeAddTooltip => 'Add port call';
+
+  @override
+  String get routeWizardNewTitle => 'New port call';
+
+  @override
+  String get routeWizardEditTitle => 'Edit port call';
+
+  @override
+  String get routeWizardSwitchSeaDay => 'Sea day instead of port?';
+
+  @override
+  String get routeDateLabel => 'Date';
+
+  @override
+  String get routeArrivalTimeLabel => 'Arrival';
+
+  @override
+  String get routeDepartureTimeLabel => 'Departure';
+
+  @override
+  String get routePortNameLabel => 'Port name';
+
+  @override
+  String get routeCityLabel => 'City';
+
+  @override
+  String get routeCountryLabel => 'Country';
+
+  @override
+  String get routeTerminalLabel => 'Terminal / Pier';
+
+  @override
+  String get routeDescriptionLabel => 'Description';
+
+  @override
+  String get routeNotesLabel => 'Notes';
+
+  @override
+  String get routeSave => 'Save';
+
+  @override
+  String get routeCancel => 'Cancel';
+
+  @override
+  String get routeErrorRequired => 'This field is required.';
+
+  @override
+  String get routeErrorCityOrPort => 'Enter at least a city or a port name.';
 }

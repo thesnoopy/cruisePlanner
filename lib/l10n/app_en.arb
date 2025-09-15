@@ -288,6 +288,145 @@
   "action_delete": "Delete",
   "error_required": "This field is required.",
   "error_endBeforeStart": "End must be after start.",
-  "savedSuccessfully": "Saved successfully"
+  "savedSuccessfully": "Saved successfully",
+  "routeSectionTitle": "Route",
+  "@routeSectionTitle": {
+    "description": "Section header on Cruise Detail page for the itinerary route."
+  },
+
+  "routeTitle": "Route",
+  "@routeTitle": {
+    "description": "AppBar title for the route detail page."
+  },
+
+  "routeShowAll": "Show all",
+  "@routeShowAll": {
+    "description": "Trailing action to open the full route list."
+  },
+
+  "routeToday": "Today",
+  "@routeToday": {
+    "description": "Label for today's route item."
+  },
+
+  "routeTomorrow": "Tomorrow",
+  "@routeTomorrow": {
+    "description": "Label for tomorrow's route item."
+  },
+
+  "routeSeaDayLabel": "Sea day (all day)",
+  "@routeSeaDayLabel": {
+    "description": "Label used for a sea day entry."
+  },
+
+  "routePortCallLabel": "Port call",
+  "@routePortCallLabel": {
+    "description": "Generic label for a port call when no city/port is available."
+  },
+
+  "routeChipToday": "Today",
+  "@routeChipToday": {
+    "description": "Chip/badge text marking today's entry in the list."
+  },
+
+  "routeChipTomorrow": "Tomorrow",
+  "@routeChipTomorrow": {
+    "description": "Chip/badge text marking tomorrow's entry in the list."
+  },
+
+  "routeEmptyHint": "No route entries yet.",
+  "@routeEmptyHint": {
+    "description": "Placeholder text when the route list is empty."
+  },
+
+  "routeAddFirstPortCta": "Add first port call",
+  "@routeAddFirstPortCta": {
+    "description": "Call-to-action button when the route list is empty."
+  },
+
+  "routeAddTooltip": "Add port call",
+  "@routeAddTooltip": {
+    "description": "FAB tooltip on the route detail page."
+  },
+
+  "routeWizardNewTitle": "New port call",
+  "@routeWizardNewTitle": {
+    "description": "AppBar title for creating a new port call."
+  },
+
+  "routeWizardEditTitle": "Edit port call",
+  "@routeWizardEditTitle": {
+    "description": "AppBar title for editing an existing port call."
+  },
+
+  "routeWizardSwitchSeaDay": "Sea day instead of port?",
+  "@routeWizardSwitchSeaDay": {
+    "description": "Toggle to switch the form to a sea day entry."
+  },
+
+  "routeDateLabel": "Date",
+  "@routeDateLabel": {
+    "description": "Form label for the calendar date."
+  },
+
+  "routeArrivalTimeLabel": "Arrival",
+  "@routeArrivalTimeLabel": {
+    "description": "Form label for arrival time."
+  },
+
+  "routeDepartureTimeLabel": "Departure",
+  "@routeDepartureTimeLabel": {
+    "description": "Form label for departure time."
+  },
+
+  "routePortNameLabel": "Port name",
+  "@routePortNameLabel": {
+    "description": "Form label for the port name."
+  },
+
+  "routeCityLabel": "City",
+  "@routeCityLabel": {
+    "description": "Form label for the city."
+  },
+
+  "routeCountryLabel": "Country",
+  "@routeCountryLabel": {
+    "description": "Form label for the country."
+  },
+
+  "routeTerminalLabel": "Terminal / Pier",
+  "@routeTerminalLabel": {
+    "description": "Form label for the cruise terminal or pier."
+  },
+
+  "routeDescriptionLabel": "Description",
+  "@routeDescriptionLabel": {
+    "description": "Form label for a free-text description."
+  },
+
+  "routeNotesLabel": "Notes",
+  "@routeNotesLabel": {
+    "description": "Form label for optional notes."
+  },
+
+  "routeSave": "Save",
+  "@routeSave": {
+    "description": "Primary action to save the route item."
+  },
+
+  "routeCancel": "Cancel",
+  "@routeCancel": {
+    "description": "Secondary action to cancel the wizard."
+  },
+
+  "routeErrorRequired": "This field is required.",
+  "@routeErrorRequired": {
+    "description": "Generic required-field validation message."
+  },
+
+  "routeErrorCityOrPort": "Enter at least a city or a port name.",
+  "@routeErrorCityOrPort": {
+    "description": "Validation when both city and port name are empty."
+  }
 
 }

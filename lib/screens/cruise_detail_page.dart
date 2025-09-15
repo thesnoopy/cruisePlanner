@@ -1,18 +1,21 @@
+// lib/screens/cruise_detail_page.dart
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:cruise_app/gen/l10n/app_localizations.dart';
 
+import 'package:cruise_app/data/cruise_repository.dart';
+
 import 'package:cruise_app/models/cruise.dart';
 import 'package:cruise_app/models/excursion.dart';
 import 'package:cruise_app/models/travel.dart';
+import 'package:cruise_app/models/route_item.dart';
 
 import 'package:cruise_app/screens/cruise_details_read_only_page.dart';
 import 'package:cruise_app/screens/excursion_list_page.dart';
-
-// NEU: ausgelagerte Travel-Screens
+import 'package:cruise_app/screens/route_detail_read_only_page.dart';
 import 'package:cruise_app/screens/travel/travel_overview_page.dart';
 
-import 'package:cruise_app/data/cruise_repository.dart';
+import 'package:cruise_app/utils/route_utils.dart';
 
 class CruiseDetailPage extends StatefulWidget {
   final Cruise cruise;
@@ -36,33 +39,32 @@ class _CruiseDetailPageState extends State<CruiseDetailPage> {
   void initState() {
     super.initState();
     _current = widget.cruise;
-  }  
+  }
 
   Future<void> _applyUpdatedCruise(Cruise updated) async {
-  setState(() {
-    _current = updated;
-    _dirty = true; // damit beim Back ein aktualisiertes Objekt nach oben gereicht wird
-  });
+    setState(() {
+      _current = updated;
+      _dirty = true; // damit beim Back ein aktualisiertes Objekt nach oben gereicht wird
+    });
 
-  try {
-    // NUTZE die passende Repo-Methode deines Projekts:
-    // z.B. saveCruise / upsertCruise / saveAll — bitte ggf. anpassen.
-    await widget.repo.upsertCruise(updated);
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(AppLocalizations.of(context)!.savedSuccessfully)),
-    );
-  } catch (e) {
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Speichern fehlgeschlagen: $e')),
-    );
+    try {
+      // Passe den Methodennamen bei Bedarf an dein tatsächliches Repo an.
+      await widget.repo.upsertCruise(updated);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(AppLocalizations.of(context)!.savedSuccessfully)),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Speichern fehlgeschlagen: $e')),
+      );
+    }
   }
-}
 
   @override
   Widget build(BuildContext context) {
-    final translations = AppLocalizations.of(context)!;
+    final t = AppLocalizations.of(context)!;
     final localeTag = Localizations.localeOf(context).toLanguageTag();
     final df = DateFormat.yMMMMd(localeTag);
 
@@ -70,18 +72,22 @@ class _CruiseDetailPageState extends State<CruiseDetailPage> {
     final start = cruise.period.start;
     final end = cruise.period.end;
 
-    final excursions = List<Excursion>.from(cruise.excursions ?? const <Excursion>[])
+    final excursions = List<Excursion>.from(cruise.excursions)
       ..sort((a, b) => a.date.compareTo(b.date));
 
     final now = DateTime.now();
     final today0 = DateTime(now.year, now.month, now.day);
-    final nextExcursions = excursions.where((e) => !e.date.isBefore(today0)).toList();
-    final Excursion? next = nextExcursions.isNotEmpty ? nextExcursions.first : null;
+    final nextExcursions =
+        excursions.where((e) => !e.date.isBefore(today0)).toList();
+    final Excursion? next =
+        nextExcursions.isNotEmpty ? nextExcursions.first : null;
 
     final total = excursions.length;
     final futureCount = nextExcursions.length;
 
-    String rangeText(DateTime s, DateTime e) => "${df.format(s)} → ${df.format(e)}";
+    String rangeText(DateTime s, DateTime e) =>
+        "${df.format(s)} → ${df.format(e)}";
+
     String? formatMoney(num? value, String? code) {
       if (value == null || code == null || code.isEmpty) return null;
       return NumberFormat.currency(locale: localeTag, name: code).format(value);
@@ -95,7 +101,7 @@ class _CruiseDetailPageState extends State<CruiseDetailPage> {
         }
         return true;
       },
-      child:  Scaffold(
+      child: Scaffold(
         appBar: AppBar(
           title: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -112,19 +118,21 @@ class _CruiseDetailPageState extends State<CruiseDetailPage> {
         body: ListView(
           padding: const EdgeInsets.all(16),
           children: [
-            // Cruise-Details
+            // --- Cruise-Details ---
             _OverviewCard(
-              title: translations.cruiseDetailsTitle,
+              title: t.cruiseDetailsTitle,
               rows: [
-                _IconText(Icons.directions_boat, "${cruise.ship.name} • ${cruise.ship.shippingLine}"),
+                _IconText(Icons.directions_boat,
+                    "${cruise.ship.name} • ${cruise.ship.shippingLine}"),
                 _IconText(Icons.event, rangeText(start, end)),
-                _IconText(Icons.flag, "$total ${translations.excursionsCountLabel}"),
+                _IconText(Icons.flag, "$total ${t.excursionsCountLabel}"),
               ],
-              trailingLabel: translations.seeDetailsCta,
+              trailingLabel: t.seeDetailsCta,
               onTap: () async {
                 final updated = await Navigator.of(context).push<Cruise>(
                   MaterialPageRoute(
-                    builder: (_) => CruiseDetailsReadOnlyPage(cruise: cruise, repo: widget.repo),
+                    builder: (_) =>
+                        CruiseDetailsReadOnlyPage(cruise: cruise, repo: widget.repo),
                   ),
                 );
                 if (updated != null) {
@@ -137,24 +145,36 @@ class _CruiseDetailPageState extends State<CruiseDetailPage> {
 
             const SizedBox(height: 16),
 
-            // Nächster Ausflug
+            // --- NEU: Route (Heute/Morgen) ---
+            RouteSectionCard(
+              cruise: cruise,
+              onSaveCruise: (updated) async {
+                await _applyUpdatedCruise(updated);
+              },
+            ),
+
+            const SizedBox(height: 16),
+
+            // --- Nächster Ausflug ---
             _OverviewCard(
-              title: translations.nextExcursionTitle,
+              title: t.nextExcursionTitle,
               rows: [
-                _IconText(Icons.text_fields, next?.title ?? translations.dash),
-                _IconText(Icons.event, next != null ? df.format(next.date) : translations.nonePlanned),
-                _IconText(Icons.place, (next?.port?.isNotEmpty ?? false) ? next!.port! : translations.dash),
-                _IconText(Icons.meeting_room, (next?.meetingPoint?.isNotEmpty ?? false) ? next!.meetingPoint! : translations.dash),
-                _IconText(Icons.attach_money, formatMoney(next?.price, next?.currency) ?? translations.dash),
+                _IconText(Icons.text_fields, next?.title ?? t.dash),
+                _IconText(Icons.event, next != null ? df.format(next.date) : t.nonePlanned),
+                _IconText(Icons.place, (next?.port?.isNotEmpty ?? false) ? next!.port! : t.dash),
+                _IconText(Icons.meeting_room, (next?.meetingPoint?.isNotEmpty ?? false) ? next!.meetingPoint! : t.dash),
+                _IconText(Icons.attach_money, formatMoney(next?.price, next?.currency) ?? t.dash),
               ],
               chips: [
-                "$total ${translations.totalLabel}",
-                "$futureCount ${translations.upcomingLabel}",
+                "$total ${t.totalLabel}",
+                "$futureCount ${t.upcomingLabel}",
               ],
-              trailingLabel: translations.seeAllExcursionsCta,
+              trailingLabel: t.seeAllExcursionsCta,
               onTap: () async {
                 await Navigator.of(context).push(
-                  MaterialPageRoute(builder: (_) => ExcursionListPage(cruise: cruise, repo: widget.repo)),
+                  MaterialPageRoute(
+                    builder: (_) => ExcursionListPage(cruise: cruise, repo: widget.repo),
+                  ),
                 );
                 setState(() {});
               },
@@ -162,7 +182,7 @@ class _CruiseDetailPageState extends State<CruiseDetailPage> {
 
             const SizedBox(height: 16),
 
-            // NEU: An- & Abreise (kompakter Teaser)
+            // --- Travel-Teaser ---
             _TravelSectionTeaser(
               cruise: cruise,
               onUpdated: (updatedCruise) async {
@@ -171,11 +191,117 @@ class _CruiseDetailPageState extends State<CruiseDetailPage> {
             ),
           ],
         ),
-      )
+      ),
     );
   }
 }
 
+// ===================================================================
+// Route-Section Card (Heute / Morgen + "Alle anzeigen")
+// ===================================================================
+class RouteSectionCard extends StatelessWidget {
+  final Cruise cruise;
+  final ValueChanged<Cruise>? onSaveCruise;
+
+  const RouteSectionCard({
+    super.key,
+    required this.cruise,
+    this.onSaveCruise,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
+    final now = DateTime.now();
+    final routeSorted = sortRoute(cruise.route);
+    final current = routeForToday(now, routeSorted);
+    final next = routeForTomorrow(now, routeSorted);
+
+    return Card(
+      clipBehavior: Clip.antiAlias,
+      child: Column(
+        children: [
+          ListTile(
+            leading: Icon(Icons.route, color: Theme.of(context).colorScheme.primary),
+            title: Text(t.routeSectionTitle),
+            trailing: TextButton.icon(
+              onPressed: () => _openDetail(context),
+              icon: const Icon(Icons.chevron_right),
+              label: Text(t.routeShowAll),
+            ),
+            onTap: () => _openDetail(context),
+          ),
+          const Divider(height: 0),
+          _RouteDayRow(label: t.routeToday, item: current),
+          const Divider(height: 0),
+          _RouteDayRow(label: t.routeTomorrow, item: next),
+          const SizedBox(height: 8),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _openDetail(BuildContext context) async {
+    final updated = await Navigator.of(context).push<Cruise>(
+      MaterialPageRoute(
+        builder: (_) => RouteDetailReadOnlyPage(cruise: cruise),
+      ),
+    );
+    if (updated != null && onSaveCruise != null) {
+      onSaveCruise!(updated);
+    }
+  }
+}
+
+class _RouteDayRow extends StatelessWidget {
+  final String label;
+  final RouteItem? item;
+  const _RouteDayRow({required this.label, required this.item});
+
+  @override
+  Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
+    final locale = Localizations.localeOf(context).toLanguageTag();
+    final dateFmt = DateFormat.yMMMMd(locale);
+    final timeFmt = DateFormat.Hm(locale);
+
+    IconData icon = Icons.help_outline;
+    String title = t.routeEmptyHint;
+    String subtitle = '';
+
+    if (item != null) {
+      if (item!.isSea) {
+        icon = Icons.waves;
+        title = t.routeSeaDayLabel;
+        subtitle = dateFmt.format(item!.date);
+      } else if (item!.isPort) {
+        final p = item as PortCallItem;
+        icon = Icons.anchor;
+        final cityCountry = [
+          if ((p.city ?? '').isNotEmpty) p.city,
+          if ((p.country ?? '').isNotEmpty) p.country,
+        ].whereType<String>().join(', ');
+        title = cityCountry.isNotEmpty
+            ? cityCountry
+            : (p.portName.isNotEmpty ? p.portName : t.routePortCallLabel);
+        subtitle =
+            '${timeFmt.format(p.arrival)} – ${timeFmt.format(p.departure)} · ${dateFmt.format(p.date)}';
+      }
+    }
+
+    return ListTile(
+      leading: Icon(icon),
+      title: Text('$label: $title'),
+      subtitle: subtitle.isEmpty ? null : Text(subtitle),
+      dense: true,
+      visualDensity: VisualDensity.compact,
+    );
+  }
+}
+
+// ===================================================================
+// Allgemeine Übersichtskarte (bestehend) – unverändert
+// ===================================================================
 class _OverviewCard extends StatelessWidget {
   final String title;
   final List<_IconText> rows;
@@ -221,7 +347,10 @@ class _OverviewCard extends StatelessWidget {
                   spacing: 8,
                   runSpacing: 8,
                   children: chips!
-                      .map((c) => Chip(label: Text(c), visualDensity: VisualDensity.compact))
+                      .map((c) => Chip(
+                            label: Text(c),
+                            visualDensity: VisualDensity.compact,
+                          ))
                       .toList(),
                 ),
               ],
@@ -247,9 +376,10 @@ class _IconText {
   final String text;
   const _IconText(this.icon, this.text);
 }
-/// ------------------------------------------------------------
-/// Kompakter Travel-Teaser (tap auf die ganze Karte -> Overview)
-/// ------------------------------------------------------------
+
+// ===================================================================
+// Kompakter Travel-Teaser (tap -> TravelOverviewPage)
+// ===================================================================
 class _TravelSectionTeaser extends StatelessWidget {
   final Cruise cruise;
   final ValueChanged<Cruise> onUpdated;
@@ -261,7 +391,8 @@ class _TravelSectionTeaser extends StatelessWidget {
     final locale = Localizations.localeOf(context).toLanguageTag();
     final df = DateFormat.yMMMMd(locale).add_Hm();
 
-    final items = List<TravelItem>.from(cruise.travel)..sort((a, b) => a.start.compareTo(b.start));
+    final items = List<TravelItem>.from(cruise.travel)
+      ..sort((a, b) => a.start.compareTo(b.start));
     final next = cruise.nextTravelItem(DateTime.now());
 
     Widget body;
@@ -276,7 +407,9 @@ class _TravelSectionTeaser extends StatelessWidget {
     } else {
       final i = next ?? items.first;
       final hasEnd = i.end != null;
-      final timeStr = hasEnd ? t.label_timeRange(df.format(i.start), df.format(i.end!)) : df.format(i.start);
+      final timeStr = hasEnd
+          ? t.label_timeRange(df.format(i.start), df.format(i.end!))
+          : df.format(i.start);
       final route = _route(i);
 
       body = Row(
@@ -312,12 +445,10 @@ class _TravelSectionTeaser extends StatelessWidget {
       clipBehavior: Clip.antiAlias,
       child: InkWell(
         onTap: () async {
-          // Direkt in die Overview (Detailsicht) springen
           final updated = await Navigator.of(context).push<Cruise>(
             MaterialPageRoute(builder: (_) => TravelOverviewPage(cruise: cruise)),
           );
           if (updated != null && context.mounted) {
-            // wie zuvor: aktualisierte Cruise nach oben zurückgeben
             onUpdated(updated);
           }
         },
@@ -326,7 +457,6 @@ class _TravelSectionTeaser extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Header (ohne "Alle anzeigen")
               Row(
                 children: [
                   Icon(Icons.route, color: Theme.of(context).colorScheme.primary),
@@ -336,7 +466,6 @@ class _TravelSectionTeaser extends StatelessWidget {
               ),
               const SizedBox(height: 10),
               body,
-              // Kein "Neues Segment"-Button mehr
             ],
           ),
         ),
@@ -351,7 +480,7 @@ class _TravelSectionTeaser extends StatelessWidget {
     if (a.isEmpty) return b;
     if (b.isEmpty) return a;
     return '$a → $b';
-  }
+    }
 
   static Widget _travelIcon(TravelKind type, BuildContext context) {
     final color = Theme.of(context).colorScheme.primary;
