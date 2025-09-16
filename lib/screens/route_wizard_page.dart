@@ -2,7 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
-import 'package:cruise_app/gen/l10n/app_localizations.dart';
+import 'package:cruiseplanner/gen/l10n/app_localizations.dart';
 
 import '../models/route_item.dart';
 

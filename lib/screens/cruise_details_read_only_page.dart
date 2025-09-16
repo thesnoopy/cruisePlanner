@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:cruise_app/gen/l10n/app_localizations.dart';
+import 'package:cruiseplanner/gen/l10n/app_localizations.dart';
 
-import 'package:cruise_app/models/cruise.dart';
+import 'package:cruiseplanner/models/cruise.dart';
 import '../data/cruise_repository.dart';
 import 'cruise_wizard_page.dart';
 

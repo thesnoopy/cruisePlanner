@@ -1,5 +1,5 @@
 // lib/screens/home_screen.dart
-import 'package:cruise_app/utils/l10n_ext.dart';
+import 'package:cruiseplanner/utils/l10n_ext.dart';
 import 'package:flutter/material.dart';
 import '../models/cruise.dart';
 import '../models/ship.dart';
@@ -13,7 +13,7 @@ import '../settings/webdav_settings.dart';
 
 import 'webdav_settings_page.dart';
 import 'cruise_detail_page.dart';
-import 'package:cruise_app/gen/l10n/app_localizations.dart';
+import 'package:cruiseplanner/gen/l10n/app_localizations.dart';
 
 class HomeScreen extends StatefulWidget {
   final CruiseRepository repo;

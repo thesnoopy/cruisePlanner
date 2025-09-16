@@ -4,7 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
 import '../../models/cruise.dart';
 import '../../models/excursion.dart';
-import 'package:cruise_app/gen/l10n/app_localizations.dart';
+import 'package:cruiseplanner/gen/l10n/app_localizations.dart';
 
 
 class ExcursionWizardPage extends StatefulWidget {

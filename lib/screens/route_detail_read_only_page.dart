@@ -1,7 +1,7 @@
 // lib/screens/route_detail_read_only_page.dart
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:cruise_app/gen/l10n/app_localizations.dart';
+import 'package:cruiseplanner/gen/l10n/app_localizations.dart';
 
 import '../models/cruise.dart';
 import '../models/route_item.dart';

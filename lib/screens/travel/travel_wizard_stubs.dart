@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
 
-import 'package:cruise_app/gen/l10n/app_localizations.dart';
-import 'package:cruise_app/models/travel.dart';
+import 'package:cruiseplanner/gen/l10n/app_localizations.dart';
+import 'package:cruiseplanner/models/travel.dart';
 
 String _newId() => const Uuid().v4();
 String _locale(BuildContext c) => Localizations.localeOf(c).toLanguageTag();

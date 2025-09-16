@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:cruise_app/gen/l10n/app_localizations.dart';
+import 'package:cruiseplanner/gen/l10n/app_localizations.dart';
 
-import 'package:cruise_app/models/cruise.dart';
-import 'package:cruise_app/models/excursion.dart';
-import 'package:cruise_app/screens/excursion_detail_read_only_page.dart';
-import 'package:cruise_app/data/cruise_repository.dart';
-import 'package:cruise_app/screens/excursion_wizard_page.dart'; // ← dein existierender Wizard
+import 'package:cruiseplanner/models/cruise.dart';
+import 'package:cruiseplanner/models/excursion.dart';
+import 'package:cruiseplanner/screens/excursion_detail_read_only_page.dart';
+import 'package:cruiseplanner/data/cruise_repository.dart';
+import 'package:cruiseplanner/screens/excursion_wizard_page.dart'; // ← dein existierender Wizard
 
 class ExcursionListPage extends StatefulWidget {
   final Cruise cruise;

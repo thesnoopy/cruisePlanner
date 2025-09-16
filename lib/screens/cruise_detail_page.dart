@@ -1,21 +1,21 @@
 // lib/screens/cruise_detail_page.dart
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:cruise_app/gen/l10n/app_localizations.dart';
+import 'package:cruiseplanner/gen/l10n/app_localizations.dart';
 
-import 'package:cruise_app/data/cruise_repository.dart';
+import 'package:cruiseplanner/data/cruise_repository.dart';
 
-import 'package:cruise_app/models/cruise.dart';
-import 'package:cruise_app/models/excursion.dart';
-import 'package:cruise_app/models/travel.dart';
-import 'package:cruise_app/models/route_item.dart';
+import 'package:cruiseplanner/models/cruise.dart';
+import 'package:cruiseplanner/models/excursion.dart';
+import 'package:cruiseplanner/models/travel.dart';
+import 'package:cruiseplanner/models/route_item.dart';
 
-import 'package:cruise_app/screens/cruise_details_read_only_page.dart';
-import 'package:cruise_app/screens/excursion_list_page.dart';
-import 'package:cruise_app/screens/route_detail_read_only_page.dart';
-import 'package:cruise_app/screens/travel/travel_overview_page.dart';
+import 'package:cruiseplanner/screens/cruise_details_read_only_page.dart';
+import 'package:cruiseplanner/screens/excursion_list_page.dart';
+import 'package:cruiseplanner/screens/route_detail_read_only_page.dart';
+import 'package:cruiseplanner/screens/travel/travel_overview_page.dart';
 
-import 'package:cruise_app/utils/route_utils.dart';
+import 'package:cruiseplanner/utils/route_utils.dart';
 
 class CruiseDetailPage extends StatefulWidget {
   final Cruise cruise;

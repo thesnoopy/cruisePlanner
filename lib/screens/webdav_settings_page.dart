@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../settings/webdav_settings.dart';
 import '../settings/webdav_settings_store.dart';
 import '../sync/webdav_sync.dart';
-import 'package:cruise_app/gen/l10n/app_localizations.dart';
+import 'package:cruiseplanner/gen/l10n/app_localizations.dart';
 
 class WebDavSettingsPage extends StatefulWidget {
   final WebDavSettings? initial;

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-import 'package:cruise_app/gen/l10n/app_localizations.dart';
-import 'package:cruise_app/models/cruise.dart';
-import 'package:cruise_app/models/travel.dart';
+import 'package:cruiseplanner/gen/l10n/app_localizations.dart';
+import 'package:cruiseplanner/models/cruise.dart';
+import 'package:cruiseplanner/models/travel.dart';
 
 import 'travel_type_picker.dart';
 import 'travel_wizard_stubs.dart';

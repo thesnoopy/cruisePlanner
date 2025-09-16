@@ -3,7 +3,7 @@ import '../models/cruise.dart';
 import '../models/ship.dart';
 import '../models/period.dart';
 import '../utils/date_fmt.dart';
-import 'package:cruise_app/gen/l10n/app_localizations.dart';
+import 'package:cruiseplanner/gen/l10n/app_localizations.dart';
 
 class CruiseWizardPage extends StatefulWidget {
   final Cruise initial;

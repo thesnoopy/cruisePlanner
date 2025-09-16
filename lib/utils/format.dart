@@ -1,6 +1,6 @@
 import 'package:flutter/widgets.dart';
 import 'package:intl/intl.dart';
-import 'package:cruise_app/gen/l10n/app_localizations.dart';
+import 'package:cruiseplanner/gen/l10n/app_localizations.dart';
 
 String localeNameOf(BuildContext context) =>
     AppLocalizations.of(context)?.localeName ?? 'en';
