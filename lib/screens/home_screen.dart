@@ -1,4 +1,5 @@
 // lib/screens/home_screen.dart
+import 'package:cruise_app/utils/l10n_ext.dart';
 import 'package:flutter/material.dart';
 import '../models/cruise.dart';
 import '../models/ship.dart';
@@ -46,7 +47,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _openSettings() async {
-    final translations = AppLocalizations.of(context)!;
+    final translations = context.t;
     final result = await Navigator.push<WebDavSettings>(
       context,
       MaterialPageRoute(
@@ -98,7 +99,7 @@ class _HomeScreenState extends State<HomeScreen> {
     } catch (e) {
       if (!mounted) return;
       setState(() => _loading = false);
-      final translations = AppLocalizations.of(context)!;
+      final translations = context.t;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(translations.couldNotLoadData + ' $e')),
       );
@@ -106,7 +107,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _syncNow() async {
-    final translations = AppLocalizations.of(context)!;
+    final translations = context.t;
     final sync = _sync;
     if (sync == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -251,7 +252,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _openWizard() async {
-    final translations = AppLocalizations.of(context)!;
+    final translations = context.t;
     final now = DateTime.now();
     final draft = Cruise(
       id: Cruise.newId(),
@@ -345,7 +346,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final translations = AppLocalizations.of(context)!;
+    final translations = context.t;
 
     return Scaffold(
       appBar: AppBar(
