@@ -170,13 +170,15 @@ class _CruiseDetailPageState extends State<CruiseDetailPage> {
               ],
               trailingLabel: t.seeAllExcursionsCta,
               onTap: () async {
-                await Navigator.of(context).push(
+                final updated = await Navigator.of(context).push<Cruise>(
                   MaterialPageRoute(
                     builder: (_) => ExcursionListPage(cruise: cruise, repo: widget.repo),
                   ),
                 );
-                setState(() {});
-              },
+                if (updated != null && context.mounted) {
+                  _applyUpdatedCruise(updated);
+                }
+              }
             ),
 
             const SizedBox(height: 16),
