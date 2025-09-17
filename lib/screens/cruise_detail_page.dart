@@ -21,7 +21,7 @@ class CruiseDetailPage extends StatefulWidget {
   final Cruise cruise;
   final CruiseRepository repo;
 
-  const CruiseDetailPage({ 
+  const CruiseDetailPage({
     super.key,
     required this.cruise,
     required this.repo,
@@ -43,38 +43,21 @@ class _CruiseDetailPageState extends State<CruiseDetailPage> {
 
   Future<void> _applyUpdatedCruise(Cruise updated) async {
     setState(() {
-      _current = updated;   // Objekt im State aktualisieren
-      _dirty = true;        // kennzeichnet "ungespeicherte" Änderungen für die Seite
+      _current = updated;
+      _dirty = true; // damit beim Back ein aktualisiertes Objekt nach oben gereicht wird
     });
 
-    // Optional: sofortiges Speichern bei jeder Teiländerung (wenn du "true autosave" willst)
-    // Entferne diesen Block, falls du erst beim Verlassen speichern willst.
     try {
-      await widget.repo.upsertCruise(updated); // JSON persistieren (SharedPreferences)
+      // Passe den Methodennamen bei Bedarf an dein tatsächliches Repo an.
+      await widget.repo.upsertCruise(updated);
       if (!mounted) return;
-      // Kein Snack nötig, sonst "Snack-Feuerwerk" bei vielen kleinen Saves:
-      // ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)!.savedSuccessfully)));
-      _dirty = false; // Da sofort gespeichert wurde, sind wir wieder "clean"
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(AppLocalizations.of(context)!.savedSuccessfully)),
+      );
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Speichern fehlgeschlagen: $e')),
-      );
-    }
-  }
-
-  /// Autosave beim Verlassen (wird aus dem PopScope-Callback gerufen)
-  Future<void> _autosaveAndPop() async {
-    try {
-      await widget.repo.upsertCruise(_current); // JSON persistieren
-      if (!mounted) return;
-      _dirty = false; // sauber nach erfolgreichem Save
-      Navigator.of(context).pop(_current); // mit aktualisiertem Objekt zurück
-    } catch (e) {
-      if (!mounted) return;
-      // Fehlerfall: nicht poppen, damit Nutzer nicht Änderungen verliert
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Autosave fehlgeschlagen: $e')),
       );
     }
   }
@@ -113,12 +96,9 @@ class _CruiseDetailPageState extends State<CruiseDetailPage> {
     return PopScope(
       canPop: !_dirty,
       onPopInvokedWithResult: (didPop, result) async {
-        if (didPop) {
-          // Es wurde bereits gepoppt (nur möglich, wenn !_dirty). Nichts zu tun.
-          return;
+        if (!didPop && _dirty) {
+          Navigator.of(context).pop(_current);
         }
-        // Back wurde versucht, aber blockiert (weil _dirty==true) → jetzt Autosave + manuelles Pop
-        await _autosaveAndPop();
       },
       child: Scaffold(
         appBar: AppBar(
@@ -467,9 +447,7 @@ class _TravelSectionTeaser extends StatelessWidget {
           final updated = await Navigator.of(context).push<Cruise>(
             MaterialPageRoute(builder: (_) => TravelOverviewPage(cruise: cruise)),
           );
-          if (updated != null && context.mounted) {
-            onUpdated(updated);
-          }
+          if (updated != null && context.mounted) { onUpdated(updated); }
         },
         child: Padding(
           padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),

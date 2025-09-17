@@ -71,7 +71,7 @@ class _TravelOverviewPageState extends State<TravelOverviewPage> {
     final items = List<TravelItem>.from(_cruise.travel)..sort((a, b) => a.start.compareTo(b.start));
 
     return PopScope(
-      canPop: false, // wir steuern das Poppen selbst
+    canPop: false, // wir steuern das Poppen selbst
         onPopInvokedWithResult: (didPop, result) {
             // Wenn das System/Framework NICHT gepoppt hat (z. B. iOS Swipe),
             // poppen wir selbst und geben das aktuelle _cruise zurück.
@@ -160,7 +160,7 @@ class _TravelOverviewPageState extends State<TravelOverviewPage> {
           _cruise = _cruise.copyWith(travel: list);
         }
       );
-      widget.onChanged!(_cruise);
+      widget.onChanged?.call(_cruise);
     }
   }
 
