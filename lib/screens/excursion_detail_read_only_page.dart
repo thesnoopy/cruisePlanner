@@ -29,13 +29,7 @@ class ExcursionDetailReadOnlyPage extends StatelessWidget {
   }
 
   Cruise _withExcursions(List<Excursion> list) {
-    return Cruise(
-      id: cruise.id,
-      title: cruise.title,
-      ship: cruise.ship,
-      period: cruise.period,
-      excursions: list,
-    );
+    return cruise.copyWith(excursions: list);
   }
 
   @override

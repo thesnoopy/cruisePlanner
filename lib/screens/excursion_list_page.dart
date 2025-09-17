@@ -29,14 +29,7 @@ class _ExcursionListPageState extends State<ExcursionListPage> {
   }
 
   Cruise _withExcursions(List<Excursion> list) {
-    // Falls du copyWith hast → nutzen. Sonst neu zusammensetzen.
-    return Cruise(
-      id: widget.cruise.id,
-      title: widget.cruise.title,
-      ship: widget.cruise.ship,
-      period: widget.cruise.period,
-      excursions: list,
-    );
+    return widget.cruise.copyWith(excursions: list);
   }
 
   void _applyAndReturn(List<Excursion> list) {
