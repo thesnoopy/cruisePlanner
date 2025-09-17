@@ -175,7 +175,7 @@ class _CruiseDetailPageState extends State<CruiseDetailPage> {
                     builder: (_) => ExcursionListPage(cruise: cruise, repo: widget.repo),
                   ),
                 );
-                if (updated != null && context.mounted) {
+                if (updated != null) {
                   _applyUpdatedCruise(updated);
                 }
               }
@@ -449,7 +449,7 @@ class _TravelSectionTeaser extends StatelessWidget {
           final updated = await Navigator.of(context).push<Cruise>(
             MaterialPageRoute(builder: (_) => TravelOverviewPage(cruise: cruise)),
           );
-          if (updated != null && context.mounted) { onUpdated(updated); }
+          if (updated != null) { onUpdated(updated); }
         },
         child: Padding(
           padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),

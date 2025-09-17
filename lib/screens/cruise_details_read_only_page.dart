@@ -37,7 +37,7 @@ class CruiseDetailsReadOnlyPage extends StatelessWidget {
 
                 if (updated != null) {
                   // Optional: direkt speichern, wenn du hier schon persistieren willst:
-                  // await repo.saveCruise(updated); // falls du so eine Methode hast
+                  //await repo.saveCruise(updated); // falls du so eine Methode hast
                   // Zurück zur vorigen Seite und aktualisiertes Objekt mitgeben:
                   if (context.mounted) Navigator.pop(context, updated);
                 }
