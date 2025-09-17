@@ -1,4 +1,4 @@
-import 'package:cruise_app/gen/l10n/app_localizations.dart';
+import 'package:cruiseplanner/gen/l10n/app_localizations.dart';
 import '../models/travel.dart';
 
 String travelKindLabel(TravelKind kind, AppLocalizations t) {

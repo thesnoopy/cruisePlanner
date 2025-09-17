@@ -76,121 +76,121 @@ class _RouteWizardPageState extends State<RouteWizardPage> {
     final dateFmt = DateFormat.yMMMMd(locale);
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.initial == null ? t.routeWizardNewTitle : t.routeWizardEditTitle),
-      ),
-      body: Form(
-        key: _formKey,
-        child: ListView(
-          padding: const EdgeInsets.all(16),
-          children: [
-            // Umschalter
-            SwitchListTile(
-              value: _isSeaDay,
-              onChanged: (v) => setState(() => _isSeaDay = v),
-              title: Text(t.routeWizardSwitchSeaDay),
-            ),
-            const SizedBox(height: 8),
-            // Datum
-            ListTile(
-              contentPadding: EdgeInsets.zero,
-              title: Text(t.routeDateLabel),
-              subtitle: Text(dateFmt.format(_date)),
-              trailing: const Icon(Icons.calendar_today),
-              onTap: _pickDate,
-            ),
-            const Divider(height: 24),
+        appBar: AppBar(
+          title: Text(widget.initial == null ? t.routeWizardNewTitle : t.routeWizardEditTitle),
+        ),
+        body: Form(
+          key: _formKey,
+          child: ListView(
+            padding: const EdgeInsets.all(16),
+            children: [
+              // Umschalter
+              SwitchListTile(
+                value: _isSeaDay,
+                onChanged: (v) => setState(() => _isSeaDay = v),
+                title: Text(t.routeWizardSwitchSeaDay),
+              ),
+              const SizedBox(height: 8),
+              // Datum
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                title: Text(t.routeDateLabel),
+                subtitle: Text(dateFmt.format(_date)),
+                trailing: const Icon(Icons.calendar_today),
+                onTap: _pickDate,
+              ),
+              const Divider(height: 24),
 
-            if (!_isSeaDay) ...[
-              // Zeiten
+              if (!_isSeaDay) ...[
+                // Zeiten
+                Row(
+                  children: [
+                    Expanded(
+                      child: ListTile(
+                        contentPadding: EdgeInsets.zero,
+                        title: Text(t.routeArrivalTimeLabel),
+                        subtitle: Text(_arrival.format(context)),
+                        trailing: const Icon(Icons.schedule),
+                        onTap: () => _pickTime(isArrival: true),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: ListTile(
+                        contentPadding: EdgeInsets.zero,
+                        title: Text(t.routeDepartureTimeLabel),
+                        subtitle: Text(_departure.format(context)),
+                        trailing: const Icon(Icons.schedule),
+                        onTap: () => _pickTime(isArrival: false),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+
+                // Pflichtfelder (mind. eins von beiden)
+                TextFormField(
+                  controller: _cityCtrl,
+                  decoration: InputDecoration(labelText: t.routeCityLabel),
+                ),
+                const SizedBox(height: 8),
+                TextFormField(
+                  controller: _portNameCtrl,
+                  decoration: InputDecoration(labelText: t.routePortNameLabel),
+                  validator: (v) {
+                    if ((_cityCtrl.text.trim().isEmpty) && (v == null || v.trim().isEmpty)) {
+                      return t.routeErrorCityOrPort;
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 8),
+
+                // Optional
+                TextFormField(
+                  controller: _countryCtrl,
+                  decoration: InputDecoration(labelText: t.routeCountryLabel),
+                ),
+                const SizedBox(height: 8),
+                TextFormField(
+                  controller: _terminalCtrl,
+                  decoration: InputDecoration(labelText: t.routeTerminalLabel),
+                ),
+                const SizedBox(height: 8),
+                TextFormField(
+                  controller: _descriptionCtrl,
+                  decoration: InputDecoration(labelText: t.routeDescriptionLabel),
+                  maxLines: 3,
+                ),
+                const SizedBox(height: 8),
+                TextFormField(
+                  controller: _notesCtrl,
+                  decoration: InputDecoration(labelText: t.routeNotesLabel),
+                  maxLines: 2,
+                ),
+              ],
+
+              const SizedBox(height: 24),
               Row(
                 children: [
                   Expanded(
-                    child: ListTile(
-                      contentPadding: EdgeInsets.zero,
-                      title: Text(t.routeArrivalTimeLabel),
-                      subtitle: Text(_arrival.format(context)),
-                      trailing: const Icon(Icons.schedule),
-                      onTap: () => _pickTime(isArrival: true),
+                    child: OutlinedButton(
+                      onPressed: () => Navigator.of(context).pop(null),
+                      child: Text(t.routeCancel),
                     ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
-                    child: ListTile(
-                      contentPadding: EdgeInsets.zero,
-                      title: Text(t.routeDepartureTimeLabel),
-                      subtitle: Text(_departure.format(context)),
-                      trailing: const Icon(Icons.schedule),
-                      onTap: () => _pickTime(isArrival: false),
+                    child: ElevatedButton(
+                      onPressed: _onSave,
+                      child: Text(t.routeSave),
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 8),
-
-              // Pflichtfelder (mind. eins von beiden)
-              TextFormField(
-                controller: _cityCtrl,
-                decoration: InputDecoration(labelText: t.routeCityLabel),
-              ),
-              const SizedBox(height: 8),
-              TextFormField(
-                controller: _portNameCtrl,
-                decoration: InputDecoration(labelText: t.routePortNameLabel),
-                validator: (v) {
-                  if ((_cityCtrl.text.trim().isEmpty) && (v == null || v.trim().isEmpty)) {
-                    return t.routeErrorCityOrPort;
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 8),
-
-              // Optional
-              TextFormField(
-                controller: _countryCtrl,
-                decoration: InputDecoration(labelText: t.routeCountryLabel),
-              ),
-              const SizedBox(height: 8),
-              TextFormField(
-                controller: _terminalCtrl,
-                decoration: InputDecoration(labelText: t.routeTerminalLabel),
-              ),
-              const SizedBox(height: 8),
-              TextFormField(
-                controller: _descriptionCtrl,
-                decoration: InputDecoration(labelText: t.routeDescriptionLabel),
-                maxLines: 3,
-              ),
-              const SizedBox(height: 8),
-              TextFormField(
-                controller: _notesCtrl,
-                decoration: InputDecoration(labelText: t.routeNotesLabel),
-                maxLines: 2,
-              ),
             ],
-
-            const SizedBox(height: 24),
-            Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton(
-                    onPressed: () => Navigator.of(context).pop(null),
-                    child: Text(t.routeCancel),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: _onSave,
-                    child: Text(t.routeSave),
-                  ),
-                ),
-              ],
-            ),
-          ],
+          ),
         ),
-      ),
     );
   }
 

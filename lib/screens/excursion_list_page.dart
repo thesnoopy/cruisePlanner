@@ -91,7 +91,14 @@ class _ExcursionListPageState extends State<ExcursionListPage> {
     final localeTag = Localizations.localeOf(context).toLanguageTag();
     final df = DateFormat.yMMMMd(localeTag);
 
-    return Scaffold(
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (!didPop) {
+          Navigator.of(context).pop(widget.cruise);
+        }
+      },
+      child: Scaffold(
       appBar: AppBar(
         title: Text(translations.excursionsTitle),
         actions: [
@@ -138,6 +145,7 @@ class _ExcursionListPageState extends State<ExcursionListPage> {
                 );
               },
             ),
+    )
     );
   }
 }

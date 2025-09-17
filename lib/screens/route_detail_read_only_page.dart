@@ -35,7 +35,14 @@ class _RouteDetailReadOnlyPageState extends State<RouteDetailReadOnlyPage> {
     final timeFmt = DateFormat.Hm(locale);
     final dateFmt = DateFormat.yMMMMd(locale);
 
-    return Scaffold(
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (!didPop) {
+          Navigator.of(context).pop(widget.cruise);
+        }
+      },
+      child: Scaffold(
       appBar: AppBar(title: Text(t.routeTitle)),
       body: _route.isEmpty
           ? _EmptyRoute(t: t, onAddFirst: _createPort)
@@ -68,6 +75,7 @@ class _RouteDetailReadOnlyPageState extends State<RouteDetailReadOnlyPage> {
         tooltip: t.routeAddTooltip,
         child: const Icon(Icons.add),
       ),
+    )
     );
   }
 

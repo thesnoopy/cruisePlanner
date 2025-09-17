@@ -11,11 +11,13 @@ import 'travel_wizard_stubs.dart';
 class TravelOverviewPage extends StatefulWidget {
   final Cruise cruise;
   final bool startWithAddFlow;
+  final ValueChanged<Cruise>? onChanged;
 
   const TravelOverviewPage({
     super.key,
     required this.cruise,
     this.startWithAddFlow = false,
+    this.onChanged,
   });
 
   @override
@@ -23,6 +25,32 @@ class TravelOverviewPage extends StatefulWidget {
 }
 
 class _TravelOverviewPageState extends State<TravelOverviewPage> {
+  late List<TravelItem> _travel;
+  bool _dirty = false;
+
+  void _markDirty() { if (!_dirty) setState(() => _dirty = true); }
+
+  Future<bool> _askDiscardDialog(BuildContext context) async {
+    return await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Änderungen verwerfen?'),
+        content: const Text('Nicht gespeicherte Änderungen gehen verloren.'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Abbrechen')),
+          FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Verwerfen')),
+        ],
+      ),
+    ) ?? false;
+  }
+
+  void _saveAndClose() {
+    final updated = widget.cruise.copyWith(travel: _travel);
+    _dirty = false;
+    Navigator.pop(context, updated);
+    widget.onChanged?.call(updated);
+  }
+
   late Cruise _cruise;
 
   @override
@@ -42,83 +70,99 @@ class _TravelOverviewPageState extends State<TravelOverviewPage> {
     final locale = Localizations.localeOf(context).toLanguageTag();
     final items = List<TravelItem>.from(_cruise.travel)..sort((a, b) => a.start.compareTo(b.start));
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(t.travelOverviewTitle),
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(26),
-          child: Padding(
-            padding: const EdgeInsets.only(bottom: 8),
-            child: Text(t.travelOverviewSubtitle(_cruise.title), style: Theme.of(context).textTheme.bodySmall),
-          ),
-        ),
-        actions: [
-          IconButton(icon: const Icon(Icons.add), tooltip: t.travelAddNew, onPressed: _onAdd),
-          IconButton(
-            icon: const Icon(Icons.check),
-            tooltip: MaterialLocalizations.of(context).saveButtonLabel,
-            onPressed: () => Navigator.of(context).pop(_cruise),
-          ),
-        ],
-      ),
-      body: items.isEmpty
-          ? Center(child: Padding(padding: const EdgeInsets.all(24), child: Text(t.travelEmptyHint)))
-          : ListView.builder(
-              padding: const EdgeInsets.only(bottom: 16),
-              itemCount: _groupByDate(items, locale).length,
-              itemBuilder: (context, index) {
-                final group = _groupByDate(items, locale)[index];
-                return _DateGroup(
-                  label: group.label,
-                  children: group.items.map((i) {
-                    return _TravelTile(
-                      item: i,
-                      onTap: () async {
-                        final edited = await openEditWizard(context, i);
-                        if (edited == null) return;
-                        setState(() {
-                          final list = List<TravelItem>.from(_cruise.travel);
-                          final idx = list.indexWhere((x) => x.id == i.id);
-                          if (idx >= 0) {
-                            list[idx] = edited;
-                            list.sort((a, b) => a.start.compareTo(b.start));
-                            _cruise = _cruise.copyWith(travel: list);
-                          }
-                        });
-                      },
-                      onDelete: () {
-                        setState(() {
-                          final list = List<TravelItem>.from(_cruise.travel)
-                            ..removeWhere((x) => x.id == i.id);
-                          _cruise = _cruise.copyWith(travel: list);
-                        });
-                      },
-                    );
-                  }).toList(),
-                );
-              },
+    return PopScope(
+      canPop: false, // wir steuern das Poppen selbst
+        onPopInvokedWithResult: (didPop, result) {
+            // Wenn das System/Framework NICHT gepoppt hat (z. B. iOS Swipe),
+            // poppen wir selbst und geben das aktuelle _cruise zurück.
+            if (!didPop) {
+              Navigator.of(context).pop(_cruise);
+            }
+            // Wenn didPop == true, wurde bereits explizit gepoppt,
+            // z.B. durch unseren Back-Button oder den ✔-Button mit Ergebnis.
+          },
+          child: Scaffold(
+            appBar: AppBar(
+              title: Text(t.travelOverviewTitle),
+              bottom: PreferredSize(
+                preferredSize: const Size.fromHeight(26),
+                child: Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: Text(t.travelOverviewSubtitle(_cruise.title), style: Theme.of(context).textTheme.bodySmall),
+                ),
+              ),
+              actions: [
+                IconButton(icon: const Icon(Icons.add), tooltip: t.travelAddNew, onPressed: _onAdd),
+                IconButton(
+                  icon: const Icon(Icons.check),
+                  tooltip: MaterialLocalizations.of(context).saveButtonLabel,
+                  onPressed: () => Navigator.of(context).pop(_cruise),
+                ),
+              ],
             ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: _onAdd,
-        icon: const Icon(Icons.add),
-        label: Text(t.travelAddNew),
-      ),
-    );
+            body: items.isEmpty
+                ? Center(child: Padding(padding: const EdgeInsets.all(24), child: Text(t.travelEmptyHint)))
+                : ListView.builder(
+                    padding: const EdgeInsets.only(bottom: 16),
+                    itemCount: _groupByDate(items, locale).length,
+                    itemBuilder: (context, index) {
+                      final group = _groupByDate(items, locale)[index];
+                      return _DateGroup(
+                        label: group.label,
+                        children: group.items.map((i) {
+                          return _TravelTile(
+                            item: i,
+                            onTap: () async {
+                              final edited = await openEditWizard(context, i);
+                              if (edited == null) return;
+                              setState(() {
+                                final list = List<TravelItem>.from(_cruise.travel);
+                                final idx = list.indexWhere((x) => x.id == i.id);
+                                if (idx >= 0) {
+                                  list[idx] = edited;
+                                  list.sort((a, b) => a.start.compareTo(b.start));
+                                  _cruise = _cruise.copyWith(travel: list);
+                                }
+                              });
+                              widget.onChanged?.call(_cruise);
+                            },
+                            onDelete: () {
+                              setState(() {
+                                final list = List<TravelItem>.from(_cruise.travel)
+                                  ..removeWhere((x) => x.id == i.id);
+                                _cruise = _cruise.copyWith(travel: list);
+                              });
+                              widget.onChanged?.call(_cruise);
+                            },
+                          );
+                        }).toList(),
+                      );
+                    },
+                  ),
+            floatingActionButton: FloatingActionButton.extended(
+              onPressed: _onAdd,
+              icon: const Icon(Icons.add),
+              label: Text(t.travelAddNew),
+            ),
+          )
+        );
+      }
+
+      Future<void> _onAdd() async {
+        final kind = await showTravelTypePicker(context);
+        if (kind == null) return;
+
+        final created = await openCreateWizard(context, kind);
+        if (created == null) return;
+
+        setState(() {
+          final list = [..._cruise.travel, created]..sort((a, b) => a.start.compareTo(b.start));
+          _cruise = _cruise.copyWith(travel: list);
+        }
+      );
+      widget.onChanged!(_cruise);
+    }
   }
-
-  Future<void> _onAdd() async {
-    final kind = await showTravelTypePicker(context);
-    if (kind == null) return;
-
-    final created = await openCreateWizard(context, kind);
-    if (created == null) return;
-
-    setState(() {
-      final list = [..._cruise.travel, created]..sort((a, b) => a.start.compareTo(b.start));
-      _cruise = _cruise.copyWith(travel: list);
-    });
-  }
-}
 
 /// ---- grouping helpers ----
 class _Group {
