@@ -291,7 +291,7 @@ class _TransferWizardPageState extends State<TransferWizardPage> {
             ),
             const SizedBox(height: 8),
             DropdownButtonFormField<TransferMode>(
-              value: _mode,
+              initialValue: _mode,
               items: TransferMode.values.map((m) => DropdownMenuItem(value: m, child: Text(m.name))).toList(),
               onChanged: (v) => setState(() => _mode = v ?? TransferMode.shuttle),
               decoration: InputDecoration(labelText: t.travelKind_transfer),

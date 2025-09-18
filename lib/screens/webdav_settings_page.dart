@@ -82,7 +82,7 @@ class _WebDavSettingsPageState extends State<WebDavSettingsPage> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(translations.connectionFailed + ' $e')),
+          SnackBar(content: Text('${translations.connectionFailed} $e')),
         );
       }
     } finally {
@@ -106,7 +106,7 @@ class _WebDavSettingsPageState extends State<WebDavSettingsPage> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(translations.storingFailed + ' $e')),
+          SnackBar(content: Text('${translations.storingFailed} $e')),
         );
       }
     } finally {

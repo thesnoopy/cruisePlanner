@@ -10,13 +10,11 @@ import 'package:cruiseplanner/gen/l10n/app_localizations.dart';
 class ExcursionWizardPage extends StatefulWidget {
   final Cruise cruise;
   final Excursion? initial; // null => neu, sonst edit
-  final void Function(Excursion excursion) onSave;
 
   const ExcursionWizardPage({
     super.key,
     required this.cruise,
     this.initial,
-    required this.onSave,
   });
 
   @override
@@ -125,9 +123,7 @@ void _save() {
         ? null
         : _currencyCtrl.text.trim().toUpperCase(),
     );
-
-    widget.onSave(excursion);
-    Navigator.of(context).pop();
+    Navigator.of(context).pop<Excursion>(excursion); 
   }
 
   String _formatDate(DateTime d) => DateFormat.yMMMd().format(d);
@@ -165,9 +161,9 @@ void _save() {
               const SizedBox(height: 12),
               ListTile(
                 contentPadding: EdgeInsets.zero,
-                title: Text( translations.dateLabel + ' ${_formatDate(_date)}'),
+                title: Text( '${translations.dateLabel} ${_formatDate(_date)}'),
                 subtitle: Text(
-                  translations.mustBeBetween + ' ${_formatDate(period.start)} ' + translations.and + ' ${_formatDate(period.end)} ' + translations.lie,
+                  '${translations.mustBeBetween} ${_formatDate(period.start)} ${translations.and} ${_formatDate(period.end)} ${translations.lie}',
                 ),
                 trailing: const Icon(Icons.calendar_today),
                 onTap: _pickDate,

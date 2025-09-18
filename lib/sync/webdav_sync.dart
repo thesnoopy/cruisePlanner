@@ -52,7 +52,7 @@ class WebDavSync {
       return ('/', 'cruises.json');
     }
     final file = parts.last;
-    final dir = '/' + parts.take(parts.length - 1).join('/');
+    final dir = '/${parts.take(parts.length - 1).join('/')}';
     return (dir.isEmpty ? '/' : dir, file);
   }
 
@@ -152,7 +152,7 @@ class WebDavSync {
         ? (decoded['cruises'] as List<dynamic>? ?? const [])
         : (decoded as List<dynamic>);
     return list
-        .where((e) => e is Map)
+        .whereType<Map>()
         .map((e) => Cruise.fromMap(Map<String, dynamic>.from(e as Map)))
         .toList(growable: false);
   }

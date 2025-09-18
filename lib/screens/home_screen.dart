@@ -101,7 +101,7 @@ class _HomeScreenState extends State<HomeScreen> {
       setState(() => _loading = false);
       final translations = context.t;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(translations.couldNotLoadData + ' $e')),
+        SnackBar(content: Text('${translations.couldNotLoadData} $e')),
       );
     }
   }
@@ -240,10 +240,10 @@ class _HomeScreenState extends State<HomeScreen> {
         }
       }
     } catch (e, st) {
-      debugPrint(translations.syncError + '$e\n$st');
+      debugPrint('${translations.syncError}$e\n$st');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(translations.syncFailed + '$e')),
+          SnackBar(content: Text('${translations.syncFailed}$e')),
         );
       }
     } finally {
@@ -278,13 +278,13 @@ class _HomeScreenState extends State<HomeScreen> {
         await widget.repo.save(_cruises); // <— hier speichern
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(translations.stored + ' „${created.title}“')),
+            SnackBar(content: Text('${translations.stored} „${created.title}“')),
           );
         }
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(translations.storingFailed + '$e')),
+            SnackBar(content: Text('${translations.storingFailed}$e')),
           );
         }
       }

@@ -78,10 +78,10 @@ class FlightItem extends TravelItem {
 
   const FlightItem({
     required super.id,
-    required DateTime start,
-    DateTime? end,
-    String? from,
-    String? to,
+    required super.start,
+    super.end,
+    super.from,
+    super.to,
     super.notes,
     super.price,
     super.currency,
@@ -95,10 +95,6 @@ class FlightItem extends TravelItem {
     this.baggagePieces,
   }) : super(
           type: TravelKind.flight,
-          start: start,
-          end: end,
-          from: from,
-          to: to,
         );
 
   @override
@@ -194,10 +190,10 @@ class TrainItem extends TravelItem {
 
   const TrainItem({
     required super.id,
-    required DateTime start,
-    DateTime? end,
-    String? from,
-    String? to,
+    required super.start,
+    super.end,
+    super.from,
+    super.to,
     super.notes,
     super.price,
     super.currency,
@@ -207,10 +203,6 @@ class TrainItem extends TravelItem {
     this.seat,
   }) : super(
           type: TravelKind.train,
-          start: start,
-          end: end,
-          from: from,
-          to: to,
         );
 
   @override
@@ -290,10 +282,10 @@ class TransferItem extends TravelItem {
 
   const TransferItem({
     required super.id,
-    required DateTime start,
-    DateTime? end,
-    String? from,
-    String? to,
+    required super.start,
+    super.end,
+    super.from,
+    super.to,
     super.notes,
     super.price,
     super.currency,
@@ -303,10 +295,6 @@ class TransferItem extends TravelItem {
     this.pax,
   }) : super(
           type: TravelKind.transfer,
-          start: start,
-          end: end,
-          from: from,
-          to: to,
         );
 
   @override
@@ -389,10 +377,10 @@ class RentalCarItem extends TravelItem {
   // Hinweis: Für Mietwagen sind start/end die Abhol-/Rückgabezeiten.
   const RentalCarItem({
     required super.id,
-    required DateTime start,
-    required DateTime end,
-    String? from,
-    String? to,
+    required super.start,
+    required DateTime super.end,
+    super.from,
+    super.to,
     super.notes,
     super.price,
     super.currency,
@@ -403,10 +391,6 @@ class RentalCarItem extends TravelItem {
     this.dropoffLocation,
   }) : super(
           type: TravelKind.rentalCar,
-          start: start,
-          end: end,
-          from: from,
-          to: to,
         );
 
   @override

@@ -106,7 +106,7 @@ class Cruise extends Equatable {
     final rawExc = map['excursions'];
     if (rawExc is List) {
       excursions = rawExc
-          .where((e) => e is Map)
+          .whereType<Map>()
           .map((e) => Excursion.fromMap(Map<String, dynamic>.from(e as Map)))
           .toList(growable: false);
     }
@@ -116,7 +116,7 @@ class Cruise extends Equatable {
     final rawTravel = map['travel'];
     if (rawTravel is List) {
       travel = rawTravel
-          .where((e) => e is Map)
+          .whereType<Map>()
           .map((e) => TravelItem.fromMap(Map<String, dynamic>.from(e as Map)))
           .toList(growable: false);
     }
@@ -126,7 +126,7 @@ class Cruise extends Equatable {
     final rawRoute = map['route'];
     if (rawRoute is List) {
       route = rawRoute
-          .where((e) => e is Map)
+          .whereType<Map>()
           .map((e) => RouteItem.fromMap(Map<String, dynamic>.from(e as Map)))
           .toList(growable: false);
     }

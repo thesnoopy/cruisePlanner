@@ -437,6 +437,9 @@
   "routeErrorCityOrPort": "Gib mindestens Stadt oder Hafenname an.",
   "@routeErrorCityOrPort": {
     "description": "Validierung, wenn sowohl Stadt als auch Hafenname leer sind."
-  }
-
+  },
+  "confirmDeleteTitle": "Löschen bestätigen",
+  "confirmDeleteMessage": "Willst du dieses Objekt wirklich löschen?",
+  "delete": "Löschen",
+  "cancel": "Abbrechen"
 }

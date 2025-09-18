@@ -74,7 +74,7 @@ class CruiseDetailsReadOnlyPage extends StatelessWidget {
             child: ListTile(
               leading: const Icon(Icons.flag),
               title: Text(translations.excursionsCountLabel),
-              subtitle: Text("${cruise.excursions?.length ?? 0}"),
+              subtitle: Text("${cruise.excursions.length ?? 0}"),
             ),
           ),
         ],

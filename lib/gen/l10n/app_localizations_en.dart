@@ -603,4 +603,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get routeErrorCityOrPort => 'Enter at least a city or a port name.';
+
+  @override
+  String get confirmDeleteTitle => 'Confirm delete';
+
+  @override
+  String get confirmDeleteMessage => 'Do you want to delete this Object?';
 }

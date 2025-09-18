@@ -3,9 +3,7 @@ import 'screens/home_screen.dart';
 import 'data/cruise_repository.dart';
 import 'package:cruiseplanner/gen/l10n/app_localizations.dart';
 import 'dart:async';
-import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:cruiseplanner/gen/l10n/app_localizations.dart';
 
 
 

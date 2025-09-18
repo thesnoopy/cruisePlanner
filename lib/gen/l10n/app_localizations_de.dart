@@ -604,4 +604,11 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get routeErrorCityOrPort => 'Gib mindestens Stadt oder Hafenname an.';
+
+  @override
+  String get confirmDeleteTitle => 'Löschen bestätigen';
+
+  @override
+  String get confirmDeleteMessage =>
+      'Willst du dieses Objekt wirklich löschen?';
 }

@@ -129,7 +129,7 @@ class _CruiseWizardPageState extends State<CruiseWizardPage> {
   @override
   Widget build(BuildContext context) {
     final translations = AppLocalizations.of(context)!;
-    final controls = (BuildContext context, ControlsDetails details) {
+    Row controls(BuildContext context, ControlsDetails details) {
       final isLast = _currentStep == 2;
       return Row(
         children: [
@@ -144,7 +144,7 @@ class _CruiseWizardPageState extends State<CruiseWizardPage> {
           ),
         ],
       );
-    };
+    }
 
     return Scaffold(
       appBar: AppBar(title: Text(

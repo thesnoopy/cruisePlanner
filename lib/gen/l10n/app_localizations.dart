@@ -1231,6 +1231,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Enter at least a city or a port name.'**
   String get routeErrorCityOrPort;
+
+  /// No description provided for @confirmDeleteTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm delete'**
+  String get confirmDeleteTitle;
+
+  /// No description provided for @confirmDeleteMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Do you want to delete this Object?'**
+  String get confirmDeleteMessage;
 }
 
 class _AppLocalizationsDelegate

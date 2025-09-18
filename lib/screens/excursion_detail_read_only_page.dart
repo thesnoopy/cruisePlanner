@@ -19,17 +19,22 @@ class ExcursionDetailReadOnlyPage extends StatelessWidget {
     required this.repo,
   });
 
-  List<Excursion> _replaceById(List<Excursion> list, Excursion updated) {
-    final idx = list.indexWhere((x) => x.id == updated.id);
-    if (idx < 0) return list; // nichts zu ersetzen
-    final copy = [...list];
-    copy[idx] = updated;
-    copy.sort((a, b) => a.date.compareTo(b.date));
-    return copy;
-  }
+  Future<void> _edit(BuildContext context) async {
+    final updated = await Navigator.of(context).push<Excursion>(
+      MaterialPageRoute(
+        builder: (_) => ExcursionWizardPage(
+          cruise: cruise,
+          initial: excursion,
+        ),
+      ),
+    );
 
-  Cruise _withExcursions(List<Excursion> list) {
-    return cruise.copyWith(excursions: list);
+    if (updated == null) return;
+
+    // Genau EIN Pop mit der aktualisierten Excursion zurück zur Liste:
+    if (context.mounted) {
+      Navigator.of(context).pop<Excursion>(updated);
+    }
   }
 
   @override
@@ -50,26 +55,7 @@ class ExcursionDetailReadOnlyPage extends StatelessWidget {
           IconButton(
             tooltip: translations.edit,
             icon: const Icon(Icons.edit),
-            onPressed: () async {
-              final updated = await Navigator.push<Excursion>(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => ExcursionWizardPage(
-                    initial: excursion,
-                    cruise: cruise,
-                    onSave: (exc) async {
-                      Navigator.pop(context, exc); // Wizard gibt Excursion zurück
-                    },
-                  ),
-                  fullscreenDialog: true,
-                ),
-              );
-              if (updated != null) {
-                final list = _replaceById(cruise.excursions ?? const <Excursion>[], updated);
-                final updatedCruise = _withExcursions(list);
-                if (context.mounted) Navigator.pop(context, updatedCruise);
-              }
-            },
+            onPressed: () => _edit(context),
           ),
         ],
       ),

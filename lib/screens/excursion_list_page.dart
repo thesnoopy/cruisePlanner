@@ -4,15 +4,19 @@ import 'package:cruiseplanner/gen/l10n/app_localizations.dart';
 
 import 'package:cruiseplanner/models/cruise.dart';
 import 'package:cruiseplanner/models/excursion.dart';
-import 'package:cruiseplanner/screens/excursion_detail_read_only_page.dart';
 import 'package:cruiseplanner/data/cruise_repository.dart';
-import 'package:cruiseplanner/screens/excursion_wizard_page.dart'; // ← dein existierender Wizard
+import 'package:cruiseplanner/screens/excursion_detail_read_only_page.dart';
+import 'package:cruiseplanner/screens/excursion_wizard_page.dart';
 
 class ExcursionListPage extends StatefulWidget {
   final Cruise cruise;
   final CruiseRepository repo;
 
-  const ExcursionListPage({super.key, required this.cruise, required this.repo});
+  const ExcursionListPage({
+    super.key,
+    required this.cruise,
+    required this.repo,
+  });
 
   @override
   State<ExcursionListPage> createState() => _ExcursionListPageState();
@@ -28,35 +32,23 @@ class _ExcursionListPageState extends State<ExcursionListPage> {
       ..sort((a, b) => a.date.compareTo(b.date));
   }
 
-  Cruise _withExcursions(List<Excursion> list) {
-    return widget.cruise.copyWith(excursions: list);
-  }
-
-  void _applyAndReturn(List<Excursion> list) {
-    final updatedCruise = _withExcursions(list);
-    Navigator.pop(context, updatedCruise); // pop zur CruiseDetailPage
-  }
-
   Future<void> _createNew() async {
-    // Falls dein Wizard eine andere Signatur hat, hier anpassen.
     final created = await Navigator.push<Excursion>(
       context,
       MaterialPageRoute(
         builder: (_) => ExcursionWizardPage(
           initial: null,
           cruise: widget.cruise,
-          onSave: (exc) async {
-            Navigator.pop(context, exc); // Wizard gibt Excursion zurück
-          },
         ),
         fullscreenDialog: true,
       ),
     );
+    if (created == null) return;
 
-    if (created != null) {
-      final list = [..._excursions, created]..sort((a, b) => a.date.compareTo(b.date));
-      _applyAndReturn(list);
-    }
+    setState(() {
+      _excursions = [..._excursions, created]..sort((a, b) => a.date.compareTo(b.date));
+    });
+    // WICHTIG: hier KEIN Pop und KEIN Repo-Save – Persistenz passiert oben (CruiseDetailPage) beim Zurück.
   }
 
   Future<void> _openDetail(Excursion e) async {
@@ -70,75 +62,94 @@ class _ExcursionListPageState extends State<ExcursionListPage> {
         ),
       ),
     );
+    if (maybeUpdatedCruise == null) return;
 
-    if (maybeUpdatedCruise != null) {
-      // direkt nach oben weiterreichen (Liste wird in Detail schon gepflegt)
-      if (!mounted) return;
-      Navigator.pop(context, maybeUpdatedCruise);
-    }
+    // Liste aus der zurückgegebenen Cruise übernehmen (Detail hat schon gemerged)
+    setState(() {
+      _excursions = List<Excursion>.from(maybeUpdatedCruise.excursions ?? const <Excursion>[])
+        ..sort((a, b) => a.date.compareTo(b.date));
+    });
+    // KEIN Pop hier; wir bleiben in der Liste.
+  }
+
+  Future<bool> _confirmDelete(BuildContext context, Excursion e) async {
+    final t = AppLocalizations.of(context)!;
+    final name = e.title.isEmpty ? t.noTitle : e.title;
+    return await showDialog<bool>(
+          context: context,
+          builder: (_) => AlertDialog(
+            title: Text(t.deleteCruiseTitle), // temporär wiederverwendet
+            content: Text(t.deleteCruiseMessage(name)),
+            actions: [
+              TextButton(onPressed: () => Navigator.pop(context, false), child: Text(t.deleteCancel)),
+              FilledButton.tonal(onPressed: () => Navigator.pop(context, true), child: Text(t.deleteConfirm)),
+            ],
+          ),
+        ) ??
+        false;
   }
 
   @override
   Widget build(BuildContext context) {
-    final translations = AppLocalizations.of(context)!;
+    final t = AppLocalizations.of(context)!;
     final localeTag = Localizations.localeOf(context).toLanguageTag();
     final df = DateFormat.yMMMMd(localeTag);
 
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, result) {
-        if (!didPop) {
-          Navigator.of(context).pop(widget.cruise);
-        }
+        if (didPop) return;
+
+        final isCurrent = ModalRoute.of(context)?.isCurrent ?? false;
+        if (!isCurrent) return;
+
+        final updatedCruise = widget.cruise.copyWith(excursions: _excursions);
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (context.mounted) {
+            Navigator.of(context).pop<Cruise>(updatedCruise);
+          }
+        });
       },
       child: Scaffold(
-      appBar: AppBar(
-        title: Text(translations.excursionsTitle),
-        actions: [
-          IconButton(
-            tooltip: translations.addNew,
-            icon: const Icon(Icons.add),
-            onPressed: _createNew,
-          ),
-        ],
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: _createNew,
-        icon: const Icon(Icons.add),
-        label: Text(translations.addNew),
-      ),
-      body: _excursions.isEmpty
-          ? Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(translations.noExcursionsYet),
-                  const SizedBox(height: 8),
-                  FilledButton(
-                    onPressed: _createNew,
-                    child: Text(translations.addNew),
-                  ),
-                ],
+        appBar: AppBar(title: Text(t.excursionsTitle)),
+        floatingActionButton: FloatingActionButton(
+          onPressed: _createNew,
+          child: const Icon(Icons.add),
+        ),
+        body: _excursions.isEmpty
+            ? Center(child: Text(t.noExcursions))
+            : ListView.builder(
+                itemCount: _excursions.length,
+                itemBuilder: (context, i) {
+                  final e = _excursions[i];
+                  final subtitle = df.format(e.date);
+                  return Dismissible(
+                    key: ValueKey(e.id),
+                    direction: DismissDirection.endToStart,
+                    background: Container(
+                      color: Colors.red,
+                      alignment: Alignment.centerRight,
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: const Icon(Icons.delete, color: Colors.white),
+                    ),
+                    confirmDismiss: (_) => _confirmDelete(context, e),
+                    onDismissed: (_) {
+                      setState(() {
+                        _excursions.removeAt(i);
+                      });
+                    },
+                    child: Card(
+                      child: ListTile(
+                        title: Text(e.title.isEmpty ? t.dash : e.title),
+                        subtitle: Text(subtitle),
+                        trailing: const Icon(Icons.chevron_right),
+                        onTap: () => _openDetail(e),
+                      ),
+                    ),
+                  );
+                },
               ),
-            )
-          : ListView.separated(
-              padding: const EdgeInsets.all(16),
-              itemCount: _excursions.length,
-              separatorBuilder: (_, __) => const SizedBox(height: 8),
-              itemBuilder: (context, i) {
-                final e = _excursions[i];
-                final subtitle = "${df.format(e.date)} • ${e.port ?? translations.dash}";
-                return Card(
-                  child: ListTile(
-                    title: Text(e.title.isEmpty ? translations.dash : e.title),
-                    subtitle: Text(subtitle),
-                    trailing: const Icon(Icons.chevron_right),
-                    onTap: () => _openDetail(e),
-                  ),
-                );
-              },
-            ),
-    )
+      ),
     );
   }
 }

@@ -231,7 +231,7 @@ class _RouteWizardPageState extends State<RouteWizardPage> {
     }
 
     // Arrival/Departure auf _date mappen
-    DateTime _merge(TimeOfDay tod) => DateTime(_date.year, _date.month, _date.day, tod.hour, tod.minute);
+    DateTime merge(TimeOfDay tod) => DateTime(_date.year, _date.month, _date.day, tod.hour, tod.minute);
 
     final port = PortCallItem(
       id: id,
@@ -239,8 +239,8 @@ class _RouteWizardPageState extends State<RouteWizardPage> {
       portName: _portNameCtrl.text.trim(),
       city: _cityCtrl.text.trim().isEmpty ? null : _cityCtrl.text.trim(),
       country: _countryCtrl.text.trim().isEmpty ? null : _countryCtrl.text.trim(),
-      arrival: _merge(_arrival),
-      departure: _merge(_departure),
+      arrival: merge(_arrival),
+      departure: merge(_departure),
       terminal: _terminalCtrl.text.trim().isEmpty ? null : _terminalCtrl.text.trim(),
       description: _descriptionCtrl.text.trim().isEmpty ? null : _descriptionCtrl.text.trim(),
       notes: _notesCtrl.text.trim().isEmpty ? null : _notesCtrl.text.trim(),
