@@ -28,29 +28,6 @@ class _TravelOverviewPageState extends State<TravelOverviewPage> {
   late List<TravelItem> _travel;
   bool _dirty = false;
 
-  void _markDirty() { if (!_dirty) setState(() => _dirty = true); }
-
-  Future<bool> _askDiscardDialog(BuildContext context) async {
-    return await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Änderungen verwerfen?'),
-        content: const Text('Nicht gespeicherte Änderungen gehen verloren.'),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Abbrechen')),
-          FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Verwerfen')),
-        ],
-      ),
-    ) ?? false;
-  }
-
-  void _saveAndClose() {
-    final updated = widget.cruise.copyWith(travel: _travel);
-    _dirty = false;
-    Navigator.pop(context, updated);
-    widget.onChanged?.call(updated);
-  }
-
   late Cruise _cruise;
 
   @override
@@ -71,16 +48,17 @@ class _TravelOverviewPageState extends State<TravelOverviewPage> {
     final items = List<TravelItem>.from(_cruise.travel)..sort((a, b) => a.start.compareTo(b.start));
 
     return PopScope(
-    canPop: false, // wir steuern das Poppen selbst
-        onPopInvokedWithResult: (didPop, result) {
-            // Wenn das System/Framework NICHT gepoppt hat (z. B. iOS Swipe),
-            // poppen wir selbst und geben das aktuelle _cruise zurück.
-            if (!didPop) {
-              Navigator.of(context).pop(_cruise);
-            }
-            // Wenn didPop == true, wurde bereits explizit gepoppt,
-            // z.B. durch unseren Back-Button oder den ✔-Button mit Ergebnis.
-          },
+    canPop: false,
+    onPopInvokedWithResult: (didPop, result) {
+      if (didPop) return;
+      final isCurrent = ModalRoute.of(context)?.isCurrent ?? false;
+      if (!isCurrent) return;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (context.mounted) {
+          Navigator.of(context).pop(_cruise);
+        }
+      });
+    },
           child: Scaffold(
             appBar: AppBar(
               title: Text(t.travelOverviewTitle),
@@ -91,14 +69,6 @@ class _TravelOverviewPageState extends State<TravelOverviewPage> {
                   child: Text(t.travelOverviewSubtitle(_cruise.title), style: Theme.of(context).textTheme.bodySmall),
                 ),
               ),
-              actions: [
-                IconButton(icon: const Icon(Icons.add), tooltip: t.travelAddNew, onPressed: _onAdd),
-                IconButton(
-                  icon: const Icon(Icons.check),
-                  tooltip: MaterialLocalizations.of(context).saveButtonLabel,
-                  onPressed: () => Navigator.of(context).pop(_cruise),
-                ),
-              ],
             ),
             body: items.isEmpty
                 ? Center(child: Padding(padding: const EdgeInsets.all(24), child: Text(t.travelEmptyHint)))
@@ -110,9 +80,42 @@ class _TravelOverviewPageState extends State<TravelOverviewPage> {
                       return _DateGroup(
                         label: group.label,
                         children: group.items.map((i) {
-                          return _TravelTile(
-                            item: i,
-                            onTap: () async {
+                          
+return Dismissible(
+  key: ValueKey(i.id),
+  direction: DismissDirection.endToStart,
+  background: Container(
+    color: Colors.red,
+    alignment: Alignment.centerRight,
+    padding: const EdgeInsets.symmetric(horizontal: 16),
+    child: const Icon(Icons.delete, color: Colors.white),
+  ),
+  confirmDismiss: (_) async {
+    final t = AppLocalizations.of(context)!;
+    final nameCandidate = i.summaryId().isNotEmpty ? i.summaryId() : ((i.from ?? '').isNotEmpty ? i.from! : ((i.to ?? '').isNotEmpty ? i.to! : t.noTitle));
+    return await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(t.deleteCruiseTitle),
+        content: Text(t.deleteCruiseMessage(nameCandidate)),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(t.deleteCancel)),
+          FilledButton.tonal(onPressed: () => Navigator.pop(ctx, true), child: Text(t.deleteConfirm)),
+        ],
+      ),
+    ) ?? false;
+  },
+  onDismissed: (_) {
+    setState(() {
+      final list = List<TravelItem>.from(_cruise.travel)..removeWhere((x) => x.id == i.id);
+      _cruise = _cruise.copyWith(travel: list);
+    });
+    widget.onChanged?.call(_cruise);
+  },
+  child: _TravelTile(
+    item: i,
+    onTap: () async {
+
                               final edited = await openEditWizard(context, i);
                               if (edited == null) return;
                               setState(() {
@@ -125,17 +128,11 @@ class _TravelOverviewPageState extends State<TravelOverviewPage> {
                                 }
                               });
                               widget.onChanged?.call(_cruise);
-                            },
-                            onDelete: () {
-                              setState(() {
-                                final list = List<TravelItem>.from(_cruise.travel)
-                                  ..removeWhere((x) => x.id == i.id);
-                                _cruise = _cruise.copyWith(travel: list);
-                              });
-                              widget.onChanged?.call(_cruise);
-                            },
-                          );
-                        }).toList(),
+                            
+    },
+  ),
+);
+}).toList(),
                       );
                     },
                   ),
@@ -209,12 +206,12 @@ class _DateGroup extends StatelessWidget {
 class _TravelTile extends StatelessWidget {
   final TravelItem item;
   final VoidCallback onTap;
-  final VoidCallback onDelete;
+  final VoidCallback? onDelete;
 
   const _TravelTile({
     required this.item,
     required this.onTap,
-    required this.onDelete,
+    this.onDelete,
   });
 
   @override
@@ -245,11 +242,12 @@ class _TravelTile extends StatelessWidget {
                   ),
                 ),
               ),
-            IconButton(
-              tooltip: MaterialLocalizations.of(context).deleteButtonTooltip,
-              icon: const Icon(Icons.delete_outline),
-              onPressed: onDelete,
-            ),
+            if (onDelete != null)
+              IconButton(
+                tooltip: MaterialLocalizations.of(context).deleteButtonTooltip,
+                icon: const Icon(Icons.delete_outline),
+                onPressed: onDelete,
+              ),
           ],
         ),
         onTap: onTap,
