@@ -1,0 +1,134 @@
+// Regenerated screens v2 – ID-only navigation, aligned with current models.
+
+import 'package:flutter/material.dart';
+import '../../store/cruise_store.dart';
+import '../../models/cruise.dart';
+import '../../models/travel/base_travel.dart';
+import '../../models/travel/flight_item.dart';
+import '../../models/travel/train_item.dart';
+import '../../models/travel/transfer_item.dart';
+import '../../models/travel/rental_car_item.dart';
+import '../../models/identifiable.dart';
+import 'travel_edit_screen.dart';
+
+class TravelListScreen extends StatefulWidget {
+  final String cruiseId;
+  const TravelListScreen({super.key, required this.cruiseId});
+
+  @override
+  State<TravelListScreen> createState() => _TravelListScreenState();
+}
+
+class _TravelListScreenState extends State<TravelListScreen> {
+  Cruise? _cruise;
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    final s = CruiseStore();
+    await s.load();
+    setState(() => _cruise = s.getCruise(widget.cruiseId));
+  }
+
+  Future<void> _create(TravelKind kind) async {
+    final id = Identifiable.newId();
+    final s = CruiseStore();
+    await s.load();
+    final c = s.getCruise(widget.cruiseId);
+    if (c == null) return;
+    final now = c.period.start;
+    TravelItem item;
+    switch (kind) {
+      case TravelKind.flight:
+        item = FlightItem(id: id, start: now, end: now, from: '', to: '', notes: null, price: null, currency: null, carrier: null, flightNo: null, recordLocator: null);
+        break;
+      case TravelKind.train:
+        item = TrainItem(id: id, start: now, end: now, from: '', to: '', notes: null, price: null, currency: null);
+        break;
+      case TravelKind.transfer:
+        item = TransferItem(id: id, start: now, end: now, from: '', to: '', notes: null, price: null, currency: null, mode: null);
+        break;
+      case TravelKind.rentalCar:
+        item = RentalCarItem(id: id, start: now, end: now.add(const Duration(days: 1)), from: '', to: '', notes: null, price: null, currency: null, company: null);
+        break;
+    }
+    await s.upsertTravelItem(cruiseId: widget.cruiseId, item: item);
+    if (!mounted) return;
+    await Navigator.of(context).push(MaterialPageRoute(builder: (_) => TravelEditScreen(travelItemId: id)));
+    await _load();
+  }
+
+  void _showCreateMenu() {
+    showModalBottomSheet(
+      context: context,
+      builder: (ctx) => SafeArea(
+        child: Wrap(children: [
+          ListTile(leading: const Icon(Icons.flight), title: const Text('Flug'), onTap: () { Navigator.pop(ctx); _create(TravelKind.flight); }),
+          ListTile(leading: const Icon(Icons.train), title: const Text('Zug'), onTap: () { Navigator.pop(ctx); _create(TravelKind.train); }),
+          ListTile(leading: const Icon(Icons.directions_bus), title: const Text('Transfer'), onTap: () { Navigator.pop(ctx); _create(TravelKind.transfer); }),
+          ListTile(leading: const Icon(Icons.directions_car), title: const Text('Mietwagen'), onTap: () { Navigator.pop(ctx); _create(TravelKind.rentalCar); }),
+        ]),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final c = _cruise;
+    return Scaffold(
+      appBar: AppBar(title: const Text('Travel')),
+      body: c == null
+          ? const Center(child: CircularProgressIndicator())
+          : ListView.builder(
+              itemCount: c.travel.length,
+              itemBuilder: (_, i) {
+                final t = c.travel[i];
+                return ListTile(
+                  title: Text(_titleFor(t)),
+                  subtitle: Text(_subtitleFor(t)),
+                  onTap: () async {
+                    await Navigator.of(context).push(MaterialPageRoute(builder: (_) => TravelEditScreen(travelItemId: t.id)));
+                    await _load();
+                  },
+                  trailing: IconButton(
+                    icon: const Icon(Icons.delete_outline),
+                    onPressed: () async {
+                      final s = CruiseStore();
+                      await s.load();
+                      await s.deleteTravelItem(t.id);
+                      await _load();
+                    },
+                  ),
+                );
+              },
+            ),
+      floatingActionButton: FloatingActionButton(onPressed: _showCreateMenu, child: const Icon(Icons.add)),
+    );
+  }
+
+  String _titleFor(TravelItem t) {
+    switch (t.kind) {
+      case TravelKind.flight:
+        final f = t as FlightItem;
+        final no = (f.flightNo ?? '').isEmpty ? 'Flug' : 'Flug ${f.flightNo}';
+        return no;
+      case TravelKind.train:
+        return 'Zug';
+      case TravelKind.transfer:
+        return 'Transfer';
+      case TravelKind.rentalCar:
+        return 'Mietwagen';
+    }
+  }
+
+  String _subtitleFor(TravelItem t) {
+    final from = t.from ?? '';
+    final to = t.to ?? '';
+    final date = t.start.toLocal().toIso8601String().split('T').first;
+    return '$from → $to • $date';
+  }
+}

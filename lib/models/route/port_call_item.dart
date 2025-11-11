@@ -1,4 +1,3 @@
-
 import 'route_item.dart';
 
 class PortCallItem extends RouteItem {
@@ -12,6 +11,8 @@ class PortCallItem extends RouteItem {
   final String portName;
   final DateTime? arrival;
   final DateTime? departure;
+  /// Neue Zusatzzeit: Alle Mann an Bord
+  final DateTime? allAboard;
   final String? notes;
 
   PortCallItem({
@@ -20,6 +21,7 @@ class PortCallItem extends RouteItem {
     required this.portName,
     this.arrival,
     this.departure,
+    this.allAboard,
     this.notes,
   });
 
@@ -29,6 +31,7 @@ class PortCallItem extends RouteItem {
     String? portName,
     DateTime? arrival,
     DateTime? departure,
+    DateTime? allAboard,
     String? notes,
   }) =>
       PortCallItem(
@@ -37,6 +40,7 @@ class PortCallItem extends RouteItem {
         portName: portName ?? this.portName,
         arrival: arrival ?? this.arrival,
         departure: departure ?? this.departure,
+        allAboard: allAboard ?? this.allAboard,
         notes: notes ?? this.notes,
       );
 
@@ -48,6 +52,7 @@ class PortCallItem extends RouteItem {
         'portName': portName,
         'arrival': arrival?.toIso8601String(),
         'departure': departure?.toIso8601String(),
+        'allAboard': allAboard?.toIso8601String(),
         'notes': notes,
       };
 
@@ -57,9 +62,10 @@ class PortCallItem extends RouteItem {
         portName: map['portName'],
         arrival: map['arrival'] != null ? DateTime.parse(map['arrival']) : null,
         departure: map['departure'] != null ? DateTime.parse(map['departure']) : null,
+        allAboard: map['allAboard'] != null ? DateTime.parse(map['allAboard']) : null,
         notes: map['notes'],
       );
 
   @override
-  List<Object?> get props => [id, type, date, portName, arrival, departure, notes];
+  List<Object?> get props => [id, type, date, portName, arrival, departure, allAboard, notes];
 }
