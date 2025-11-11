@@ -8,6 +8,12 @@ import '../store/cruise_store.dart';
 import '../models/cruise.dart';
 import '../models/route/route_item.dart';
 import '../models/route/port_call_item.dart';
+import '../models/travel/base_travel.dart';
+import '../models/travel/flight_item.dart';
+import '../models/travel/train_item.dart';
+import '../models/travel/transfer_item.dart';
+import '../models/travel/rental_car_item.dart';
+import '../models/excursion.dart';
 import 'details/cruise_details_screen.dart';
 import 'route/route_list_screen.dart';
 import 'excursions/excursion_list_screen.dart';
@@ -87,33 +93,35 @@ class _CruiseHubScreenState extends State<CruiseHubScreen> {
                           await _load();
                         },
                       );
-                    case 2:
-                      return _HubTile(
-                        title: 'Excursions',
-                        subtitle: '${c.excursions.length}',
-                        icon: Icons.directions_walk,
-                        color: Colors.teal,
-                        onTap: () async {
-                          await Navigator.of(context).push(MaterialPageRoute(
-                            builder: (_) => ExcursionListScreen(cruiseId: c.id),
-                          ));
-                          await _load();
-                        },
-                      );
-                    default:
-                      return _HubTile(
-                        title: 'Travel',
-                        subtitle: '${c.travel.length}',
-                        icon: Icons.flight_takeoff,
-                        color: Colors.indigo,
-                        onTap: () async {
-                          await Navigator.of(context).push(MaterialPageRoute(
-                            builder: (_) => TravelListScreen(cruiseId: c.id),
-                          ));
-                          await _load();
-                        },
-                      );
-                  }
+                    
+case 2:
+  return _HubTile(
+    title: 'Excursions',
+    subtitleWidget: _buildExcursionPreview(context, c.excursions),
+    icon: Icons.directions_walk,
+    color: Colors.teal,
+    onTap: () async {
+      await Navigator.of(context).push(MaterialPageRoute(
+        builder: (_) => ExcursionListScreen(cruiseId: c.id),
+      ));
+      await _load();
+    },
+  );
+
+default:
+  return _HubTile(
+    title: 'Travel',
+    subtitleWidget: _buildTravelPreview(context, c.travel),
+    icon: Icons.flight_takeoff,
+    color: Colors.indigo,
+    onTap: () async {
+      await Navigator.of(context).push(MaterialPageRoute(
+        builder: (_) => TravelListScreen(cruiseId: c.id),
+      ));
+      await _load();
+    },
+  );
+}
                 },
               ),
             ),
@@ -339,7 +347,7 @@ Widget _timePill({
     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
     decoration: BoxDecoration(
       borderRadius: BorderRadius.circular(999),
-      color: Theme.of(context).colorScheme.surfaceVariant,
+      color: Theme.of(context).colorScheme.surfaceContainerHighest,
     ),
     child: Row(
       mainAxisSize: MainAxisSize.min,
@@ -365,7 +373,7 @@ Widget _datePill({
     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
     decoration: BoxDecoration(
       borderRadius: BorderRadius.circular(999),
-      color: Theme.of(context).colorScheme.surfaceVariant,
+      color: Theme.of(context).colorScheme.surfaceContainerHighest,
     ),
     child: Row(
       mainAxisSize: MainAxisSize.min,
@@ -380,6 +388,7 @@ Widget _datePill({
 }
 
 // baut die Reihe aller vorhandenen Zeiten (Ankunft/Abfahrt/Alle an Bord)
+
 Widget _timeRow(
   BuildContext context, {
   DateTime? arrival,
@@ -387,10 +396,11 @@ Widget _timeRow(
   DateTime? allAboard,
 }) {
   final chips = <Widget>[];
+
   if (arrival != null) {
     chips.add(_timePill(
       context: context,
-      icon: Icons.login, // Alternativen: Icons.south_west, Icons.call_received
+      icon: Icons.login, // oder: Icons.south_west, Icons.call_received
       time: arrival,
       tooltip: 'Ankunft',
     ));
@@ -399,7 +409,7 @@ Widget _timeRow(
     if (chips.isNotEmpty) chips.add(const SizedBox(width: 8));
     chips.add(_timePill(
       context: context,
-      icon: Icons.logout, // Alternativen: Icons.north_east, Icons.call_made
+      icon: Icons.logout, // oder: Icons.north_east, Icons.call_made
       time: departure,
       tooltip: 'Abfahrt',
     ));
@@ -413,6 +423,330 @@ Widget _timeRow(
       tooltip: 'Alle an Bord',
     ));
   }
+
   if (chips.isEmpty) return const SizedBox.shrink();
   return Wrap(spacing: 0, runSpacing: 8, children: chips);
+}
+
+
+
+// ----- Excursions preview (today or next) -----------------------------------
+Widget _buildExcursionPreview(BuildContext context, List<Excursion> list) {
+  if (list.isEmpty) {
+    return Text('Keine Ausflüge', style: Theme.of(context).textTheme.bodyMedium);
+  }
+  // normalize to local midnight
+  final now = DateTime.now();
+  final today = DateTime(now.year, now.month, now.day);
+
+  // sort by date ascending
+  final items = List<Excursion>.from(list)..sort((a, b) => a.date.compareTo(b.date));
+
+  Excursion? findToday(List<Excursion> src, DateTime day) {
+    for (final e in src) {
+      final d = DateTime(e.date.year, e.date.month, e.date.day);
+      if (d == day) return e;
+    }
+    return null;
+  }
+
+  Excursion? firstAfter(List<Excursion> src, DateTime day) {
+    for (final e in src) {
+      final d = DateTime(e.date.year, e.date.month, e.date.day);
+      if (d.isAfter(day)) return e;
+    }
+    return null;
+  }
+
+  final current = findToday(items, today);
+  final nextExcursion = current == null ? firstAfter(items, today) : null;
+  final e = current ?? nextExcursion;
+
+  if (e == null) {
+    return Text('Keine kommenden Ausflüge', style: Theme.of(context).textTheme.bodyMedium);
+  }
+
+  final isToday = DateTime(e.date.year, e.date.month, e.date.day) == today;
+
+  final chips = <Widget>[];
+
+  // Date pill
+  chips.add(_datePill(
+    context: context,
+    icon: isToday ? Icons.today : Icons.event,
+    date: e.date,
+    tooltip: isToday ? 'Heute' : null,
+  ));
+
+  // Port chip
+  if ((e.port ?? '').trim().isNotEmpty) {
+    chips.add(const SizedBox(width: 8));
+    chips.add(_iconTextChip(
+      context: context,
+      icon: Icons.location_on_outlined,
+      text: e.port!.trim(),
+      tooltip: 'Hafen/Ort',
+    ));
+  }
+
+  // Meeting point chip
+  if ((e.meetingPoint ?? '').trim().isNotEmpty) {
+    chips.add(const SizedBox(width: 8));
+    chips.add(_iconTextChip(
+      context: context,
+      icon: Icons.meeting_room_outlined,
+      text: e.meetingPoint!.trim(),
+      tooltip: 'Treffpunkt',
+    ));
+  }
+
+  // Price chip
+  if (e.price != null) {
+    final cur = (e.currency ?? '').trim();
+    final priceStr = cur.isEmpty ? '${e.price}' : '${e.price} $cur';
+    chips.add(const SizedBox(width: 8));
+    chips.add(_iconTextChip(
+      context: context,
+      icon: Icons.euro_symbol,
+      text: priceStr,
+      tooltip: 'Preis',
+    ));
+  }
+
+    // Title line (icon + excursion title)
+  final titleLine = Row(
+    children: [
+      const Icon(Icons.directions_walk, size: 16),
+      const SizedBox(width: 6),
+      Expanded(
+        child: Text(
+          e.title,
+          style: Theme.of(context).textTheme.bodyMedium,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          softWrap: false,
+        ),
+      ),
+    ],
+  );
+
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      titleLine,
+      const SizedBox(height: 6),
+      Wrap(spacing: 0, runSpacing: 8, children: chips),
+    ],
+  );
+}
+
+/// small rounded chip with icon + one-line text
+Widget _iconTextChip({
+  required BuildContext context,
+  required IconData icon,
+  required String text,
+  String? tooltip,
+}) {
+  final chip = Container(
+    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+    decoration: BoxDecoration(
+      borderRadius: BorderRadius.circular(999),
+      color: Theme.of(context).colorScheme.surfaceContainerHighest,
+    ),
+    child: Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, size: 14),
+        const SizedBox(width: 6),
+        Flexible(
+          child: Text(
+            text,
+            style: Theme.of(context).textTheme.labelMedium,
+            overflow: TextOverflow.ellipsis,
+            maxLines: 1,
+            softWrap: false,
+          ),
+        ),
+      ],
+    ),
+  );
+  return tooltip == null ? chip : Tooltip(message: tooltip, child: chip);
+}
+
+// ----- Travel preview (today or next) ---------------------------------------
+Widget _buildTravelPreview(BuildContext context, List<TravelItem> list) {
+  if (list.isEmpty) {
+    return Text('Keine Travel-Items', style: Theme.of(context).textTheme.bodyMedium);
+  }
+  final now = DateTime.now();
+  final items = List<TravelItem>.from(list)..sort((a, b) => a.start.compareTo(b.start));
+
+  TravelItem? selected;
+  for (final t in items) {
+    if (t.start.isAfter(now) || _isSameDay(t.start, now)) {
+      selected = t;
+      break;
+    }
+  }
+  selected ??= items.last;
+
+  final t = selected;
+  final chips = <Widget>[];
+
+  chips.add(_timePill(
+    context: context,
+    icon: Icons.schedule,
+    time: t.start,
+    tooltip: 'Start',
+  ));
+  if (t.end != null) {
+    chips.add(const SizedBox(width: 8));
+    chips.add(_timePill(
+      context: context,
+      icon: Icons.flag,
+      time: t.end!,
+      tooltip: 'Ende',
+    ));
+  }
+
+  if ((t.from ?? '').trim().isNotEmpty || (t.to ?? '').trim().isNotEmpty) {
+    chips.add(const SizedBox(width: 8));
+    chips.add(_iconTextChip(
+      context: context,
+      icon: Icons.swap_horiz,
+      text: _compactFromTo(t.from, t.to),
+      tooltip: 'Von → Nach',
+    ));
+  }
+
+  final typeChip = _typeSpecificChip(context, t);
+  if (typeChip != null) {
+    chips.add(const SizedBox(width: 8));
+    chips.add(typeChip);
+  }
+
+  if (t.price != null) {
+    final cur = (t.currency ?? '').trim();
+    final priceStr = cur.isEmpty ? '${t.price}' : '${t.price} $cur';
+    chips.add(const SizedBox(width: 8));
+    chips.add(_iconTextChip(
+      context: context,
+      icon: Icons.euro_symbol,
+      text: priceStr,
+      tooltip: 'Preis',
+    ));
+  }
+
+  final titleLine = Row(
+    children: [
+      Icon(_travelKindIcon(t.kind), size: 16),
+      const SizedBox(width: 6),
+      Expanded(
+        child: Text(
+          _travelTitle(t),
+          style: Theme.of(context).textTheme.bodyMedium,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          softWrap: false,
+        ),
+      ),
+    ],
+  );
+
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      titleLine,
+      const SizedBox(height: 6),
+      Wrap(spacing: 0, runSpacing: 8, children: chips),
+    ],
+  );
+}
+
+String _compactFromTo(String? from, String? to) {
+  final f = (from ?? '').trim();
+  final t = (to ?? '').trim();
+  if (f.isEmpty && t.isEmpty) return '';
+  if (f.isEmpty) return '→ $t';
+  if (t.isEmpty) return '$f →';
+  return '$f → $t';
+}
+
+bool _isSameDay(DateTime a, DateTime b) {
+  return a.year == b.year && a.month == b.month && a.day == b.day;
+}
+
+IconData _travelKindIcon(TravelKind k) {
+  switch (k) {
+    case TravelKind.flight:
+      return Icons.flight_takeoff;
+    case TravelKind.train:
+      return Icons.train;
+    case TravelKind.transfer:
+      return Icons.local_taxi;
+    case TravelKind.rentalCar:
+      return Icons.directions_car;
+  }
+}
+
+String _travelTitle(TravelItem t) {
+  switch (t.kind) {
+    case TravelKind.flight:
+      final f = t as FlightItem;
+      final flightNo = (f.flightNo ?? '').trim();
+      final carrier = (f.carrier ?? '').trim();
+      final numPart = flightNo.isEmpty ? '' : ' $flightNo';
+      return (carrier + numPart).trim().isEmpty ? 'Flug' : (carrier + numPart).trim();
+    case TravelKind.train:
+      return 'Zug';
+    case TravelKind.transfer:
+      final tr = t as TransferItem;
+      final mode = tr.mode?.name ?? 'Transfer';
+      return mode[0].toUpperCase() + mode.substring(1);
+    case TravelKind.rentalCar:
+      final rc = t as RentalCarItem;
+      final company = (rc.company ?? '').trim();
+      return company.isEmpty ? 'Mietwagen' : company;
+  }
+}
+
+Widget? _typeSpecificChip(BuildContext context, TravelItem t) {
+  switch (t.kind) {
+    case TravelKind.flight:
+      final f = t as FlightItem;
+      final flightNo = (f.flightNo ?? '').trim();
+      if (flightNo.isNotEmpty) {
+        return _iconTextChip(
+          context: context,
+          icon: Icons.flight,
+          text: flightNo,
+          tooltip: 'Flugnummer',
+        );
+      }
+      return null;
+    case TravelKind.train:
+      return null;
+    case TravelKind.transfer:
+      final tr = t as TransferItem;
+      if (tr.mode != null) {
+        return _iconTextChip(
+          context: context,
+          icon: Icons.directions_car_filled,
+          text: tr.mode!.name,
+          tooltip: 'Transfer',
+        );
+      }
+      return null;
+    case TravelKind.rentalCar:
+      final rc = t as RentalCarItem;
+      if ((rc.company ?? '').trim().isNotEmpty) {
+        return _iconTextChip(
+          context: context,
+          icon: Icons.directions_car_filled,
+          text: rc.company!.trim(),
+          tooltip: 'Vermieter',
+        );
+      }
+      return null;
+  }
 }
