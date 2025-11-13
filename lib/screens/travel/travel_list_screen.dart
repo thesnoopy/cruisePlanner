@@ -89,7 +89,6 @@ class _TravelListScreenState extends State<TravelListScreen> {
               itemBuilder: (_, i) {
                 final t = c.travel[i];
                 return ListTile(
-                  title: Text(_titleFor(t)),
                   subtitle: _subtitleFor(context, t),
                   onTap: () async {
                     await Navigator.of(context).push(MaterialPageRoute(builder: (_) => TravelEditScreen(travelItemId: t.id)));
@@ -111,78 +110,79 @@ class _TravelListScreenState extends State<TravelListScreen> {
     );
   }
 
-  String _titleFor(TravelItem t) {
-    switch (t.kind) {
-      case TravelKind.flight:
-        final f = t as FlightItem;
-        final no = (f.flightNo ?? '').isEmpty ? 'Flug' : 'Flug ${f.flightNo}';
-        return no;
-      case TravelKind.train:
-        return 'Zug';
-      case TravelKind.transfer:
-        return 'Transfer';
-      case TravelKind.rentalCar:
-        return 'Mietwagen';
-    }
-  }
-
   Widget _subtitleFor(BuildContext context, TravelItem t) {
     final from = t.from ?? '';
     final to = t.to ?? '';
 
-    final dateStr = fmtDate(context, t.start, pattern: 'yMMMd');
-    final startTimeStr = fmtDate(context, t.start, pattern: 'HH:mm');
+    final dateStr = fmtDate(context, t.start);
+    final startTimeStr = fmtTime(context, t.start);
     final endTimeStr =
-        t.end != null ? fmtDate(context, t.end, pattern: 'HH:mm') : null;
+        t.end != null ? fmtTime(context, t.end) : null;
     final timeText =
         endTimeStr != null ? '$startTimeStr – $endTimeStr' : startTimeStr;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Zeile 1: Von → Nach
-        Row(
-          children: [
-            const Icon(Icons.location_on, size: 14),
-            const SizedBox(width: 4),
-            Flexible(
-              child: Text(
-                '$from → $to',
-                overflow: TextOverflow.ellipsis,
+    return ListTile(
+      leading: Icon(_travelKindIcon(t.kind)),
+      subtitle: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Zeile 1: Von → Nach
+          Row(
+            children: [
+              const Icon(Icons.location_on, size: 14),
+              const SizedBox(width: 4),
+              Flexible(
+                child: Text(
+                  '$from → $to',
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 2),
-        // Zeile 2: Datum
-        Row(
-          children: [
-            const Icon(Icons.event, size: 14),
-            const SizedBox(width: 4),
-            Flexible(
-              child: Text(
-                dateStr,
-                overflow: TextOverflow.ellipsis,
+            ],
+          ),
+          const SizedBox(height: 2),
+          // Zeile 2: Datum
+          Row(
+            children: [
+              const Icon(Icons.event, size: 14),
+              const SizedBox(width: 4),
+              Flexible(
+                child: Text(
+                  dateStr,
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 2),
-        // Zeile 3: Zeit / Zeitraum
-        Row(
-          children: [
-            const Icon(Icons.schedule, size: 14),
-            const SizedBox(width: 4),
-            Flexible(
-              child: Text(
-                timeText,
-                overflow: TextOverflow.ellipsis,
+            ],
+          ),
+          const SizedBox(height: 2),
+          // Zeile 3: Zeit / Zeitraum
+          Row(
+            children: [
+              const Icon(Icons.schedule, size: 14),
+              const SizedBox(width: 4),
+              Flexible(
+                child: Text(
+                  timeText,
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
-            ),
-          ],
-        ),
-      ],
+            ],
+          ),
+        ],
+      )
     );
   }
 
+}
+
+IconData _travelKindIcon(TravelKind k) {
+  switch (k) {
+    case TravelKind.flight:
+      return Icons.flight_takeoff;
+    case TravelKind.train:
+      return Icons.train;
+    case TravelKind.transfer:
+      return Icons.local_taxi;
+    case TravelKind.rentalCar:
+      return Icons.directions_car;
+  }
 }

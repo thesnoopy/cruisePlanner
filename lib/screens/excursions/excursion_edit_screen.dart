@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import '../../store/cruise_store.dart';
 import '../../models/excursion.dart';
+import '../../utils/format.dart';
 
 class ExcursionEditScreen extends StatefulWidget {
   final String excursionId;
@@ -76,11 +77,26 @@ class _ExcursionEditScreenState extends State<ExcursionEditScreen> {
     Navigator.of(context).pop();
   }
 
-  Future<void> _pickDate() async {
-    final initial = _date ?? DateTime.now();
-    final picked = await showDatePicker(context: context, firstDate: DateTime(2000), lastDate: DateTime(2100), initialDate: initial);
-    if (picked != null) {
-      setState(() => _date = picked);
+  Future<void> _pickDateTime(bool start) async {
+    final initial = DateTime.now();
+
+    final date = await showDatePicker(
+      context: context,
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2100),
+      initialDate: initial,
+    );
+    if (date == null) return;
+
+    final time = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.fromDateTime(initial),
+    );
+    if (time == null) return;
+
+    final value = DateTime(date.year, date.month, date.day, time.hour, time.minute);
+    if (value != null) {
+      setState(() => _date = value);
     }
   }
 
@@ -98,7 +114,7 @@ class _ExcursionEditScreenState extends State<ExcursionEditScreen> {
                 children: [
                   TextFormField(controller: _title, decoration: const InputDecoration(labelText: 'Titel'), validator: (v) => (v == null || v.trim().isEmpty) ? 'Pflichtfeld' : null),
                   const SizedBox(height: 12),
-                  ListTile(title: const Text('Datum'), subtitle: Text((_date ?? DateTime.now()).toLocal().toIso8601String().split('T').first), trailing: const Icon(Icons.edit_calendar), onTap: _pickDate),
+                  ListTile(title: const Text('Datum'), subtitle: Text(fmtDate(context, _date, pattern: 'yMMMd HH:mm')), trailing: const Icon(Icons.edit_calendar), onTap: () => _pickDateTime(true)),
                   const SizedBox(height: 12),
                   TextFormField(controller: _port, decoration: const InputDecoration(labelText: 'Hafen (optional)')),
                   const SizedBox(height: 12),

@@ -60,14 +60,13 @@ class _ExcursionListScreenState extends State<ExcursionListScreen> {
                 final e = c.excursions[i];
 
                 final dateStr = fmtDate(context, e.date, pattern: 'yMMMd');
-                final timeStr = fmtDate(context, e.date, pattern: 'HH:mm');
+                final timeStr = fmtTime(context, e.date);
 
                 final location = e.port ?? 'Kein Hafen';
                 final meetingPoint = e.meetingPoint;
                 final locationLine = (meetingPoint != null && meetingPoint.isNotEmpty)
                     ? '$location – $meetingPoint'
                     : location;
-
                 return ListTile(
                   leading: const Icon(Icons.tour),
                   title: Text(e.title),
