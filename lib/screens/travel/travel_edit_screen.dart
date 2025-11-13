@@ -7,6 +7,7 @@ import '../../models/travel/flight_item.dart';
 import '../../models/travel/train_item.dart';
 import '../../models/travel/transfer_item.dart';
 import '../../models/travel/rental_car_item.dart';
+import '../../utils/format.dart';
 
 class TravelEditScreen extends StatefulWidget {
   final String travelItemId;
@@ -88,16 +89,33 @@ class _TravelEditScreenState extends State<TravelEditScreen> {
 
   Future<void> _pickDate(bool start) async {
     final initial = start ? (_start ?? DateTime.now()) : (_end ?? _start ?? DateTime.now());
-    final picked = await showDatePicker(context: context, firstDate: DateTime(2000), lastDate: DateTime(2100), initialDate: initial);
-    if (picked != null) {
-      setState(() {
-        if (start) {
-          _start = picked;
-        } else {
-          _end = picked;
+
+    final date = await showDatePicker(
+      context: context,
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2100),
+      initialDate: initial,
+    );
+    if (date == null) return;
+
+    final time = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.fromDateTime(initial),
+    );
+    if (time == null) return;
+
+    final value = DateTime(date.year, date.month, date.day, time.hour, time.minute);
+
+    setState(() {
+      if (start) {
+        _start = value;
+        if (_end != null && _end!.isBefore(_start!)) {
+          _end = _start;
         }
-      });
-    }
+      } else {
+        _end = value;
+      }
+    });
   }
 
   Future<void> _save() async {
@@ -178,8 +196,22 @@ class _TravelEditScreenState extends State<TravelEditScreen> {
             const SizedBox(height: 12),
             _row('Nach', TextFormField(controller: _to, validator: (v) => (v == null || v.isEmpty) ? 'Pflichtfeld' : null)),
             const SizedBox(height: 12),
-            ListTile(title: const Text('Start'), subtitle: Text((_start ?? DateTime.now()).toLocal().toIso8601String().split('T').first), trailing: const Icon(Icons.edit_calendar), onTap: () => _pickDate(true)),
-            ListTile(title: const Text('Ende'), subtitle: Text((_end ?? _start ?? DateTime.now()).toLocal().toIso8601String().split('T').first), trailing: const Icon(Icons.edit_calendar), onTap: () => _pickDate(false)),
+                        ListTile(
+              title: const Text('Start'),
+              subtitle: Text(
+                fmtDate(context, _start ?? item.start, pattern: 'yMMMd HH:mm'),
+              ),
+              trailing: const Icon(Icons.edit_calendar),
+              onTap: () => _pickDate(true),
+            ),
+                        ListTile(
+              title: const Text('Ende'),
+              subtitle: Text(
+                fmtDate(context, _end ?? _start ?? item.end ?? item.start, pattern: 'yMMMd HH:mm'),
+              ),
+              trailing: const Icon(Icons.edit_calendar),
+              onTap: () => _pickDate(false),
+            ),
             const SizedBox(height: 12),
             TextFormField(controller: _notes, decoration: const InputDecoration(labelText: 'Notizen (optional)'), maxLines: 3),
             const SizedBox(height: 12),
@@ -209,5 +241,11 @@ class _TravelEditScreenState extends State<TravelEditScreen> {
     );
   }
 
-  Widget _row(String label, Widget field) => Row(children: [Expanded(child: Text(label)), const SizedBox(width: 12), Expanded(flex: 2, child: field)]);
+  Widget _row(String label, Widget field) => Row(
+        children: [
+          Expanded(flex: 1, child: Text(label)),
+          const SizedBox(width: 12),
+          Expanded(flex: 2, child: field),
+        ],
+      );
 }

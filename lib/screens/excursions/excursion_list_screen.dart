@@ -6,6 +6,8 @@ import '../../models/cruise.dart';
 import '../../models/excursion.dart';
 import '../../models/identifiable.dart';
 import 'excursion_edit_screen.dart';
+import '../../utils/format.dart';
+
 
 class ExcursionListScreen extends StatefulWidget {
   final String cruiseId;
@@ -54,28 +56,81 @@ class _ExcursionListScreenState extends State<ExcursionListScreen> {
           ? const Center(child: CircularProgressIndicator())
           : ListView.builder(
               itemCount: c.excursions.length,
-              itemBuilder: (_, i) {
-                final e = c.excursions[i];
-                final date = e.date.toLocal().toIso8601String().split('T').first;
-                final port = e.port == null ? '' : ' • ${e.port}';
-                return ListTile(
-                  title: Text(e.title),
-                  subtitle: Text('$date$port'),
-                  onTap: () async {
-                    await Navigator.of(context).push(MaterialPageRoute(builder: (_) => ExcursionEditScreen(excursionId: e.id)));
-                    await _load();
-                  },
-                  trailing: IconButton(
-                    icon: const Icon(Icons.delete_outline),
-                    onPressed: () async {
-                      final s = CruiseStore();
-                      await s.load();
-                      await s.deleteExcursion(e.id);
-                      await _load();
-                    },
+      itemBuilder: (_, i) {
+        final e = c.excursions[i];
+
+        final dateStr = fmtDate(context, e.date, pattern: 'yMMMd');
+        final timeStr = fmtDate(context, e.date, pattern: 'HH:mm');
+
+        final location = e.port ?? 'Kein Hafen';
+        final meetingPoint = e.meetingPoint;
+        final locationLine = (meetingPoint != null && meetingPoint.isNotEmpty)
+            ? '$location – $meetingPoint'
+            : location;
+
+        return ListTile(
+          leading: const Icon(Icons.tour),
+          title: Text(e.title),
+          subtitle: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Zeile 1: Hafen / Treffpunkt
+              Row(
+                children: [
+                  const Icon(Icons.location_on, size: 14),
+                  const SizedBox(width: 4),
+                  Flexible(
+                    child: Text(
+                      locationLine,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ),
-                );
-              },
+                ],
+              ),
+              const SizedBox(height: 2),
+              // Zeile 2: Datum
+              Row(
+                children: [
+                  const Icon(Icons.event, size: 14),
+                  const SizedBox(width: 4),
+                  Flexible(
+                    child: Text(
+                      dateStr,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 2),
+              // Zeile 3: Uhrzeit
+              Row(
+                children: [
+                  const Icon(Icons.schedule, size: 14),
+                  const SizedBox(width: 4),
+                  Text(timeStr),
+                ],
+              ),
+            ],
+          ),
+          onTap: () async {
+            await Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (_) => ExcursionEditScreen(excursionId: e.id),
+              ),
+            );
+            await _load();
+          },
+          trailing: IconButton(
+            icon: const Icon(Icons.delete_outline),
+            onPressed: () async {
+              final s = CruiseStore();
+              await s.load();
+              await s.deleteExcursion(e.id);
+              await _load();
+            },
+          ),
+        );
+      },
             ),
       floatingActionButton: FloatingActionButton(onPressed: _create, child: const Icon(Icons.add)),
     );
