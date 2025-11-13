@@ -9,6 +9,7 @@ import '../../models/travel/train_item.dart';
 import '../../models/travel/transfer_item.dart';
 import '../../models/travel/rental_car_item.dart';
 import '../../models/identifiable.dart';
+import '../../utils/format.dart';
 import 'travel_edit_screen.dart';
 
 class TravelListScreen extends StatefulWidget {
@@ -89,7 +90,7 @@ class _TravelListScreenState extends State<TravelListScreen> {
                 final t = c.travel[i];
                 return ListTile(
                   title: Text(_titleFor(t)),
-                  subtitle: Text(_subtitleFor(t)),
+                  subtitle: _subtitleFor(context, t),
                   onTap: () async {
                     await Navigator.of(context).push(MaterialPageRoute(builder: (_) => TravelEditScreen(travelItemId: t.id)));
                     await _load();
@@ -125,10 +126,63 @@ class _TravelListScreenState extends State<TravelListScreen> {
     }
   }
 
-  String _subtitleFor(TravelItem t) {
+  Widget _subtitleFor(BuildContext context, TravelItem t) {
     final from = t.from ?? '';
     final to = t.to ?? '';
-    final date = t.start.toLocal().toIso8601String().split('T').first;
-    return '$from → $to • $date';
+
+    final dateStr = fmtDate(context, t.start, pattern: 'yMMMd');
+    final startTimeStr = fmtDate(context, t.start, pattern: 'HH:mm');
+    final endTimeStr =
+        t.end != null ? fmtDate(context, t.end, pattern: 'HH:mm') : null;
+    final timeText =
+        endTimeStr != null ? '$startTimeStr – $endTimeStr' : startTimeStr;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Zeile 1: Von → Nach
+        Row(
+          children: [
+            const Icon(Icons.location_on, size: 14),
+            const SizedBox(width: 4),
+            Flexible(
+              child: Text(
+                '$from → $to',
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 2),
+        // Zeile 2: Datum
+        Row(
+          children: [
+            const Icon(Icons.event, size: 14),
+            const SizedBox(width: 4),
+            Flexible(
+              child: Text(
+                dateStr,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 2),
+        // Zeile 3: Zeit / Zeitraum
+        Row(
+          children: [
+            const Icon(Icons.schedule, size: 14),
+            const SizedBox(width: 4),
+            Flexible(
+              child: Text(
+                timeText,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
   }
+
 }

@@ -332,7 +332,6 @@ Widget _buildRouteSubtitleWidget(_RoutePreview p, BuildContext context) {
 
 // ----- Helpers ---------------------------------------------------------------
 
-String _fmtDate(DateTime d) => '${_pad(d.day)}.${_pad(d.month)}.${d.year}';
 String _pad(int n) => n.toString().padLeft(2, '0');
 String _hhmm(DateTime d) => '${_pad(d.hour)}:${_pad(d.minute)}';
 
