@@ -61,7 +61,7 @@ class _TravelEditScreenState extends State<TravelEditScreen> {
         _from.text = item.from ?? '';
         _to.text = item.to ?? '';
         _notes.text = item.notes ?? '';
-        _price.text = item.price?.toString() ?? '';
+        _price.text = fmtNumber(context,item.price);
         _currency.text = item.currency ?? '';
         _start = item.start;
         _end = item.end;
@@ -133,7 +133,7 @@ _pickDateTime(bool start) async {
           from: _from.text,
           to: _to.text,
           notes: _notes.text.isEmpty ? null : _notes.text,
-          price: _price.text.isEmpty ? null : num.tryParse(_price.text),
+          price: _price.text.isEmpty ? null : parseLocalizedNumber(context, _price.text),
           currency: _currency.text.isEmpty ? null : _currency.text,
           carrier: _carrier.text.isEmpty ? null : _carrier.text,
           flightNo: _flightNo.text.isEmpty ? null : _flightNo.text,
@@ -147,7 +147,7 @@ _pickDateTime(bool start) async {
           from: _from.text,
           to: _to.text,
           notes: _notes.text.isEmpty ? null : _notes.text,
-          price: _price.text.isEmpty ? null : num.tryParse(_price.text),
+          price: _price.text.isEmpty ? null : parseLocalizedNumber(context, _price.text),
           currency: _currency.text.isEmpty ? null : _currency.text,
         );
         break;
@@ -158,7 +158,7 @@ _pickDateTime(bool start) async {
           from: _from.text,
           to: _to.text,
           notes: _notes.text.isEmpty ? null : _notes.text,
-          price: _price.text.isEmpty ? null : num.tryParse(_price.text),
+          price: _price.text.isEmpty ? null : parseLocalizedNumber(context, _price.text),
           currency: _currency.text.isEmpty ? null : _currency.text,
           mode: _transferMode,
         );
@@ -170,7 +170,7 @@ _pickDateTime(bool start) async {
           from: _from.text,
           to: _to.text,
           notes: _notes.text.isEmpty ? null : _notes.text,
-          price: _price.text.isEmpty ? null : num.tryParse(_price.text),
+          price: _price.text.isEmpty ? null : parseLocalizedNumber(context, _price.text),
           currency: _currency.text.isEmpty ? null : _currency.text,
           company: _company.text.isEmpty ? null : _company.text,
         );
@@ -197,12 +197,12 @@ _pickDateTime(bool start) async {
             const SizedBox(height: 12),
             _row('Nach', TextFormField(controller: _to, validator: (v) => (v == null || v.isEmpty) ? 'Pflichtfeld' : null)),
             const SizedBox(height: 12),
-            ListTile(title: const Text('Start'), subtitle: Text(fmtDate(context, _start ?? DateTime.now(), pattern: 'yMMMd HH:mm')), trailing: const Icon(Icons.edit_calendar), onTap: () => _pickDateTime(true)),
-            ListTile(title: const Text('Ende'), subtitle: Text(fmtDate(context, _end ?? _start ?? DateTime.now(), pattern: 'yMMMd HH:mm')), trailing: const Icon(Icons.edit_calendar), onTap: () => _pickDateTime(false)),
+            ListTile(title: const Text('Start'), subtitle: Text(fmtDate(context, _start ?? DateTime.now(), includeTime: true)), trailing: const Icon(Icons.edit_calendar), onTap: () => _pickDateTime(true)),
+            ListTile(title: const Text('Ende'), subtitle: Text(fmtDate(context, _end ?? _start ?? DateTime.now(), includeTime: true)), trailing: const Icon(Icons.edit_calendar), onTap: () => _pickDateTime(false)),
             const SizedBox(height: 12),
             TextFormField(controller: _notes, decoration: const InputDecoration(labelText: 'Notizen (optional)'), maxLines: 3),
             const SizedBox(height: 12),
-            Row(children: [Expanded(child: TextFormField(controller: _price, decoration: const InputDecoration(labelText: 'Preis'), keyboardType: TextInputType.number)), const SizedBox(width: 12), Expanded(child: TextFormField(controller: _currency, decoration: const InputDecoration(labelText: 'Währung')))]),
+            Row(children: [Expanded(child: TextFormField(controller: _price, decoration: const InputDecoration(labelText: 'Preis'), keyboardType: TextInputType.numberWithOptions(decimal: true))), const SizedBox(width: 12), Expanded(child: TextFormField(controller: _currency, decoration: const InputDecoration(labelText: 'Währung')))]),
             const Divider(height: 32),
             if (item.kind == TravelKind.flight) ...[
               TextFormField(controller: _carrier, decoration: const InputDecoration(labelText: 'Airline (optional)')),

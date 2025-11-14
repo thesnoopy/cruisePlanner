@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import '../../store/cruise_store.dart';
 import '../../models/cruise.dart';
 import '../../models/period.dart';
+import '../../utils/format.dart';
 
 class CruiseDetailsScreen extends StatefulWidget {
   final String cruiseId;
@@ -130,7 +131,7 @@ class _DateTile extends StatelessWidget {
   const _DateTile({required this.label, required this.date, required this.onTap});
   @override
   Widget build(BuildContext context) {
-    final text = date == null ? '-' : date!.toLocal().toIso8601String().split('T').first;
+    final text = date == null ? '-' : fmtDate(context, date);
     return ListTile(
       contentPadding: EdgeInsets.zero,
       title: Text(label),

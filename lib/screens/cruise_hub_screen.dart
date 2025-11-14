@@ -1,6 +1,7 @@
 // CruiseHubScreen – Route & Details tiles use icon-rich subtitle widgets.
 // - Route tile: icon-only time badges for arrival/departure/all aboard
 // - Details tile: ship row (icon + name) and date pills for start/end
+import 'package:cruiseplanner/utils/format.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 
@@ -353,7 +354,7 @@ Widget _timePill({
       children: [
         Icon(icon, size: 14),
         const SizedBox(width: 6),
-        Text(_hhmm(time), style: Theme.of(context).textTheme.labelMedium),
+        Text(fmtDate(context, time, timeOnly: true), style: Theme.of(context).textTheme.labelMedium),
       ],
     ),
   );
@@ -367,7 +368,8 @@ Widget _datePill({
   required DateTime date,
   String? tooltip,
 }) {
-  String d(DateTime t) => '${_pad(t.day)}.${_pad(t.month)}.${t.year}';
+  //String d(DateTime t) => '${_pad(t.day)}.${_pad(t.month)}.${t.year}';
+  String d = fmtDate(context, date);
   final pill = Container(
     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
     decoration: BoxDecoration(
@@ -379,7 +381,7 @@ Widget _datePill({
       children: [
         Icon(icon, size: 14),
         const SizedBox(width: 6),
-        Text(d(date), style: Theme.of(context).textTheme.labelMedium),
+        Text(d, style: Theme.of(context).textTheme.labelMedium),
       ],
     ),
   );

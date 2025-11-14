@@ -4,6 +4,7 @@ import '../../store/cruise_store.dart';
 import '../../models/route/route_item.dart';
 import '../../models/route/port_call_item.dart';
 import '../../models/route/sea_day_item.dart';
+import '../../utils/format.dart';
 
 class RouteEditScreen extends StatefulWidget {
   final String routeItemId;
@@ -132,9 +133,6 @@ class _RouteEditScreenState extends State<RouteEditScreen> {
     });
   }
 
-  String _fmtDate(DateTime? d) => d == null ? '—' : '${_pad(d.day)}.${_pad(d.month)}.${d.year}';
-  String _fmtTime(DateTime? d) => d == null ? '—' : '${_pad(d.hour)}:${_pad(d.minute)}';
-
   @override
   Widget build(BuildContext context) {
     final it = _item;
@@ -149,7 +147,7 @@ class _RouteEditScreenState extends State<RouteEditScreen> {
         children: [
           ListTile(
             title: const Text('Datum'),
-            subtitle: Text(_fmtDate(_date)),
+            subtitle: Text(fmtDate(context, _date)),
             leading: const Icon(Icons.event),
             onTap: _pickDate,
           ),
@@ -159,21 +157,21 @@ class _RouteEditScreenState extends State<RouteEditScreen> {
             const SizedBox(height: 12),
             ListTile(
               title: const Text('Ankunft (optional) – Datum & Uhrzeit'),
-              subtitle: Text('${_fmtDate(_arrival)}  ${_fmtTime(_arrival)}'),
+              subtitle: Text(fmtDate(context, _arrival, includeTime: true)),
               leading: const Icon(Icons.login),
               trailing: const Icon(Icons.edit_calendar),
               onTap: () => _pickDateTime('arrival'),
             ),
             ListTile(
               title: const Text('Abfahrt (optional) – Datum & Uhrzeit'),
-              subtitle: Text('${_fmtDate(_departure)}  ${_fmtTime(_departure)}'),
+              subtitle: Text(fmtDate(context, _departure, includeTime: true)),
               leading: const Icon(Icons.logout),
               trailing: const Icon(Icons.edit_calendar),
               onTap: () => _pickDateTime('departure'),
             ),
             ListTile(
               title: const Text('Alle Mann an Bord (optional) – Datum & Uhrzeit'),
-              subtitle: Text('${_fmtDate(_allAboard)}  ${_fmtTime(_allAboard)}'),
+              subtitle: Text(fmtDate(context, _allAboard, includeTime: true)),
               leading: const Icon(Icons.warning_amber_outlined),
               trailing: const Icon(Icons.edit_calendar),
               onTap: () => _pickDateTime('allAboard'),
@@ -187,6 +185,4 @@ class _RouteEditScreenState extends State<RouteEditScreen> {
       ),
     );
   }
-
-  String _pad(int n) => n.toString().padLeft(2, '0');
 }

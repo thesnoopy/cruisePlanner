@@ -115,9 +115,9 @@ class _TravelListScreenState extends State<TravelListScreen> {
     final to = t.to ?? '';
 
     final dateStr = fmtDate(context, t.start);
-    final startTimeStr = fmtTime(context, t.start);
+    final startTimeStr = fmtDate(context, t.start, timeOnly: true);
     final endTimeStr =
-        t.end != null ? fmtTime(context, t.end) : null;
+        t.end != null ? fmtDate(context, t.end, timeOnly: true) : null;
     final timeText =
         endTimeStr != null ? '$startTimeStr – $endTimeStr' : startTimeStr;
 

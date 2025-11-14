@@ -49,7 +49,7 @@ class _ExcursionEditScreenState extends State<ExcursionEditScreen> {
       _port = TextEditingController(text: ex?.port ?? '');
       _meeting = TextEditingController(text: ex?.meetingPoint ?? '');
       _notes = TextEditingController(text: ex?.notes ?? '');
-      _price = TextEditingController(text: ex?.price?.toString() ?? '');
+      _price = TextEditingController(text: fmtNumber(context, ex?.price));
       _currency = TextEditingController(text: ex?.currency ?? '');
       _date = ex?.date;
     });
@@ -67,7 +67,7 @@ class _ExcursionEditScreenState extends State<ExcursionEditScreen> {
       port: _port.text.trim().isEmpty ? null : _port.text.trim(),
       meetingPoint: _meeting.text.trim().isEmpty ? null : _meeting.text.trim(),
       notes: _notes.text.trim().isEmpty ? null : _notes.text.trim(),
-      price: _price.text.trim().isEmpty ? null : num.tryParse(_price.text.trim()),
+      price: _price.text.trim().isEmpty ? null : parseLocalizedNumber(context, _price.text.trim()),
       currency: _currency.text.trim().isEmpty ? null : _currency.text.trim(),
     );
     final s = CruiseStore();
@@ -114,7 +114,7 @@ class _ExcursionEditScreenState extends State<ExcursionEditScreen> {
                 children: [
                   TextFormField(controller: _title, decoration: const InputDecoration(labelText: 'Titel'), validator: (v) => (v == null || v.trim().isEmpty) ? 'Pflichtfeld' : null),
                   const SizedBox(height: 12),
-                  ListTile(title: const Text('Datum'), subtitle: Text(fmtDate(context, _date, pattern: 'yMMMd HH:mm')), trailing: const Icon(Icons.edit_calendar), onTap: () => _pickDateTime(true)),
+                  ListTile(title: const Text('Datum'), subtitle: Text(fmtDate(context, _date, includeTime: true)), trailing: const Icon(Icons.edit_calendar), onTap: () => _pickDateTime(true)),
                   const SizedBox(height: 12),
                   TextFormField(controller: _port, decoration: const InputDecoration(labelText: 'Hafen (optional)')),
                   const SizedBox(height: 12),
@@ -122,7 +122,7 @@ class _ExcursionEditScreenState extends State<ExcursionEditScreen> {
                   const SizedBox(height: 12),
                   TextFormField(controller: _notes, decoration: const InputDecoration(labelText: 'Notizen (optional)'), maxLines: 3),
                   const SizedBox(height: 12),
-                  TextFormField(controller: _price, decoration: const InputDecoration(labelText: 'Preis (optional)'), keyboardType: TextInputType.number),
+                  TextFormField(controller: _price, decoration: const InputDecoration(labelText: 'Preis (optional)'), keyboardType: TextInputType.numberWithOptions(decimal: true)),
                   const SizedBox(height: 12),
                   TextFormField(controller: _currency, decoration: const InputDecoration(labelText: 'Währung (optional)')),
                   const SizedBox(height: 24),

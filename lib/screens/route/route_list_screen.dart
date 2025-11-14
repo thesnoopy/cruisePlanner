@@ -94,13 +94,6 @@ class _RouteListScreenState extends State<RouteListScreen> {
     await _load();
   }
 
-  String _fmtTime(DateTime? d) {
-    if (d == null) return '';
-    final h = d.hour.toString().padLeft(2, '0');
-    final m = d.minute.toString().padLeft(2, '0');
-    return '$h:$m';
-  }
-
   @override
   Widget build(BuildContext context) {
     final cruise = _cruise;
@@ -179,10 +172,10 @@ class _RouteListScreenState extends State<RouteListScreen> {
   }
 
   Widget _buildPortSubtitle(BuildContext context, PortCallItem r) {
-    final dateStr = fmtDate(context, r.date, pattern: 'yMMMd');
-    final arrival = _fmtTime(r.arrival);
-    final departure = _fmtTime(r.departure);
-    final allAboard = _fmtTime(r.allAboard);
+    final dateStr = fmtDate(context, r.date);
+    final arrival = fmtDate(context, r.arrival, timeOnly: true);
+    final departure = fmtDate(context, r.departure, timeOnly: true);
+    final allAboard = fmtDate(context, r.allAboard, timeOnly: true);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -226,7 +219,7 @@ class _RouteListScreenState extends State<RouteListScreen> {
   }
 
   Widget _buildSeaDaySubtitle(BuildContext context, SeaDayItem r) {
-    final dateStr = fmtDate(context, r.date, pattern: 'yMMMd');
+    final dateStr = fmtDate(context, r.date);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [

@@ -59,8 +59,8 @@ class _ExcursionListScreenState extends State<ExcursionListScreen> {
               itemBuilder: (_, i) {
                 final e = c.excursions[i];
 
-                final dateStr = fmtDate(context, e.date, pattern: 'yMMMd');
-                final timeStr = fmtTime(context, e.date);
+                final dateStr = fmtDate(context, e.date);
+                final timeStr = fmtDate(context, e.date, timeOnly: true);
 
                 final location = e.port ?? 'Kein Hafen';
                 final meetingPoint = e.meetingPoint;

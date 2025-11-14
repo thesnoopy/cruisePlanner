@@ -1,4 +1,5 @@
 // HomeScreen with Masonry grid (flutter_staggered_grid_view)
+import 'package:cruiseplanner/utils/format.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import '../store/cruise_store.dart';
@@ -201,8 +202,8 @@ class _CruiseTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final start = cruise.period.start.toLocal().toIso8601String().split('T').first;
-    final end = cruise.period.end.toLocal().toIso8601String().split('T').first;
+    final start = fmtDate(context, cruise.period.start);
+    final end = fmtDate(context, cruise.period.end);
 
     return Card(
       clipBehavior: Clip.antiAlias,
