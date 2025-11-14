@@ -7,6 +7,10 @@ import '../models/period.dart';
 import '../models/ship.dart';
 import '../models/identifiable.dart';
 import 'cruise_hub_screen.dart';
+import 'settings/webdav_settings_screen.dart';
+import '../settings/webdav_settings_store.dart';
+import '../sync/webdav_sync.dart';
+import '../sync/cruise_sync_service.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -34,6 +38,60 @@ class _HomeScreenState extends State<HomeScreen> {
       _loading = false;
     });
   }
+
+  Future<void> _runCloudSync() async {
+  // Hier den Namen verwenden, den du aktuell benutzt:
+  // z.B. cruiseStore, _store, widget.store, ...
+  final store = _store;
+
+  if (store == null) {
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Kein CruiseStore verfügbar – Sync nicht möglich.'),
+        ),
+      );
+    }
+    return;
+  }
+
+  final settingsStore = const WebDavSettingsStore();
+  final settings = await settingsStore.load();
+
+  if (settings == null || !settings.isValid) {
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Bitte zuerst WebDAV Einstellungen speichern')),
+      );
+    }
+    return;
+  }
+
+  try {
+    final webDav = WebDavSync(settings);
+    final syncService = CruiseSyncService(webDav);
+
+    // jetzt ist store **non-null**
+    final local = store.cruises;
+
+    final merged = await syncService.sync(local);
+
+    await store.replaceAll(merged);
+
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Cloud-Sync abgeschlossen')),
+      );
+    }
+  } catch (e) {
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Cloud-Sync fehlgeschlagen: $e')),
+      );
+    }
+  }
+}
+
 
   int _columnsForWidth(BuildContext context) {
     final w = MediaQuery.of(context).size.width;
@@ -72,7 +130,27 @@ class _HomeScreenState extends State<HomeScreen> {
     final cruises = _store?.cruises ?? const <Cruise>[];
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Cruise Planner')),
+      appBar: AppBar(
+        title: const Text('Cruise Planner'),
+        actions: [
+          IconButton(
+            tooltip: 'WebDAV-Einstellungen',
+            icon: const Icon(Icons.cloud_outlined),
+            onPressed: () async {
+              await Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => const WebDavSettingsScreen(),
+                ),
+              );
+            },
+          ),
+          IconButton(
+            tooltip: 'Cloud Sync',
+            icon: const Icon(Icons.sync),
+            onPressed: _runCloudSync,
+          ),
+        ],
+      ),
       body: cruises.isEmpty
           ? const Center(child: Text('Keine Cruises – lege eine neue an.'))
           : MasonryGridView.count(
