@@ -1,6 +1,6 @@
 
 import 'package:flutter/material.dart';
-import 'package:intl/date_symbol_data_local.dart' as intl;
+//import 'package:intl/date_symbol_data_local.dart' as intl;
 
 import 'screens/home_screen.dart';
 import 'l10n/app_localizations.dart';
@@ -9,8 +9,8 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   // DateFormat-Locale-Daten initialisieren
-  await intl.initializeDateFormatting('en');
-  await intl.initializeDateFormatting('de');
+  //await intl.initializeDateFormatting('en');
+  //await intl.initializeDateFormatting('de');
 
   runApp(const CruiseApp());
 }

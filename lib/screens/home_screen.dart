@@ -82,6 +82,10 @@ class _HomeScreenState extends State<HomeScreen> {
     final merged = await syncService.sync(local);
 
     await store.replaceAll(merged);
+    await store.load();
+    setState(() {
+      _store = store;
+    });
 
     if (mounted) {
       final loc = AppLocalizations.of(context)!;
@@ -93,7 +97,7 @@ class _HomeScreenState extends State<HomeScreen> {
     if (mounted) {
       final loc = AppLocalizations.of(context)!;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('$loc.homeCloudSyncFailed $e')),
+        SnackBar(content: Text('${loc.homeCloudSyncFailed} $e')),
       );
     }
   }
@@ -156,7 +160,7 @@ class _HomeScreenState extends State<HomeScreen> {
           IconButton(
             tooltip: loc.homeCloudSyncTooltip,
             icon: const Icon(Icons.sync),
-            onPressed: _runCloudSync,
+            onPressed: _runCloudSync
           ),
         ],
       ),
