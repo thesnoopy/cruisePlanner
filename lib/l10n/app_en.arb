@@ -1,436 +1,336 @@
 {
   "@@locale": "en",
-  "appTitle": "Cruise App",
-  "menuExcursions": "Excursions",
-  "menuSettings": "Settings",
-  "cruises": "Cruises",
-  "webDavConfigured": "WebDAV configured",
-  "couldNotLoadData": "Could not load data: ",
-  "pleaseEnterWebdavCredentials": "Please enter WebDAV credentials",
-  "uploadOk": "Upload (new) OK",
-  "downloadOk": "Download OK",
-  "remoteWasNewerEtag": "Remote was newer (ETag) → Download",
-  "localWasNewerUpload": "Local was newer → Upload",
-  "alreadyUpToDate": "Already up to date",
-  "remoteWasNewerDownload": "Remote was newer → Download",
-  "syncError": "SYNC ERROR: ",
-  "syncFailed": "Sync failed: ",
-  "stored": "Saved: ",
-  "storingFailed": "Save failed: ",
-  "syncWithWebdav": "Sync with WebDAV",
-  "settings": "Settings",
-  "noCruiseYet": "No cruises yet. Tap +",
-  "noTitle": "(no title)",
 
-  "pleaseCheckEntries": "Please check your entries",
-  "finished": "Done",
-  "next": "Next",
-  "cancel": "Cancel",
-  "back": "Back",
-  "wizardTitleNewCruise": "New Cruise",
-  "cruiseTitleLabel": "Title",
-  "cruiseTitleHintText": "e.g., Mediterranean 2026",
-  "titleMustNotBeEmpty": "Title must not be empty",
-  "shipLabel": "Ship",
-  "shipName": "Ship name",
-  "shipNameHintText": "e.g., AIDAcosma",
-  "pleaseEnterShipName": "Please enter the ship name",
-  "cruiseCompany": "Cruise line",
-  "cruiseCompanyHintText": "e.g., AIDA Cruises",
-  "pleaseEnterCruiseCompany": "Please enter the cruise line",
-  "periodLabel": "Period",
-  "startDate": "Start date",
-  "endDate": "End date",
-  "endMustAfterStart": "End date must be after start date",
+  "appTitle": "Cruise Planner",
+  "@appTitle": {
+    "description": "Main application title"
+  },
 
-  "excursionsCount": "{count, plural, =0{No excursions} =1{1 excursion} other{{count} excursions}}",
-  "@excursionsCount": {
-    "description": "Pluralized count label for excursions",
+  "homeTitle": "Your cruises",
+  "@homeTitle": {
+    "description": "Title of the home screen app bar"
+  },
+
+  "homeNoCruises": "No cruises yet. Tap + to add one.",
+  "@homeNoCruises": {
+    "description": "Empty state text when there are no cruises"
+  },
+
+  "homeNewCruiseLabel": "New cruise",
+  "@homeNewCruiseLabel": {
+    "description": "Label of the FAB to add a cruise"
+  },
+
+  "homeWebdavSettingsTooltip": "WebDAV settings",
+  "@homeWebdavSettingsTooltip": {
+    "description": "Tooltip for the WebDAV settings icon button"
+  },
+
+  "homeCloudSyncTooltip": "Cloud sync",
+  "@homeCloudSyncTooltip": {
+    "description": "Tooltip for the cloud sync icon button"
+  },
+
+  "homeCloudSyncNoStore": "Cruise store not available – sync not possible.",
+  "@homeCloudSyncNoStore": {
+    "description": "Snack bar message when store is null during sync"
+  },
+
+  "homeCloudSyncNoWebdav": "Please save WebDAV settings first.",
+  "@homeCloudSyncNoWebdav": {
+    "description": "Snack bar message when WebDAV is not configured"
+  },
+
+  "homeCloudSyncDone": "Cloud sync finished.",
+  "@homeCloudSyncDone": {
+    "description": "Snack bar when cloud sync succeeded"
+  },
+
+  "homeCloudSyncFailed": "Cloud sync failed: {error}",
+  "@homeCloudSyncFailed": {
+    "description": "Snack bar when cloud sync throws an exception",
     "placeholders": {
-      "count": { "type": "int" }
+      "error": { "type": "String" }
     }
   },
-  "createExcursion": "Create new excursion",
-  "noExcursions": "No excursions yet",
-  "deleteExcursion": "Delete excursion?",
-  "reallyDelete": "Really delete?",
-  "delete": "Delete",
 
-  "changeExcursion": "Edit excursion",
-  "titleStar": "Title *",
-  "titelStarHintText": "e.g., Halifax city tour",
-  "titleMustNotBEEmpty": "Title must not be empty.",
-  "mustBeBetween": "Must be between ",
-  "and": " and ",
-  "lie": "",
-  "harbourOptional": "Port (optional)",
-  "harbourOptionalHintText": "e.g., Halifax",
-  "meetingPoint": "Meeting point",
-  "meetingPointHintText": "e.g., port exit",
+  "homeDeleteTooltip": "Delete",
+  "@homeDeleteTooltip": {
+    "description": "Tooltip for delete icon in cruise tile"
+  },
+
+  "cruisePlanner": "Cruise Planer",
+  "@homeDeleteTooltip": {
+    "description": "Titel of this app"
+  },
+
+  "ship": "Ship",
+  "@homeDeleteTooltip": {
+    "description": "Ship"
+  },
+
+  "cruise": "Cruise",
+  "@homeDeleteTooltip": {
+    "description": "Cruise"
+  },
+
+  "route": "Route",
+  "@homeDeleteTooltip": {
+    "description": "Route"
+  },
+
+  "excursion": "Shore excursion",
+  "@homeDeleteTooltip": {
+    "description": "Shore excursion"
+  },
+
+  "travel": "Travel",
+  "@homeDeleteTooltip": {
+    "description": "Travel"
+  },
+
+  "cruiseDetails": "Cruise Details",
+  "@homeDeleteTooltip": {
+    "description": "Cruise Details"
+  },
+
+  "unknownHarbour": "Unknown Harbour",
+  "@homeDeleteTooltip": {
+    "description": "Unknown Harbour"
+  },
+
+  "noHarbour": "Keine Harbour today or in Future",
+  "@homeDeleteTooltip": {
+    "description": "Keine Harbour today or in Future"
+  },
+
+  "arrival": "Arrival",
+  "@homeDeleteTooltip": {
+    "description": "Arrival"
+  },
+
+  "departure": "Departure",
+  "@homeDeleteTooltip": {
+    "description": "Departure"
+  },
+
+  "allOnBoard": "All on Board",
+  "@homeDeleteTooltip": {
+    "description": "All on Board"
+  },
+
+  "noFutureExcursions": "No future Excursion",
+  "@homeDeleteTooltip": {
+    "description": "No future Excursion"
+  },
+
+  "noFutureExcursions": "No Excursion",
+  "@homeDeleteTooltip": {
+    "description": "No Excursion"
+  },
+
+  "today": "Today",
+  "@homeDeleteTooltip": {
+    "description": "Today"
+  },
+
+  "harbour": "Port",
+  "@homeDeleteTooltip": {
+    "description": "Port"
+  },
+
+  "meetingPoint": "Meeting Point",
+  "@homeDeleteTooltip": {
+    "description": "Meeting Point"
+  },
+
+  "price": "Price",
+  "@homeDeleteTooltip": {
+    "description": "Price"
+  },
+
+  "noTravelItem": "No Travel Item",
+  "@homeDeleteTooltip": {
+    "description": "No Travel Item"
+  },
+
+  "start": "Start",
+  "@homeDeleteTooltip": {
+    "description": "Start"
+  },
+
+  "end": "End",
+  "@homeDeleteTooltip": {
+    "description": "End"
+  },
+
+  "from": "From",
+  "@homeDeleteTooltip": {
+    "description": "From"
+  },
+
+  "to": "To",
+  "@homeDeleteTooltip": {
+    "description": "To"
+  },
+
+  "flight": "Flight",
+  "@homeDeleteTooltip": {
+    "description": "Flight"
+  },
+
+  "train": "Train",
+  "@homeDeleteTooltip": {
+    "description": "Train"
+  },
+
+  "transfer": "Transfer",
+  "@homeDeleteTooltip": {
+    "description": "Transfer"
+  },
+
+  "rentalCar": "Rental Car",
+  "@homeDeleteTooltip": {
+    "description": "Rental Car"
+  },
+
+  "flightnumber": "Flight Number",
+  "@homeDeleteTooltip": {
+    "description": "Flight Number"
+  },
+
+  "rentalCarCompany": "Rental Car Company",
+  "@homeDeleteTooltip": {
+    "description": "Rental Car Company"
+  },
+
+  "title": "Title",
+  "@homeDeleteTooltip": {
+    "description": "Title"
+  },
+
+  "requiredField": "Required Field",
+  "@homeDeleteTooltip": {
+    "description": "Required Field"
+  },
+
+  "chatterOptional": "Chatter (optional)",
+  "@homeDeleteTooltip": {
+    "description": "Chatter (optional)"
+  },
+
+  "save": "Save",
+  "@homeDeleteTooltip": {
+    "description": "Save"
+  },
+
+  "seaDay": "Sea Day",
+  "@homeDeleteTooltip": {
+    "description": "Seetag"
+  },
+
+  "editPort": "Edit Port",
+  "@homeDeleteTooltip": {
+    "description": "Edit Port"
+  },
+
+  "editSeaDay": "Edit Seaday",
+  "@homeDeleteTooltip": {
+    "description": "Edit Seaday"
+  },
+
+  "date": "Date",
+  "@homeDeleteTooltip": {
+    "description": "Date"
+  },
+
+  "arrivalOptional": "Arrival (optional)",
+  "@homeDeleteTooltip": {
+    "description": "Arrival (optional)"
+  },
+
+  "departureOptional": "Departure (optional)",
+  "@homeDeleteTooltip": {
+    "description": "Departure (optional)"
+  },
+
+  "dateAndTime": "Date & Time",
+  "@homeDeleteTooltip": {
+    "description": "Date & Time"
+  },
+
+  "allOnBoardOptional": "All on Board (optional)",
+  "@homeDeleteTooltip": {
+    "description": "All on Board (optional)"
+  },
+
   "notesOptional": "Notes (optional)",
-  "priceOptional": "Price (optional)",
-  "priceOptionalHintText": "e.g., 49.90",
+  "@homeDeleteTooltip": {
+    "description": "Notes (optional)"
+  },
+
+  "newExcursion": "New Excursion",
+  "@homeDeleteTooltip": {
+    "description": "New Excursion"
+  },
+
+  "noPort": "No Port",
+  "@homeDeleteTooltip": {
+    "description": "No Port"
+  },
+
+  "excursions": "Excursions",
+  "@homeDeleteTooltip": {
+    "description": "Excursions"
+  },
+
+  "editExcursion": "Edit Excursion",
+  "@homeDeleteTooltip": {
+    "description": "Edit Excursion"
+  },
+
   "currencyOptional": "Currency (optional)",
-  "currencyOptionalHintText": "e.g., EUR, USD, CAD",
-  "store": "Store",
-  "create": "Create",
-
-  "connectionOk": "Connection OK",
-  "connectionFailed": "Connection failed: ",
-  "storingFailed": "Save failed: ",
-  "webdavSettings": "WebDAV Settings",
-  "baseUrl": "Base URL",
-  "baseUrlHintText": "https://server/remote.php/dav/files/USERNAME/",
-  "pleaseEnterBaseUrl": "Please enter the Base URL",
-  "urlMustStartWithHttp": "URL must start with http/https",
-  "username": "Username",
-  "pleaseEnterUsername": "Please enter the username",
-  "password": "Password",
-  "pleaseEnterPassword": "Please enter the password",
-  "remotePath": "Remote path",
-  "pleaseEnterPath": "Please enter the path",
-  "testConnection": "Test connection",
-
-  "excursionTitleLabel": "Title",
-  "dateLabel": "Date",
-  "portLabel": "Port",
-  "notesLabel": "Notes",
-  "priceLabel": "Price",
-  "currencyLabel": "Currency",
-
-  "tapToAddExcursion": "Tap to add an excursion",
-  "validationRequired": "This field is required",
-  "invalidPrice": "Invalid price",
-
-  "excursionOn": "Excursion on {date}",
-  "@excursionOn": {
-    "description": "Label with a formatted date injected by the UI",
-    "placeholders": {
-      "date": { "type": "String" }
-    }
+  "@homeDeleteTooltip": {
+    "description": "Currency (optional)"
   },
 
-  "cruiseDetailsTitle": "Cruise details",
-  "@cruiseDetailsTitle": {
-    "description": "Card title for cruise details on the overview"
+  "editTravel": "Edit Travel",
+  "@homeDeleteTooltip": {
+    "description": "Edit Travel"
   },
 
-  "excursionsCountLabel": "excursions planned",
-  "@excursionsCountLabel": {
-    "description": "Static suffix after a number, e.g. '3 excursions planned'"
+  "airlineOptional": "Airline (optional)",
+  "@homeDeleteTooltip": {
+    "description": "Airline (optional)"
   },
 
-  "seeDetailsCta": "See details",
-  "@seeDetailsCta": {
-    "description": "CTA text at the end of the cruise details card"
+  "bookingNumberOptional": "Booking number (optional)",
+  "@homeDeleteTooltip": {
+    "description": "Booking number (optional)"
   },
 
-  "nextExcursionTitle": "Next excursion",
-  "@nextExcursionTitle": {
-    "description": "Card title for the next upcoming excursion"
+  "modeOptional": "Mode (optional)",
+  "@homeDeleteTooltip": {
+    "description": "Mode (optional)"
   },
 
-  "nonePlanned": "No excursion planned",
-  "@nonePlanned": {
-    "description": "Shown when there is no upcoming excursion"
+  "editFlight": "Edit Flight",
+  "@homeDeleteTooltip": {
+    "description": "Flug bearbeiten"
   },
 
-  "dash": "—",
-  "@dash": {
-    "description": "Placeholder for missing/optional fields"
+  "editTrain": "Edit Train",
+  "@homeDeleteTooltip": {
+    "description": "Zugfahrt bearbeiten"
   },
 
-  "totalLabel": "total",
-  "@totalLabel": {
-    "description": "Chip label: total count (e.g., excursions total)"
+  "editRentalCar": "Edit Rental Car",
+  "@homeDeleteTooltip": {
+    "description": "Mietwagen bearbeiten"
   },
 
-  "upcomingLabel": "upcoming",
-  "@upcomingLabel": {
-    "description": "Chip label: count of future items"
-  },
-
-  "seeAllExcursionsCta": "All excursions",
-  "@seeAllExcursionsCta": {
-    "description": "CTA text to open the excursion list"
-  },
-
-  "excursionsTitle": "Excursions",
-  "@excursionsTitle": {
-    "description": "AppBar title of the excursion list"
-  },
-
-  "addNew": "Add new",
-  "@addNew": {
-    "description": "Generic label for create actions"
-  },
-
-  "noExcursionsYet": "No excursions yet.",
-  "@noExcursionsYet": {
-    "description": "Empty state text in the excursion list"
-  },
-
-  "excursionDetailsTitle": "Excursion details",
-  "@excursionDetailsTitle": {
-    "description": "AppBar title of the read-only excursion detail page"
-  },
-
-  "meetingPointLabel": "Meeting point",
-  "@meetingPointLabel": {
-    "description": "Label for the excursion meeting point"
-  },
-
-  "notesLabel": "Notes",
-  "@notesLabel": {
-    "description": "Label for notes/comments of an excursion"
-  },
-
-  "priceLabel": "Price",
-  "@priceLabel": {
-    "description": "Label for the price of an excursion"
-  },
-
-  "edit": "Edit",
-  "@edit": {
-    "description": "Generic label for an edit action"
-  },
-
-  "delete": "Delete",
-  "@delete": {"description": "Generic delete label"},
-
-  "deleteCruiseTitle": "Delete trip?",
-  "@deleteCruiseTitle": {"description": "Title of the delete confirmation dialog"},
-
-  "deleteCruiseMessage": "Really delete “{title}”?",
-  "@deleteCruiseMessage": {"description": "Question in the confirmation dialog", "placeholders": {"title": {"type":"String"}}},
-
-  "deleteConfirm": "Delete",
-  "@deleteConfirm": {"description": "Confirm button"},
-
-  "deleteCancel": "Cancel",
-  "@deleteCancel": {"description": "Cancel button"},
-
-  "deletedCruiseSnack": "“{title}” deleted",
-  "@deletedCruiseSnack": {"description": "Snackbar after deletion", "placeholders": {"title": {"type":"String"}}},
-
-  "undo": "Undo",
-  "@undo": {"description": "Undo label in snackbars"},
-
-  "travelSectionTitle": "Arrival & departure",
-  "travelEmptyHint": "No travel segments yet. Add your first segment.",
-  "travelShowAll": "Show all",
-  "travelAddNew": "New segment",
-  "travelChooseTypeTitle": "Choose type",
-  "travelOverviewTitle": "Travel plan",
-  "travelOverviewSubtitle": "for {cruiseTitle}",
-  "@travelOverviewSubtitle": {
-    "placeholders": {
-      "cruiseTitle": { "type": "String" }
-    }
-  },
-
-  "travelKind_flight": "Flight",
-  "travelKind_train": "Train",
-  "travelKind_transfer": "Transfer",
-  "travelKind_rentalCar": "Rental car",
-
-  "transferMode_shuttle": "Shuttle",
-  "transferMode_taxi": "Taxi",
-  "transferMode_privateDriver": "Private driver",
-  "transferMode_rideshare": "Rideshare",
-
-  "label_from": "From",
-  "label_to": "To",
-  "label_pickup": "Pickup",
-  "label_dropoff": "Drop-off",
-  "label_start": "Start",
-  "label_end": "End",
-  "label_timeRange": "{start} \u2192 {end}",
-  "@label_timeRange": {
-    "placeholders": {
-      "start": { "type": "String" },
-      "end": { "type": "String" }
-    }
-  },
-  "label_price": "Price",
-  "label_currency": "Currency",
-
-  "flight_airline": "Airline",
-  "flight_number": "Flight No.",
-  "flight_bookingRef": "Booking ref.",
-  "flight_bookingClass": "Class",
-  "flight_seat": "Seat",
-  "flight_terminalDep": "Terminal (dep.)",
-  "flight_terminalArr": "Terminal (arr.)",
-  "flight_baggagePieces": "Baggage pieces",
-
-  "train_operator": "Operator",
-  "train_number": "Train No.",
-  "train_coach": "Coach",
-  "train_seat": "Seat",
-
-  "transfer_provider": "Provider",
-  "transfer_confirmation": "Confirmation",
-  "transfer_pax": "Pax",
-
-  "rental_company": "Company",
-  "rental_reservation": "Reservation",
-  "rental_vehicleClass": "Vehicle class",
-  "rental_pickupLocation": "Pickup location",
-  "rental_dropoffLocation": "Drop-off location",
-
-  "travel_count": "{count, plural, =0{No segments} one{# segment} other{# segments}}",
-  "@travel_count": {
-    "placeholders": { "count": { "type": "int" } }
-  },
-  "action_save": "Save",
-  "action_cancel": "Cancel",
-  "action_delete": "Delete",
-  "error_required": "This field is required.",
-  "error_endBeforeStart": "End must be after start.",
-  "savedSuccessfully": "Saved successfully",
-  "routeSectionTitle": "Route",
-  "@routeSectionTitle": {
-    "description": "Section header on Cruise Detail page for the itinerary route."
-  },
-
-  "routeTitle": "Route",
-  "@routeTitle": {
-    "description": "AppBar title for the route detail page."
-  },
-
-  "routeShowAll": "Show all",
-  "@routeShowAll": {
-    "description": "Trailing action to open the full route list."
-  },
-
-  "routeToday": "Today",
-  "@routeToday": {
-    "description": "Label for today's route item."
-  },
-
-  "routeTomorrow": "Tomorrow",
-  "@routeTomorrow": {
-    "description": "Label for tomorrow's route item."
-  },
-
-  "routeSeaDayLabel": "Sea day (all day)",
-  "@routeSeaDayLabel": {
-    "description": "Label used for a sea day entry."
-  },
-
-  "routePortCallLabel": "Port call",
-  "@routePortCallLabel": {
-    "description": "Generic label for a port call when no city/port is available."
-  },
-
-  "routeChipToday": "Today",
-  "@routeChipToday": {
-    "description": "Chip/badge text marking today's entry in the list."
-  },
-
-  "routeChipTomorrow": "Tomorrow",
-  "@routeChipTomorrow": {
-    "description": "Chip/badge text marking tomorrow's entry in the list."
-  },
-
-  "routeEmptyHint": "No route entries yet.",
-  "@routeEmptyHint": {
-    "description": "Placeholder text when the route list is empty."
-  },
-
-  "routeAddFirstPortCta": "Add first port call",
-  "@routeAddFirstPortCta": {
-    "description": "Call-to-action button when the route list is empty."
-  },
-
-  "routeAddTooltip": "Add port call",
-  "@routeAddTooltip": {
-    "description": "FAB tooltip on the route detail page."
-  },
-
-  "routeWizardNewTitle": "New port call",
-  "@routeWizardNewTitle": {
-    "description": "AppBar title for creating a new port call."
-  },
-
-  "routeWizardEditTitle": "Edit port call",
-  "@routeWizardEditTitle": {
-    "description": "AppBar title for editing an existing port call."
-  },
-
-  "routeWizardSwitchSeaDay": "Sea day instead of port?",
-  "@routeWizardSwitchSeaDay": {
-    "description": "Toggle to switch the form to a sea day entry."
-  },
-
-  "routeDateLabel": "Date",
-  "@routeDateLabel": {
-    "description": "Form label for the calendar date."
-  },
-
-  "routeArrivalTimeLabel": "Arrival",
-  "@routeArrivalTimeLabel": {
-    "description": "Form label for arrival time."
-  },
-
-  "routeDepartureTimeLabel": "Departure",
-  "@routeDepartureTimeLabel": {
-    "description": "Form label for departure time."
-  },
-
-  "routePortNameLabel": "Port name",
-  "@routePortNameLabel": {
-    "description": "Form label for the port name."
-  },
-
-  "routeCityLabel": "City",
-  "@routeCityLabel": {
-    "description": "Form label for the city."
-  },
-
-  "routeCountryLabel": "Country",
-  "@routeCountryLabel": {
-    "description": "Form label for the country."
-  },
-
-  "routeTerminalLabel": "Terminal / Pier",
-  "@routeTerminalLabel": {
-    "description": "Form label for the cruise terminal or pier."
-  },
-
-  "routeDescriptionLabel": "Description",
-  "@routeDescriptionLabel": {
-    "description": "Form label for a free-text description."
-  },
-
-  "routeNotesLabel": "Notes",
-  "@routeNotesLabel": {
-    "description": "Form label for optional notes."
-  },
-
-  "routeSave": "Save",
-  "@routeSave": {
-    "description": "Primary action to save the route item."
-  },
-
-  "routeCancel": "Cancel",
-  "@routeCancel": {
-    "description": "Secondary action to cancel the wizard."
-  },
-
-  "routeErrorRequired": "This field is required.",
-  "@routeErrorRequired": {
-    "description": "Generic required-field validation message."
-  },
-
-  "routeErrorCityOrPort": "Enter at least a city or a port name.",
-  "@routeErrorCityOrPort": {
-    "description": "Validation when both city and port name are empty."
-  },
-  "confirmDeleteTitle": "Confirm delete",
-  "confirmDeleteMessage": "Do you want to delete this Object?",
-  "delete": "Delete",
-  "cancel": "Cancel"
-
+  "editTransfer": "Edit Travel",
+  "@homeDeleteTooltip": {
+    "description": "Edit Travel"
+  }
 }

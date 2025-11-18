@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import '../../store/cruise_store.dart';
 import '../../models/excursion.dart';
 import '../../utils/format.dart';
+import '../../l10n/app_localizations.dart';
 
 class ExcursionEditScreen extends StatefulWidget {
   final String excursionId;
@@ -103,8 +104,9 @@ class _ExcursionEditScreenState extends State<ExcursionEditScreen> {
   @override
   Widget build(BuildContext context) {
     final ex = _ex;
+    final loc = AppLocalizations.of(context)!;
     return Scaffold(
-      appBar: AppBar(title: const Text('Excursion bearbeiten')),
+      appBar: AppBar(title: Text(loc.editExcursion)),
       body: ex == null
           ? const Center(child: CircularProgressIndicator())
           : Form(
@@ -112,21 +114,21 @@ class _ExcursionEditScreenState extends State<ExcursionEditScreen> {
               child: ListView(
                 padding: const EdgeInsets.all(16),
                 children: [
-                  TextFormField(controller: _title, decoration: const InputDecoration(labelText: 'Titel'), validator: (v) => (v == null || v.trim().isEmpty) ? 'Pflichtfeld' : null),
+                  TextFormField(controller: _title, decoration: InputDecoration(labelText: loc.title), validator: (v) => (v == null || v.trim().isEmpty) ? loc.requiredField : null),
                   const SizedBox(height: 12),
                   ListTile(title: const Text('Datum'), subtitle: Text(fmtDate(context, _date, includeTime: true)), trailing: const Icon(Icons.edit_calendar), onTap: () => _pickDateTime(true)),
                   const SizedBox(height: 12),
-                  TextFormField(controller: _port, decoration: const InputDecoration(labelText: 'Hafen (optional)')),
+                  TextFormField(controller: _port, decoration: InputDecoration(labelText: loc.harbour)),
                   const SizedBox(height: 12),
-                  TextFormField(controller: _meeting, decoration: const InputDecoration(labelText: 'Treffpunkt (optional)')),
+                  TextFormField(controller: _meeting, decoration: InputDecoration(labelText: loc.meetingPoint)),
                   const SizedBox(height: 12),
-                  TextFormField(controller: _notes, decoration: const InputDecoration(labelText: 'Notizen (optional)'), maxLines: 3),
+                  TextFormField(controller: _notes, decoration: InputDecoration(labelText: loc.notesOptional), maxLines: 3),
                   const SizedBox(height: 12),
-                  TextFormField(controller: _price, decoration: const InputDecoration(labelText: 'Preis (optional)'), keyboardType: TextInputType.numberWithOptions(decimal: true)),
+                  TextFormField(controller: _price, decoration: InputDecoration(labelText: loc.price), keyboardType: TextInputType.numberWithOptions(decimal: true)),
                   const SizedBox(height: 12),
-                  TextFormField(controller: _currency, decoration: const InputDecoration(labelText: 'Währung (optional)')),
+                  TextFormField(controller: _currency, decoration: InputDecoration(labelText: loc.currencyOptional)),
                   const SizedBox(height: 24),
-                  FilledButton.icon(onPressed: _save, icon: const Icon(Icons.save), label: const Text('Speichern')),
+                  FilledButton.icon(onPressed: _save, icon: const Icon(Icons.save), label: Text(loc.save)),
                 ],
               ),
             ),

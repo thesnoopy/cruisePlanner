@@ -5,6 +5,7 @@ import '../../models/route/route_item.dart';
 import '../../models/route/port_call_item.dart';
 import '../../models/route/sea_day_item.dart';
 import '../../utils/format.dart';
+import '../../l10n/app_localizations.dart';
 
 class RouteEditScreen extends StatefulWidget {
   final String routeItemId;
@@ -136,41 +137,42 @@ class _RouteEditScreenState extends State<RouteEditScreen> {
   @override
   Widget build(BuildContext context) {
     final it = _item;
+    final loc = AppLocalizations.of(context)!;
     if (it == null) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
     return Scaffold(
-      appBar: AppBar(title: Text(isPort ? 'Hafen bearbeiten' : 'Seetag bearbeiten')),
+      appBar: AppBar(title: Text(isPort ? loc.editPort : loc.editSeaDay)),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
           ListTile(
-            title: const Text('Datum'),
+            title: Text(loc.date),
             subtitle: Text(fmtDate(context, _date)),
             leading: const Icon(Icons.event),
             onTap: _pickDate,
           ),
           const SizedBox(height: 12),
           if (isPort) ...[
-            TextField(controller: _portName, decoration: const InputDecoration(labelText: 'Hafen')),
+            TextField(controller: _portName, decoration: InputDecoration(labelText: loc.harbour)),
             const SizedBox(height: 12),
             ListTile(
-              title: const Text('Ankunft (optional) – Datum & Uhrzeit'),
+              title: Text('${loc.arrivalOptional} – ${loc.dateAndTime}'),
               subtitle: Text(fmtDate(context, _arrival, includeTime: true)),
               leading: const Icon(Icons.login),
               trailing: const Icon(Icons.edit_calendar),
               onTap: () => _pickDateTime('arrival'),
             ),
             ListTile(
-              title: const Text('Abfahrt (optional) – Datum & Uhrzeit'),
+              title: Text('${loc.departureOptional} – ${loc.dateAndTime}'),
               subtitle: Text(fmtDate(context, _departure, includeTime: true)),
               leading: const Icon(Icons.logout),
               trailing: const Icon(Icons.edit_calendar),
               onTap: () => _pickDateTime('departure'),
             ),
             ListTile(
-              title: const Text('Alle Mann an Bord (optional) – Datum & Uhrzeit'),
+              title: Text('${loc.allOnBoardOptional} – ${loc.dateAndTime}'),
               subtitle: Text(fmtDate(context, _allAboard, includeTime: true)),
               leading: const Icon(Icons.warning_amber_outlined),
               trailing: const Icon(Icons.edit_calendar),
@@ -178,9 +180,9 @@ class _RouteEditScreenState extends State<RouteEditScreen> {
             ),
           ],
           const SizedBox(height: 12),
-          TextField(controller: _notes, decoration: const InputDecoration(labelText: 'Notizen (optional)'), maxLines: 3),
+          TextField(controller: _notes, decoration: InputDecoration(labelText: loc.notesOptional), maxLines: 3),
           const SizedBox(height: 24),
-          FilledButton.icon(onPressed: _save, icon: const Icon(Icons.save), label: const Text('Speichern')),
+          FilledButton.icon(onPressed: _save, icon: const Icon(Icons.save), label: Text(loc.save)),
         ],
       ),
     );

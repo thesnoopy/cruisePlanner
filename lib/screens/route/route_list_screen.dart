@@ -7,6 +7,7 @@ import '../../models/route/sea_day_item.dart';
 import '../../models/identifiable.dart';
 import '../../utils/format.dart';
 import 'route_edit_screen.dart';
+import '../../l10n/app_localizations.dart';
 
 class RouteListScreen extends StatefulWidget {
   final String cruiseId;
@@ -32,6 +33,7 @@ class _RouteListScreenState extends State<RouteListScreen> {
   }
 
   Future<void> _showCreateMenu() async {
+    final loc = AppLocalizations.of(context)!;
     final type = await showModalBottomSheet<String>(
       context: context,
       builder: (c) => SafeArea(
@@ -40,12 +42,12 @@ class _RouteListScreenState extends State<RouteListScreen> {
           children: [
             ListTile(
               leading: const Icon(Icons.directions_boat),
-              title: const Text('Hafen'),
+              title: Text(loc.harbour),
               onTap: () => Navigator.pop(c, 'port'),
             ),
             ListTile(
               leading: const Icon(Icons.waves),
-              title: const Text('Seetag'),
+              title: Text(loc.seaDay),
               onTap: () => Navigator.pop(c, 'sea'),
             ),
           ],
@@ -96,9 +98,10 @@ class _RouteListScreenState extends State<RouteListScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final loc = AppLocalizations.of(context)!;
     final cruise = _cruise;
     return Scaffold(
-      appBar: AppBar(title: const Text('Route')),
+      appBar: AppBar(title: Text(loc.route)),
       body: cruise == null
           ? const Center(child: CircularProgressIndicator())
           : ListView.builder(
@@ -109,7 +112,7 @@ class _RouteListScreenState extends State<RouteListScreen> {
                   return ListTile(
                     leading: const Icon(Icons.directions_boat),
                     title: Text(
-                      r.portName.isEmpty ? 'Unbenannter Hafen' : r.portName,
+                      r.portName.isEmpty ? loc.unknownHarbour : r.portName,
                     ),
                     subtitle: _buildPortSubtitle(context, r),
                     onTap: () async {
@@ -136,7 +139,7 @@ class _RouteListScreenState extends State<RouteListScreen> {
                 } else if (r is SeaDayItem) {
                   return ListTile(
                     leading: const Icon(Icons.waves),
-                    title: const Text('Seetag'),
+                    title: Text(loc.seaDay),
                     subtitle: _buildSeaDaySubtitle(context, r),
                     onTap: () async {
                       await Navigator.of(context).push(
@@ -176,6 +179,10 @@ class _RouteListScreenState extends State<RouteListScreen> {
     final arrival = fmtDate(context, r.arrival, timeOnly: true);
     final departure = fmtDate(context, r.departure, timeOnly: true);
     final allAboard = fmtDate(context, r.allAboard, timeOnly: true);
+    final loc = AppLocalizations.of(context)!;
+    final stringArrival = loc.arrival;
+    final stringdeparture = loc.departure;
+    final stringallOnBoard = loc.allOnBoard;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -193,7 +200,7 @@ class _RouteListScreenState extends State<RouteListScreen> {
             children: [
               const Icon(Icons.login, size: 14),
               const SizedBox(width: 4),
-              Text('Ankunft $arrival'),
+              Text('$stringArrival $arrival'),
             ],
           ),
         if (arrival.isNotEmpty) const SizedBox(height: 2),
@@ -202,7 +209,7 @@ class _RouteListScreenState extends State<RouteListScreen> {
             children: [
               const Icon(Icons.logout, size: 14),
               const SizedBox(width: 4),
-              Text('Abfahrt $departure'),
+              Text('$stringdeparture $departure'),
             ],
           ),
         if (departure.isNotEmpty) const SizedBox(height: 2),
@@ -211,7 +218,7 @@ class _RouteListScreenState extends State<RouteListScreen> {
             children: [
               const Icon(Icons.schedule, size: 14),
               const SizedBox(width: 4),
-              Text('Alle an Bord $allAboard'),
+              Text('$stringallOnBoard $allAboard'),
             ],
           ),
       ],

@@ -199,6 +199,14 @@ class CruiseStore extends ChangeNotifier {
       }
     }
   }
+
+  Future<void> replaceAll(List<Cruise> cruises) async {
+    _cruises = List.unmodifiable(cruises);
+    _rebuildIndex();    // falls vorhanden
+    await _persist();   // damit SharedPreferences aktualisiert werden
+    notifyListeners();
+  }
+
 }
 
 // Small local helper to avoid package:collection dependency

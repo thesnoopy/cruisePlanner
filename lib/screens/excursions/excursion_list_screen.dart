@@ -7,6 +7,7 @@ import '../../models/excursion.dart';
 import '../../models/identifiable.dart';
 import 'excursion_edit_screen.dart';
 import '../../utils/format.dart';
+import '../../l10n/app_localizations.dart';
 
 
 class ExcursionListScreen extends StatefulWidget {
@@ -50,8 +51,9 @@ class _ExcursionListScreenState extends State<ExcursionListScreen> {
   @override
   Widget build(BuildContext context) {
     final c = _cruise;
+    final loc = AppLocalizations.of(context)!;
     return Scaffold(
-      appBar: AppBar(title: const Text('Excursions')),
+      appBar: AppBar(title: Text(loc.excursions)),
       body: c == null
           ? const Center(child: CircularProgressIndicator())
           : ListView.builder(
@@ -62,7 +64,7 @@ class _ExcursionListScreenState extends State<ExcursionListScreen> {
                 final dateStr = fmtDate(context, e.date);
                 final timeStr = fmtDate(context, e.date, timeOnly: true);
 
-                final location = e.port ?? 'Kein Hafen';
+                final location = e.port ?? loc.noPort;
                 final meetingPoint = e.meetingPoint;
                 final locationLine = (meetingPoint != null && meetingPoint.isNotEmpty)
                     ? '$location – $meetingPoint'

@@ -11,6 +11,7 @@ import '../../models/travel/rental_car_item.dart';
 import '../../models/identifiable.dart';
 import '../../utils/format.dart';
 import 'travel_edit_screen.dart';
+import '../../l10n/app_localizations.dart';
 
 class TravelListScreen extends StatefulWidget {
   final String cruiseId;
@@ -64,14 +65,15 @@ class _TravelListScreenState extends State<TravelListScreen> {
   }
 
   void _showCreateMenu() {
+    final loc = AppLocalizations.of(context)!;
     showModalBottomSheet(
       context: context,
       builder: (ctx) => SafeArea(
         child: Wrap(children: [
-          ListTile(leading: const Icon(Icons.flight), title: const Text('Flug'), onTap: () { Navigator.pop(ctx); _create(TravelKind.flight); }),
-          ListTile(leading: const Icon(Icons.train), title: const Text('Zug'), onTap: () { Navigator.pop(ctx); _create(TravelKind.train); }),
-          ListTile(leading: const Icon(Icons.directions_bus), title: const Text('Transfer'), onTap: () { Navigator.pop(ctx); _create(TravelKind.transfer); }),
-          ListTile(leading: const Icon(Icons.directions_car), title: const Text('Mietwagen'), onTap: () { Navigator.pop(ctx); _create(TravelKind.rentalCar); }),
+          ListTile(leading: const Icon(Icons.flight), title: Text(loc.flight), onTap: () { Navigator.pop(ctx); _create(TravelKind.flight); }),
+          ListTile(leading: const Icon(Icons.train), title: Text(loc.train), onTap: () { Navigator.pop(ctx); _create(TravelKind.train); }),
+          ListTile(leading: const Icon(Icons.directions_bus), title: Text(loc.transfer), onTap: () { Navigator.pop(ctx); _create(TravelKind.transfer); }),
+          ListTile(leading: const Icon(Icons.directions_car), title: Text(loc.rentalCar), onTap: () { Navigator.pop(ctx); _create(TravelKind.rentalCar); }),
         ]),
       ),
     );
@@ -80,8 +82,9 @@ class _TravelListScreenState extends State<TravelListScreen> {
   @override
   Widget build(BuildContext context) {
     final c = _cruise;
+    final loc = AppLocalizations.of(context)!;
     return Scaffold(
-      appBar: AppBar(title: const Text('Travel')),
+      appBar: AppBar(title: Text(loc.travel)),
       body: c == null
           ? const Center(child: CircularProgressIndicator())
           : ListView.builder(

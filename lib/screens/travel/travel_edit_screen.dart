@@ -8,6 +8,7 @@ import '../../models/travel/train_item.dart';
 import '../../models/travel/transfer_item.dart';
 import '../../models/travel/rental_car_item.dart';
 import '../../utils/format.dart';
+import '../../l10n/app_localizations.dart';
 
 class TravelEditScreen extends StatefulWidget {
   final String travelItemId;
@@ -186,42 +187,52 @@ _pickDateTime(bool start) async {
   @override
   Widget build(BuildContext context) {
     final item = _item;
+    final loc = AppLocalizations.of(context)!;
+
+    final title = switch (item?.kind) {
+      TravelKind.flight     => loc.editFlight,
+      TravelKind.train      => loc.editTrain,
+      TravelKind.transfer   => loc.editTransfer,
+      TravelKind.rentalCar  => loc.editRentalCar,
+      _                     => loc.editTravel,
+    };
+
     return Scaffold(
-      appBar: AppBar(title: const Text('Reise bearbeiten')),
+      appBar: AppBar(title: Text(title)),
       body: item == null ? const Center(child: CircularProgressIndicator()) : Form(
         key: _formKey,
         child: ListView(
           padding: const EdgeInsets.all(16),
           children: [
-            _row('Von', TextFormField(controller: _from, validator: (v) => (v == null || v.isEmpty) ? 'Pflichtfeld' : null)),
+            _row(loc.from, TextFormField(controller: _from, validator: (v) => (v == null || v.isEmpty) ? loc.requiredField : null)),
             const SizedBox(height: 12),
-            _row('Nach', TextFormField(controller: _to, validator: (v) => (v == null || v.isEmpty) ? 'Pflichtfeld' : null)),
+            _row(loc.to, TextFormField(controller: _to, validator: (v) => (v == null || v.isEmpty) ? loc.requiredField : null)),
             const SizedBox(height: 12),
-            ListTile(title: const Text('Start'), subtitle: Text(fmtDate(context, _start ?? DateTime.now(), includeTime: true)), trailing: const Icon(Icons.edit_calendar), onTap: () => _pickDateTime(true)),
-            ListTile(title: const Text('Ende'), subtitle: Text(fmtDate(context, _end ?? _start ?? DateTime.now(), includeTime: true)), trailing: const Icon(Icons.edit_calendar), onTap: () => _pickDateTime(false)),
+            ListTile(title: Text(loc.start), subtitle: Text(fmtDate(context, _start ?? DateTime.now(), includeTime: true)), trailing: const Icon(Icons.edit_calendar), onTap: () => _pickDateTime(true)),
+            ListTile(title: Text(loc.end), subtitle: Text(fmtDate(context, _end ?? _start ?? DateTime.now(), includeTime: true)), trailing: const Icon(Icons.edit_calendar), onTap: () => _pickDateTime(false)),
             const SizedBox(height: 12),
-            TextFormField(controller: _notes, decoration: const InputDecoration(labelText: 'Notizen (optional)'), maxLines: 3),
+            TextFormField(controller: _notes, decoration: InputDecoration(labelText: loc.notesOptional), maxLines: 3),
             const SizedBox(height: 12),
-            Row(children: [Expanded(child: TextFormField(controller: _price, decoration: const InputDecoration(labelText: 'Preis'), keyboardType: TextInputType.numberWithOptions(decimal: true))), const SizedBox(width: 12), Expanded(child: TextFormField(controller: _currency, decoration: const InputDecoration(labelText: 'Währung')))]),
+            Row(children: [Expanded(child: TextFormField(controller: _price, decoration: InputDecoration(labelText: loc.price), keyboardType: TextInputType.numberWithOptions(decimal: true))), const SizedBox(width: 12), Expanded(child: TextFormField(controller: _currency, decoration: const InputDecoration(labelText: 'Währung')))]),
             const Divider(height: 32),
             if (item.kind == TravelKind.flight) ...[
-              TextFormField(controller: _carrier, decoration: const InputDecoration(labelText: 'Airline (optional)')),
+              TextFormField(controller: _carrier, decoration: InputDecoration(labelText: loc.airlineOptional)),
               const SizedBox(height: 12),
-              TextFormField(controller: _flightNo, decoration: const InputDecoration(labelText: 'Flugnummer (optional)')),
+              TextFormField(controller: _flightNo, decoration: InputDecoration(labelText: loc.flightnumber)),
               const SizedBox(height: 12),
-              TextFormField(controller: _recordLocator, decoration: const InputDecoration(labelText: 'Buchungscode (optional)')),
+              TextFormField(controller: _recordLocator, decoration: InputDecoration(labelText: loc.bookingNumberOptional)),
             ] else if (item.kind == TravelKind.transfer) ...[
               DropdownButtonFormField<TransferMode>(
                 value: _transferMode,
                 items: [for (final m in TransferMode.values) DropdownMenuItem(value: m, child: Text(m.name))],
                 onChanged: (v) => setState(() => _transferMode = v),
-                decoration: const InputDecoration(labelText: 'Modus (optional)'),
+                decoration: InputDecoration(labelText: loc.modeOptional),
               ),
             ] else if (item.kind == TravelKind.rentalCar) ...[
-              TextFormField(controller: _company, decoration: const InputDecoration(labelText: 'Vermieter (optional)')),
+              TextFormField(controller: _company, decoration: InputDecoration(labelText: loc.rentalCarCompany)),
             ],
             const SizedBox(height: 24),
-            FilledButton.icon(onPressed: _save, icon: const Icon(Icons.save), label: const Text('Speichern')),
+            FilledButton.icon(onPressed: _save, icon: const Icon(Icons.save), label: Text(loc.save)),
           ],
         ),
       ),

@@ -19,6 +19,7 @@ import 'details/cruise_details_screen.dart';
 import 'route/route_list_screen.dart';
 import 'excursions/excursion_list_screen.dart';
 import 'travel/travel_list_screen.dart';
+import '../l10n/app_localizations.dart';
 
 class CruiseHubScreen extends StatefulWidget {
   final String cruiseId;
@@ -52,10 +53,11 @@ class _CruiseHubScreenState extends State<CruiseHubScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final loc = AppLocalizations.of(context)!;
     final c = _cruise;
     return Scaffold(
       appBar: AppBar(
-        title: Text(c?.title ?? 'Cruise'),
+        title: Text(c?.title ?? loc.cruise),
         actions: [IconButton(icon: const Icon(Icons.refresh), onPressed: _load)],
       ),
       body: c == null
@@ -83,7 +85,7 @@ class _CruiseHubScreenState extends State<CruiseHubScreen> {
                     case 1:
                       final preview = _routePreview(c.route);
                       return _HubTile(
-                        title: 'Route',
+                        title: loc.route,
                         subtitleWidget: _buildRouteSubtitleWidget(preview, context),
                         icon: Icons.map_outlined,
                         color: Colors.blue,
@@ -97,7 +99,7 @@ class _CruiseHubScreenState extends State<CruiseHubScreen> {
                     
 case 2:
   return _HubTile(
-    title: 'Excursions',
+    title: loc.excursion,
     subtitleWidget: _buildExcursionPreview(context, c.excursions),
     icon: Icons.directions_walk,
     color: Colors.teal,
@@ -111,7 +113,7 @@ case 2:
 
 default:
   return _HubTile(
-    title: 'Travel',
+    title: loc.travel,
     subtitleWidget: _buildTravelPreview(context, c.travel),
     icon: Icons.flight_takeoff,
     color: Colors.indigo,
@@ -207,9 +209,10 @@ class _DetailsTile extends StatelessWidget {
     final start = p.start;
     final end = p.end;
     final ship = cruise.ship.name.isEmpty ? '—' : cruise.ship.name;
+    final loc = AppLocalizations.of(context)!;
 
     return _HubTile(
-      title: 'Details',
+      title: loc.cruiseDetails,
       subtitleWidget: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -287,6 +290,7 @@ _RoutePreview _routePreview(List<RouteItem> items) {
 
 Widget _buildRouteSubtitleWidget(_RoutePreview p, BuildContext context) {
   final rows = <Widget>[];
+  final loc = AppLocalizations.of(context)!;
 
   Widget line({required IconData icon, required PortCallItem port}) {
     return Row(
@@ -299,7 +303,7 @@ Widget _buildRouteSubtitleWidget(_RoutePreview p, BuildContext context) {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                (port.portName.isEmpty ? 'Unbenannter Hafen' : port.portName),
+                (port.portName.isEmpty ? loc.unknownHarbour : port.portName),
                 style: Theme.of(context).textTheme.bodyMedium,
               ),
               const SizedBox(height: 4),
@@ -325,16 +329,13 @@ Widget _buildRouteSubtitleWidget(_RoutePreview p, BuildContext context) {
   }
 
   if (rows.isEmpty) {
-    return Text('Keine Häfen für heute oder zukünftig',
+    return Text(loc.noHarbour,
         style: Theme.of(context).textTheme.bodyMedium);
   }
   return Column(crossAxisAlignment: CrossAxisAlignment.start, children: rows);
 }
 
 // ----- Helpers ---------------------------------------------------------------
-
-String _pad(int n) => n.toString().padLeft(2, '0');
-String _hhmm(DateTime d) => '${_pad(d.hour)}:${_pad(d.minute)}';
 
 // kleines Icon-Badge (ohne Text-Label) für eine Uhrzeit
 Widget _timePill({
@@ -397,13 +398,14 @@ Widget _timeRow(
   DateTime? allAboard,
 }) {
   final chips = <Widget>[];
+  final loc = AppLocalizations.of(context)!;
 
   if (arrival != null) {
     chips.add(_timePill(
       context: context,
       icon: Icons.login, // oder: Icons.south_west, Icons.call_received
       time: arrival,
-      tooltip: 'Ankunft',
+      tooltip: loc.arrival,
     ));
   }
   if (departure != null) {
@@ -412,7 +414,7 @@ Widget _timeRow(
       context: context,
       icon: Icons.logout, // oder: Icons.north_east, Icons.call_made
       time: departure,
-      tooltip: 'Abfahrt',
+      tooltip: loc.departure,
     ));
   }
   if (allAboard != null) {
@@ -421,7 +423,7 @@ Widget _timeRow(
       context: context,
       icon: Icons.warning_amber_outlined,
       time: allAboard,
-      tooltip: 'Alle an Bord',
+      tooltip: loc.allOnBoard,
     ));
   }
 
@@ -433,8 +435,9 @@ Widget _timeRow(
 
 // ----- Excursions preview (today or next) -----------------------------------
 Widget _buildExcursionPreview(BuildContext context, List<Excursion> list) {
+  final loc = AppLocalizations.of(context)!;
   if (list.isEmpty) {
-    return Text('Keine Ausflüge', style: Theme.of(context).textTheme.bodyMedium);
+    return Text(loc.noFutureExcursions, style: Theme.of(context).textTheme.bodyMedium);
   }
   // normalize to local midnight
   final now = DateTime.now();
@@ -464,7 +467,7 @@ Widget _buildExcursionPreview(BuildContext context, List<Excursion> list) {
   final e = current ?? nextExcursion;
 
   if (e == null) {
-    return Text('Keine kommenden Ausflüge', style: Theme.of(context).textTheme.bodyMedium);
+    return Text(loc.noFutureExcursions, style: Theme.of(context).textTheme.bodyMedium);
   }
 
   final isToday = DateTime(e.date.year, e.date.month, e.date.day) == today;
@@ -476,7 +479,7 @@ Widget _buildExcursionPreview(BuildContext context, List<Excursion> list) {
     context: context,
     icon: isToday ? Icons.today : Icons.event,
     date: e.date,
-    tooltip: isToday ? 'Heute' : null,
+    tooltip: isToday ? loc.today : null,
   ));
 
   // Port chip
@@ -486,7 +489,7 @@ Widget _buildExcursionPreview(BuildContext context, List<Excursion> list) {
       context: context,
       icon: Icons.location_on_outlined,
       text: e.port!.trim(),
-      tooltip: 'Hafen/Ort',
+      tooltip: loc.harbour,
     ));
   }
 
@@ -497,7 +500,7 @@ Widget _buildExcursionPreview(BuildContext context, List<Excursion> list) {
       context: context,
       icon: Icons.meeting_room_outlined,
       text: e.meetingPoint!.trim(),
-      tooltip: 'Treffpunkt',
+      tooltip: loc.meetingPoint,
     ));
   }
 
@@ -510,7 +513,7 @@ Widget _buildExcursionPreview(BuildContext context, List<Excursion> list) {
       context: context,
       icon: Icons.euro_symbol,
       text: priceStr,
-      tooltip: 'Preis',
+      tooltip: loc.price,
     ));
   }
 
@@ -576,8 +579,9 @@ Widget _iconTextChip({
 
 // ----- Travel preview (today or next) ---------------------------------------
 Widget _buildTravelPreview(BuildContext context, List<TravelItem> list) {
+  final loc = AppLocalizations.of(context)!;
   if (list.isEmpty) {
-    return Text('Keine Travel-Items', style: Theme.of(context).textTheme.bodyMedium);
+    return Text(loc.noTravelItem, style: Theme.of(context).textTheme.bodyMedium);
   }
   final now = DateTime.now();
   final items = List<TravelItem>.from(list)..sort((a, b) => a.start.compareTo(b.start));
@@ -598,7 +602,7 @@ Widget _buildTravelPreview(BuildContext context, List<TravelItem> list) {
     context: context,
     icon: Icons.schedule,
     time: t.start,
-    tooltip: 'Start',
+    tooltip: loc.start,
   ));
   if (t.end != null) {
     chips.add(const SizedBox(width: 8));
@@ -606,7 +610,7 @@ Widget _buildTravelPreview(BuildContext context, List<TravelItem> list) {
       context: context,
       icon: Icons.flag,
       time: t.end!,
-      tooltip: 'Ende',
+      tooltip: loc.end,
     ));
   }
 
@@ -616,7 +620,7 @@ Widget _buildTravelPreview(BuildContext context, List<TravelItem> list) {
       context: context,
       icon: Icons.swap_horiz,
       text: _compactFromTo(t.from, t.to),
-      tooltip: 'Von → Nach',
+      tooltip: '$loc.from → $loc.to',
     ));
   }
 
@@ -634,7 +638,7 @@ Widget _buildTravelPreview(BuildContext context, List<TravelItem> list) {
       context: context,
       icon: Icons.euro_symbol,
       text: priceStr,
-      tooltip: 'Preis',
+      tooltip: loc.price,
     ));
   }
 
@@ -644,7 +648,7 @@ Widget _buildTravelPreview(BuildContext context, List<TravelItem> list) {
       const SizedBox(width: 6),
       Expanded(
         child: Text(
-          _travelTitle(t),
+          _travelTitle(t, loc),
           style: Theme.of(context).textTheme.bodyMedium,
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
@@ -690,28 +694,29 @@ IconData _travelKindIcon(TravelKind k) {
   }
 }
 
-String _travelTitle(TravelItem t) {
+String _travelTitle(TravelItem t, AppLocalizations loc) {
   switch (t.kind) {
     case TravelKind.flight:
       final f = t as FlightItem;
       final flightNo = (f.flightNo ?? '').trim();
       final carrier = (f.carrier ?? '').trim();
       final numPart = flightNo.isEmpty ? '' : ' $flightNo';
-      return (carrier + numPart).trim().isEmpty ? 'Flug' : (carrier + numPart).trim();
+      return (carrier + numPart).trim().isEmpty ? loc.flight : (carrier + numPart).trim();
     case TravelKind.train:
-      return 'Zug';
+      return loc.train;
     case TravelKind.transfer:
       final tr = t as TransferItem;
-      final mode = tr.mode?.name ?? 'Transfer';
+      final mode = tr.mode?.name ?? loc.transfer;
       return mode[0].toUpperCase() + mode.substring(1);
     case TravelKind.rentalCar:
       final rc = t as RentalCarItem;
       final company = (rc.company ?? '').trim();
-      return company.isEmpty ? 'Mietwagen' : company;
+      return company.isEmpty ? loc.rentalCar : company;
   }
 }
 
 Widget? _typeSpecificChip(BuildContext context, TravelItem t) {
+  final loc = AppLocalizations.of(context)!;
   switch (t.kind) {
     case TravelKind.flight:
       final f = t as FlightItem;
@@ -721,7 +726,7 @@ Widget? _typeSpecificChip(BuildContext context, TravelItem t) {
           context: context,
           icon: Icons.flight,
           text: flightNo,
-          tooltip: 'Flugnummer',
+          tooltip: loc.flightnumber,
         );
       }
       return null;
@@ -734,7 +739,7 @@ Widget? _typeSpecificChip(BuildContext context, TravelItem t) {
           context: context,
           icon: Icons.directions_car_filled,
           text: tr.mode!.name,
-          tooltip: 'Transfer',
+          tooltip: loc.transfer,
         );
       }
       return null;
@@ -745,7 +750,7 @@ Widget? _typeSpecificChip(BuildContext context, TravelItem t) {
           context: context,
           icon: Icons.directions_car_filled,
           text: rc.company!.trim(),
-          tooltip: 'Vermieter',
+          tooltip: loc.rentalCarCompany,
         );
       }
       return null;
