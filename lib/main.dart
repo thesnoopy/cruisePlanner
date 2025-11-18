@@ -1,72 +1,48 @@
+
 import 'package:flutter/material.dart';
+import 'package:intl/date_symbol_data_local.dart' as intl;
+
 import 'screens/home_screen.dart';
-import 'data/cruise_repository.dart';
-import 'package:cruiseplanner/gen/l10n/app_localizations.dart';
-import 'dart:async';
-import 'package:flutter_localizations/flutter_localizations.dart';
+import 'l10n/app_localizations.dart';
 
-
-
-void main() {
-  final repo = CruiseRepository();
-
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Release-Fehler sichtbar/logbar machen (crash-safe statt "silent")
-  FlutterError.onError = (details) {
-    Zone.current.handleUncaughtError(details.exception, details.stack ?? StackTrace.empty);
-  };
-  runZonedGuarded(() {
-    runApp(CruiseApp(repo: repo));
-  }, (error, stack) {
-    // Im Zweifel zumindest loggen (kommt auch im iOS .ips vor)
-    // ignore: avoid_print
-    print('UNCAUGHT: $error\n$stack');
-  });  
+  // DateFormat-Locale-Daten initialisieren
+  await intl.initializeDateFormatting('en');
+  await intl.initializeDateFormatting('de');
+
+  runApp(const CruiseApp());
 }
 
-
 class CruiseApp extends StatelessWidget {
-  
-  final CruiseRepository repo;
-  
-  const CruiseApp({super.key, required this.repo});
+  const CruiseApp({super.key});
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      title: 'Cruise Planer',
+      debugShowCheckedModeBanner: false,
+
+      // <<< WICHTIG: Localization einbinden >>>
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
+
+      // Keine explizite locale -> System-/Gerätesprache wird genutzt
+      // locale: const Locale('de'), // nur falls du fest auf Deutsch erzwingen willst
+
       theme: ThemeData(
         useMaterial3: true,
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.teal),
+        colorSchemeSeed: Colors.indigo,
+        brightness: Brightness.light,
       ),
       darkTheme: ThemeData(
         useMaterial3: true,
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.teal,
-          brightness: Brightness.dark,
-        ),
+        colorSchemeSeed: Colors.indigo,
+        brightness: Brightness.dark,
       ),
-      localizationsDelegates: const [
-        AppLocalizations.delegate,
-        GlobalMaterialLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-      ],
-      supportedLocales: AppLocalizations.supportedLocales,
-      // Robuste Fallback-Strategie: wenn Gerätelocale unbekannt ist → en
-      localeListResolutionCallback: (deviceLocales, supported) {
-        if (deviceLocales != null) {
-          for (final deviceLocale in deviceLocales) {
-            if (supported.any((l) => l.languageCode == deviceLocale.languageCode)) {
-              return deviceLocale;
-            }
-          }
-        }
-        // Fallback auf Englisch (stelle sicher, dass es app_en.arb gibt)
-        return const Locale('en');
-      },
-      // onGenerateTitle: nutzt L10n erst NACH dem Frame sicher
-      onGenerateTitle: (ctx) => AppLocalizations.of(ctx)?.appTitle ?? 'Cruise App',
-      home: HomeScreen(repo: repo),
+      themeMode: ThemeMode.system,
+      home: const HomeScreen(),
     );
   }
 }

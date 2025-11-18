@@ -1,186 +1,125 @@
 import 'dart:convert';
 import 'dart:typed_data';
-import 'package:webdav_client/webdav_client.dart' as wd;
-import 'package:http/http.dart' as http;
+
+import 'package:webdav_client/webdav_client.dart' as webdav;
 
 import '../models/cruise.dart';
 import '../settings/webdav_settings.dart';
 
+/// Metadaten zur Remote-Datei (für spätere Erweiterungen wie ETag / mTime)
 class RemoteInfo {
   final DateTime? mTimeUtc;
   final String? eTag;
+
   const RemoteInfo({this.mTimeUtc, this.eTag});
 }
 
+/// Low-Level WebDAV‑Zugriff für die Cruise-JSON-Datei.
+///
+/// Diese Klasse kennt nur:
+///  * Wo liegt die Datei (Base URL + Pfad)
+///  * Wie liest/schreibt man die JSON-Struktur {"cruises":[...]}
+///
+/// Die eigentliche Merge-Logik steckt in [CruiseSyncService].
 class WebDavSync {
   final WebDavSettings settings;
+
   WebDavSync(this.settings);
 
-  wd.Client _client() {
-    final c = wd.newClient(
-      settings.baseUrl,              // z.B. https://host/remote.php/dav/files/USER/
+  webdav.Client _createClient() {
+    final client = webdav.newClient(
+      settings.baseUrl,
       user: settings.username,
       password: settings.password,
       debug: false,
     );
-    // Sinnvolle Defaults
-    c.setHeaders({
+    client.setHeaders({
       'accept-charset': 'utf-8',
       'content-type': 'application/json',
     });
-    c.setConnectTimeout(10000);
-    c.setSendTimeout(10000);
-    c.setReceiveTimeout(15000);
-    return c;
+    // Timeouts optional; kannst du bei Bedarf anpassen
+    client.setConnectTimeout(8000);
+    client.setSendTimeout(8000);
+    client.setReceiveTimeout(8000);
+    return client;
   }
 
-  /// Hilfsfunktion: normalisiert remotePath (führtenden Slash, keine doppelten Slashes)
-  String _normPath(String path) {
-    var p = path.trim();
-    if (!p.startsWith('/')) p = '/$p';
-    // "/a//b///c" -> "/a/b/c"
-    p = p.replaceAll(RegExp(r'/+'), '/');
-    return p;
-  }
-
-  /// Liefert (dirPath, fileName) aus remotePath
-  (String dir, String file) _splitDirAndFile(String remotePath) {
-    final norm = _normPath(remotePath);
-    final parts = norm.split('/').where((s) => s.isNotEmpty).toList();
-    if (parts.isEmpty) {
-      // Fallback: direkt im Root speichern
-      return ('/', 'cruises.json');
-    }
-    final file = parts.last;
-    final dir = '/${parts.take(parts.length - 1).join('/')}';
-    return (dir.isEmpty ? '/' : dir, file);
-  }
-
-  // Baut die vollständige Datei-URL aus baseUrl + normalisiertem remotePath
-  String _fileUrl() {
-    final base = settings.baseUrl.trim().replaceAll(RegExp(r'/+$'), '');
-    final path = _normPath(settings.remotePath);
-    return '$base$path';
-  }
-
-  Map<String, String> _basicAuthHeaders([Map<String, String>? extra]) {
-    final basic = 'Basic ${base64Encode(utf8.encode('${settings.username}:${settings.password}'))}';
-    return {'Authorization': basic, ...?extra};
-  }
-
-  Future<void> _httpPut(Uint8List data, {String? ifMatchETag}) async {
-    final url = Uri.parse(_fileUrl());
-    final headers = {
-      'Content-Type': 'application/json',
-      ..._basicAuthHeaders(),
-      if (ifMatchETag != null) 'If-Match': _prepareIfMatch(ifMatchETag)!,
-    };
-    final res = await http.put(url, headers: headers, body: data);
-    if (res.statusCode < 200 || res.statusCode >= 300) {
-      throw Exception('WebDAV PUT failed ${res.statusCode}: ${res.reasonPhrase} | body=${res.body}');
-    }
-  }
-
-  /// Legt Ordnerhierarchie für remotePath an (ohne Datei)
-  Future<void> _ensureRemoteFolder(wd.Client client, String remotePath) async {
-    final (dir, _) = _splitDirAndFile(remotePath);
-    if (dir == '/' || dir.isEmpty) return;
-
-    // rekursiv anlegen: /CruiseApp[/sub/...]
-    final segs = dir.split('/').where((s) => s.isNotEmpty).toList();
-    var current = '';
-    for (final s in segs) {
-      current = '$current/$s';
-      final exists = await _exists(client, current);
-      if (!exists) {
-        // mkdir ist idempotent; einige Server geben 405, wenn vorhanden
-        try {
-          await client.mkdir(current);
-        } catch (_) {
-          // Ignorieren, falls der Ordner doch existiert
-        }
-      }
-    }
-  }
-
-  Future<bool> _exists(wd.Client client, String path) async {
+  /// Ließt die Properties der Remote-Datei (falls vorhanden).
+  ///
+  /// Aktuell noch nicht im Merge genutzt, aber vorbereitet für ETag-basierte
+  /// Optimierungen.
+  Future<RemoteInfo?> stat() async {
+    final client = _createClient();
     try {
-      await client.readProps(path);
-      return true;
-    } catch (_) {
-      return false;
-    }
-  }
-
-  String? _prepareIfMatch(String? etag) {
-    if (etag == null) return null;
-    var v = etag.trim();
-    if (v.startsWith('W/')) v = v.substring(2).trim(); // weak → strong
-    if (!v.startsWith('"')) v = '"$v"';
-    return v;
-  }
-
-  /// Verbindungs-/Auth-Check
-  Future<void> ping() async {
-    final client = _client();
-    await client.ping();
-  }
-
-  /// Props der Zieldatei
-  Future<RemoteInfo?> statRemote() async {
-    final client = _client();
-    final path = _normPath(settings.remotePath);
-    try {
-      final f = await client.readProps(path);
+      final file = await client.readProps(settings.remotePath);
       return RemoteInfo(
-        mTimeUtc: f.mTime?.toUtc(),
-        eTag: f.eTag,
+        mTimeUtc: file.mTime,
+        eTag: file.eTag,
       );
     } catch (_) {
-      return null; // Datei existiert nicht o. ä.
+      // z.B. 404 -> Datei existiert (noch) nicht
+      return null;
     }
   }
 
-  /// Download als Liste<Cruise>
+  /// Lädt die Cruises aus der Remote-Datei.
+  ///
+  /// Erwartetes Format:
+  ///   { "cruises": [ {..Cruise.toMap()..}, ... ] }
+  ///
+  /// Falls die Datei nicht existiert, wird eine leere Liste zurückgegeben.
   Future<List<Cruise>> downloadCruises() async {
-    final client = _client();
-    final path = _normPath(settings.remotePath);
-    final bytes = await client.read(path);           // Uint8List
-    final jsonStr = utf8.decode(bytes);
-    final decoded = jsonDecode(jsonStr);
-    final List<dynamic> list = decoded is Map<String, dynamic>
-        ? (decoded['cruises'] as List<dynamic>? ?? const [])
-        : (decoded as List<dynamic>);
-    return list
-        .whereType<Map>()
-        .map((e) => Cruise.fromMap(Map<String, dynamic>.from(e as Map)))
-        .toList(growable: false);
-  }
+    final client = _createClient();
+    try {
+      final bytes = await client.read(settings.remotePath);
+      if (bytes.isEmpty) return const <Cruise>[];
 
-    Future<void> uploadCruises(List<Cruise> cruises, {String? ifMatchETag}) async {
-    final client = _client();
-    final path = _normPath(settings.remotePath);
+      final data = Uint8List.fromList(bytes);
+      final jsonStr = utf8.decode(data);
+      final decoded = jsonDecode(jsonStr);
 
-    // Ordner sicherstellen (ohne If-Match-Header!)
-    await _ensureRemoteFolder(client, path);
+      final List<dynamic> list;
+      if (decoded is Map<String, dynamic> && decoded['cruises'] is List) {
+        list = decoded['cruises'] as List<dynamic>;
+      } else if (decoded is List) {
+        // Fallback: nackte Liste ohne Wrapper
+        list = decoded;
+      } else {
+        return const <Cruise>[];
+      }
 
-    // Body wie lokal: {"cruises":[...]}
-    final body = jsonEncode({
-      'cruises': cruises.map((c) => c.toMap()).toList(growable: false),
-    });
-    final data = Uint8List.fromList(utf8.encode(body));
-
-    if (ifMatchETag == null) {
-      // Neuerstellung / erstes Hochladen: simpler write() ohne If-Match
-      await client.write(path, data);
-    } else {
-      // Update mit Konkurrenzschutz: reiner HTTP PUT + If-Match (keine MKCOL-Versuche)
-      await _httpPut(data, ifMatchETag: ifMatchETag);
+      return list
+          .map((e) => Cruise.fromMap(Map<String, dynamic>.from(e as Map)))
+          .toList(growable: false);
+    } catch (e) {
+      // Wenn die Datei (noch) nicht existiert -> leere Liste.
+      // Andere Fehler (Netzwerk, Auth, JSON) sollten nach außen sichtbar sein.
+      final msg = e.toString();
+      if (msg.contains('404') || msg.contains('Not Found')) {
+        return const <Cruise>[];
+      }
+      rethrow;
     }
   }
 
+  /// Schreibt die übergebene Liste von Cruises in die Remote-Datei.
+  ///
+  /// Format wie bei [downloadCruises]: {"cruises":[...]}.
+  Future<void> uploadCruises(List<Cruise> cruises) async {
+    final client = _createClient();
+    final payload = <String, dynamic>{
+      'cruises': cruises.map((c) => c.toMap()).toList(),
+    };
+    final jsonStr = jsonEncode(payload);
+    final data = Uint8List.fromList(utf8.encode(jsonStr));
+    await client.write(settings.remotePath, data);
+  }
 
-  /// Einfache Merge-Strategie: Union nach id, lokal gewinnt
+  /// Einfache Union-Strategie (nur zur Rückwärtskompatibilität):
+  /// Remote + Local nach id gemerged, lokal gewinnt.
+  ///
+  /// Für "vernünftigen" Sync zwischen mehreren Systemen solltest du
+  /// stattdessen [CruiseSyncService] verwenden.
   Future<List<Cruise>> mergeRemoteIntoLocal(List<Cruise> local) async {
     final remote = await downloadCruises();
     final byId = {for (final c in remote) c.id: c};

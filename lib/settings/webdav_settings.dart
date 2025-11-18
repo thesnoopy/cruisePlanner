@@ -1,11 +1,18 @@
+
 import 'dart:convert';
 import 'package:equatable/equatable.dart';
 
 class WebDavSettings extends Equatable {
-  final String baseUrl;    // z.B. https://host/remote.php/dav/files/USER/
+  /// z.B. https://host/remote.php/dav/files/USER/
+  final String baseUrl;
+
   final String username;
+
+  /// Wird verschlüsselt gespeichert (im Store), aber hier im Klartext gehalten.
   final String password;
-  final String remotePath; // z.B. /CruiseApp/cruises.json
+
+  /// z.B. /CruiseApp/cruises.json
+  final String remotePath;
 
   const WebDavSettings({
     required this.baseUrl,
@@ -28,25 +35,34 @@ class WebDavSettings extends Equatable {
     );
   }
 
-  Map<String, dynamic> toMap() => {
-    'baseUrl': baseUrl,
-    'username': username,
-    'password': password,
-    'remotePath': remotePath,
-  };
+  Map<String, dynamic> toMap() {
+    return {
+      'baseUrl': baseUrl,
+      'username': username,
+      'password': password,
+      'remotePath': remotePath,
+    };
+  }
 
   factory WebDavSettings.fromMap(Map<String, dynamic> map) {
     return WebDavSettings(
-      baseUrl: (map['baseUrl'] as String).trim(),
-      username: (map['username'] as String).trim(),
-      password: map['password'] as String,
-      remotePath: (map['remotePath'] as String).trim(),
+      baseUrl: map['baseUrl'] as String? ?? '',
+      username: map['username'] as String? ?? '',
+      password: map['password'] as String? ?? '',
+      remotePath: map['remotePath'] as String? ?? '',
     );
   }
 
   String toJson() => jsonEncode(toMap());
+
   factory WebDavSettings.fromJson(String s) =>
       WebDavSettings.fromMap(jsonDecode(s) as Map<String, dynamic>);
+
+  bool get isEmpty =>
+      baseUrl.isEmpty && username.isEmpty && password.isEmpty && remotePath.isEmpty;
+
+  bool get isValid =>
+      baseUrl.isNotEmpty && username.isNotEmpty && password.isNotEmpty && remotePath.isNotEmpty;
 
   @override
   List<Object?> get props => [baseUrl, username, password, remotePath];

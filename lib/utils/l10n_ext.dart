@@ -1,5 +1,5 @@
 import 'package:flutter/widgets.dart';
-import 'package:cruiseplanner/gen/l10n/app_localizations.dart';
+import 'package:cruiseplanner/l10n/app_localizations.dart';
 
 extension L10nX on BuildContext {
   AppLocalizations get t {

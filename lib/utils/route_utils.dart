@@ -1,5 +1,5 @@
 // lib/utils/route_utils.dart
-import '../models/route_item.dart';
+import '../models/route/route_item.dart';
 
 DateTime _asDay(DateTime dt) => DateTime(dt.year, dt.month, dt.day);
 
