@@ -83,10 +83,11 @@ class _TravelListScreenState extends State<TravelListScreen> {
   Widget build(BuildContext context) {
     final c = _cruise;
     final loc = AppLocalizations.of(context)!;
+    c?.travel.sort((a, b) => a.start.compareTo(b.start));
     return Scaffold(
       appBar: AppBar(title: Text(loc.travel)),
-      body: c == null
-          ? const Center(child: CircularProgressIndicator())
+      body: c == null || c.travel.isEmpty
+          ? Center(child: Text(loc.noTravelItem))
           : ListView.builder(
               itemCount: c.travel.length,
               itemBuilder: (_, i) {

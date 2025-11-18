@@ -100,10 +100,11 @@ class _RouteListScreenState extends State<RouteListScreen> {
   Widget build(BuildContext context) {
     final loc = AppLocalizations.of(context)!;
     final cruise = _cruise;
+    cruise?.route.sort((a, b) => a.date.compareTo(b.date));
     return Scaffold(
       appBar: AppBar(title: Text(loc.route)),
-      body: cruise == null
-          ? const Center(child: CircularProgressIndicator())
+      body: cruise == null || cruise.route.isEmpty
+          ? Center(child: Text(loc.noHarbour))
           : ListView.builder(
               itemCount: cruise.route.length,
               itemBuilder: (context, idx) {

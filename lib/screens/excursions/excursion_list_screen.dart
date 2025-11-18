@@ -52,10 +52,11 @@ class _ExcursionListScreenState extends State<ExcursionListScreen> {
   Widget build(BuildContext context) {
     final c = _cruise;
     final loc = AppLocalizations.of(context)!;
+    c?.excursions.sort((a, b) => a.date.compareTo(b.date));
     return Scaffold(
       appBar: AppBar(title: Text(loc.excursions)),
-      body: c == null
-          ? const Center(child: CircularProgressIndicator())
+      body: c == null || c.excursions.isEmpty
+          ? Center(child: Text(loc.noFutureExcursions))
           : ListView.builder(
               itemCount: c.excursions.length,
               itemBuilder: (_, i) {
