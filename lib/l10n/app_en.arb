@@ -332,5 +332,35 @@
   "editTransfer": "Edit Travel",
   "@homeDeleteTooltip": {
     "description": "Edit Travel"
+  },
+
+  "cruiseCheckIn": "Cruise Check-In",
+  "@cruiseCheckIn": {
+    "description": "Cruise Check-In"
+  },
+
+  "cruiseCheckOut": "Cruise Check-Out",
+  "@cruiseCheckOut": {
+    "description": "Cruise Check-Out"
+  },
+
+  "hotel": "Hotel",
+  "@hotel": {
+    "description": "Hotel"
+  },
+
+  "cabinNumber": "Cabin Number",
+  "@cabinNumber": {
+    "description": "Cabin Number"
+  },
+
+  "deckNumber": "Deck Number",
+  "@deckNumber": {
+    "description": "Deck Number"
+  },
+
+  "deckname": "Deck Name",
+  "@deckname": {
+    "description": "Deck Name"
   }
 }

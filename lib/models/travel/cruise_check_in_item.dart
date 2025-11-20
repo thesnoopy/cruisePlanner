@@ -1,7 +1,7 @@
 
 import 'base_travel.dart';
 
-class RentalCarItem extends TravelItem {
+class CruiseCheckIn extends TravelItem {
   @override
   final String id;
   @override
@@ -21,9 +21,7 @@ class RentalCarItem extends TravelItem {
   @override
   final String? recordLocator;
 
-  final String? company;
-
-  RentalCarItem({
+  CruiseCheckIn({
     required this.id,
     required this.start,
     this.end,
@@ -32,14 +30,13 @@ class RentalCarItem extends TravelItem {
     this.notes,
     this.price,
     this.currency,
-    this.company,
     this.recordLocator,
   });
 
   @override
-  TravelKind get kind => TravelKind.rentalCar;
+  TravelKind get kind => TravelKind.cruiseCheckIn;
 
-  RentalCarItem copyWith({
+  CruiseCheckIn copyWith({
     String? id,
     DateTime? start,
     DateTime? end,
@@ -48,10 +45,9 @@ class RentalCarItem extends TravelItem {
     String? notes,
     num? price,
     String? currency,
-    String? company,
-    String? recordLocator
+    String? recordLocator,
   }) =>
-      RentalCarItem(
+      CruiseCheckIn(
         id: id ?? this.id,
         start: start ?? this.start,
         end: end ?? this.end,
@@ -60,13 +56,12 @@ class RentalCarItem extends TravelItem {
         notes: notes ?? this.notes,
         price: price ?? this.price,
         currency: currency ?? this.currency,
-        company: company ?? this.company,
         recordLocator: recordLocator ?? this.recordLocator,
       );
 
   @override
   Map<String, dynamic> toMap() => {
-        'type': 'rentalCar',
+        'type': 'cruisecheckin',
         'id': id,
         'start': start.toIso8601String(),
         'end': end?.toIso8601String(),
@@ -75,11 +70,10 @@ class RentalCarItem extends TravelItem {
         'notes': notes,
         'price': price,
         'currency': currency,
-        'company': company,
         'recordLocator': recordLocator,
       };
 
-  factory RentalCarItem.fromMap(Map<String, dynamic> map) => RentalCarItem(
+  factory CruiseCheckIn.fromMap(Map<String, dynamic> map) => CruiseCheckIn(
         id: map['id'],
         start: DateTime.parse(map['start']),
         end: map['end'] != null ? DateTime.parse(map['end']) : null,
@@ -88,10 +82,9 @@ class RentalCarItem extends TravelItem {
         notes: map['notes'],
         price: map['price'],
         currency: map['currency'],
-        company: map['company'],
         recordLocator: map['recordLocator'],
       );
 
   @override
-  List<Object?> get props => [id, kind, start, end, from, to, notes, price, currency, company];
+  List<Object?> get props => [id, kind, start, end, from, to, notes, price, currency];
 }

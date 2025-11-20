@@ -18,10 +18,12 @@ class FlightItem extends TravelItem {
   final num? price;
   @override
   final String? currency;
+  @override
+  final String? recordLocator;
 
   final String? carrier;
   final String? flightNo;
-  final String? recordLocator;
+
 
   FlightItem({
     required this.id,

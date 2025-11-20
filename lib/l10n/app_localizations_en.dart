@@ -204,4 +204,22 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get editTransfer => 'Edit Travel';
+
+  @override
+  String get cruiseCheckIn => 'Cruise Check-In';
+
+  @override
+  String get cruiseCheckOut => 'Cruise Check-Out';
+
+  @override
+  String get hotel => 'Hotel';
+
+  @override
+  String get cabinNumber => 'Cabin Number';
+
+  @override
+  String get deckNumber => 'Deck Number';
+
+  @override
+  String get deckname => 'Deck Name';
 }

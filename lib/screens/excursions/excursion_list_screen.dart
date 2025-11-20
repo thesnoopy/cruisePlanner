@@ -53,6 +53,7 @@ class _ExcursionListScreenState extends State<ExcursionListScreen> {
     final c = _cruise;
     final loc = AppLocalizations.of(context)!;
     c?.excursions.sort((a, b) => a.date.compareTo(b.date));
+
     return Scaffold(
       appBar: AppBar(title: Text(loc.excursions)),
       body: c == null || c.excursions.isEmpty
@@ -70,72 +71,108 @@ class _ExcursionListScreenState extends State<ExcursionListScreen> {
                 final locationLine = (meetingPoint != null && meetingPoint.isNotEmpty)
                     ? '$location – $meetingPoint'
                     : location;
-                return ListTile(
-                  leading: const Icon(Icons.tour),
-                  title: Text(e.title),
-                  subtitle: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Zeile 1: Hafen / Treffpunkt
-                      Row(
-                        children: [
-                          const Icon(Icons.location_on, size: 14),
-                          const SizedBox(width: 4),
-                          Flexible(
-                            child: Text(
-                              locationLine,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 2),
-                      // Zeile 2: Datum
-                      Row(
-                        children: [
-                          const Icon(Icons.event, size: 14),
-                          const SizedBox(width: 4),
-                          Flexible(
-                            child: Text(
-                              dateStr,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 2),
-                      // Zeile 3: Uhrzeit
-                      Row(
-                        children: [
-                          const Icon(Icons.schedule, size: 14),
-                          const SizedBox(width: 4),
-                          Text(timeStr),
-                        ],
-                      ),
-                    ],
+
+                return Card(
+                  margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
                   ),
-                  onTap: () async {
-                    await Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) => ExcursionEditScreen(excursionId: e.id),
-                      ),
-                    );
-                    await _load();
-                  },
-                  trailing: IconButton(
-                    icon: const Icon(Icons.delete_outline),
-                    onPressed: () async {
-                      final s = CruiseStore();
-                      await s.load();
-                      await s.deleteExcursion(e.id);
+                  elevation: 2,
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(16),
+                    onTap: () async {
+                      await Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => ExcursionEditScreen(excursionId: e.id),
+                        ),
+                      );
                       await _load();
                     },
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          CircleAvatar(
+                            radius: 18,
+                            backgroundColor: Colors.teal.withValues(alpha: 0.12),
+                            child: const Icon(
+                              Icons.directions_walk,
+                              color: Colors.teal,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                // Titel der Excursion
+                                Text(
+                                  e.title,
+                                  style: Theme.of(context).textTheme.titleMedium,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                const SizedBox(height: 4),
+                                // Zeile: Ort / Treffpunkt
+                                Row(
+                                  children: [
+                                    const Icon(Icons.place, size: 14),
+                                    const SizedBox(width: 4),
+                                    Expanded(
+                                      child: Text(
+                                        locationLine,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 2),
+                                // Zeile: Datum
+                                Row(
+                                  children: [
+                                    const Icon(Icons.event, size: 14),
+                                    const SizedBox(width: 4),
+                                    Expanded(
+                                      child: Text(
+                                        dateStr,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 2),
+                                // Zeile: Uhrzeit
+                                Row(
+                                  children: [
+                                    const Icon(Icons.schedule, size: 14),
+                                    const SizedBox(width: 4),
+                                    Text(timeStr),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.delete_outline),
+                            onPressed: () async {
+                              final s = CruiseStore();
+                              await s.load();
+                              await s.deleteExcursion(e.id);
+                              await _load();
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
                 );
               },
-
             ),
-      floatingActionButton: FloatingActionButton(onPressed: _create, child: const Icon(Icons.add)),
+      floatingActionButton: FloatingActionButton(
+        onPressed: _create,
+        child: const Icon(Icons.add),
+      ),
     );
   }
+
 }

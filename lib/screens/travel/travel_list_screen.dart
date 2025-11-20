@@ -103,6 +103,7 @@ class _TravelListScreenState extends State<TravelListScreen> {
     final c = _cruise;
     final loc = AppLocalizations.of(context)!;
     c?.travel.sort((a, b) => a.start.compareTo(b.start));
+
     return Scaffold(
       appBar: AppBar(title: Text(loc.travel)),
       body: c == null || c.travel.isEmpty
@@ -111,27 +112,62 @@ class _TravelListScreenState extends State<TravelListScreen> {
               itemCount: c.travel.length,
               itemBuilder: (_, i) {
                 final t = c.travel[i];
-                return ListTile(
-                  subtitle: _subtitleTravelitemPerKind(context, t, c.id),
-                  onTap: () async {
-                    await Navigator.of(context).push(MaterialPageRoute(builder: (_) => TravelEditScreen(travelItemId: t.id)));
-                    await _load();
-                  },
-                  trailing: IconButton(
-                    icon: const Icon(Icons.delete_outline),
-                    onPressed: () async {
-                      final s = CruiseStore();
-                      await s.load();
-                      await s.deleteTravelItem(t.id);
+                return Card(
+                  margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  elevation: 2,
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(16),
+                    onTap: () async {
+                      await Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => TravelEditScreen(travelItemId: t.id),
+                        ),
+                      );
                       await _load();
                     },
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Row(
+                        children: [
+                          CircleAvatar(
+                            radius: 18,
+                            backgroundColor: Colors.indigo.withValues(alpha: 0.12),
+                            child: Icon(
+                              _travelKindIcon(t.kind), // gibt es schon im cruise_hub_screen.dart
+                              color: Colors.indigo,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: _subtitleTravelitemPerKind(context, t, c.id),
+                          ),
+                          // neuer Lösch-Button
+                          IconButton(
+                            icon: const Icon(Icons.delete_outline),
+                            onPressed: () async {
+                              final s = CruiseStore();
+                              await s.load();
+                              await s.deleteTravelItem(t.id);
+                              await _load();
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
                 );
               },
             ),
-      floatingActionButton: FloatingActionButton(onPressed: _showCreateMenu, child: const Icon(Icons.add)),
+      floatingActionButton: FloatingActionButton(
+        onPressed: _showCreateMenu,
+        child: const Icon(Icons.add),
+      ),
     );
   }
+
 
   Widget _subtitleTravelitemPerKind(BuildContext context, TravelItem t, String cruiseId) {
     final CruiseStore cs = CruiseStore();
@@ -285,7 +321,7 @@ class _TravelListScreenState extends State<TravelListScreen> {
 
 
     return ListTile(
-      leading: Icon(_travelKindIcon(t.kind)),
+      //leading: Icon(_travelKindIcon(t.kind)),
       subtitle: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: childs

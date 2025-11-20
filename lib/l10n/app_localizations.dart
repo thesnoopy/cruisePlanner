@@ -484,6 +484,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Edit Travel'**
   String get editTransfer;
+
+  /// Cruise Check-In
+  ///
+  /// In en, this message translates to:
+  /// **'Cruise Check-In'**
+  String get cruiseCheckIn;
+
+  /// Cruise Check-Out
+  ///
+  /// In en, this message translates to:
+  /// **'Cruise Check-Out'**
+  String get cruiseCheckOut;
+
+  /// Hotel
+  ///
+  /// In en, this message translates to:
+  /// **'Hotel'**
+  String get hotel;
+
+  /// Cabin Number
+  ///
+  /// In en, this message translates to:
+  /// **'Cabin Number'**
+  String get cabinNumber;
+
+  /// Deck Number
+  ///
+  /// In en, this message translates to:
+  /// **'Deck Number'**
+  String get deckNumber;
+
+  /// Deck Name
+  ///
+  /// In en, this message translates to:
+  /// **'Deck Name'**
+  String get deckname;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

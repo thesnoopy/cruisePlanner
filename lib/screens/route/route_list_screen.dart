@@ -101,6 +101,7 @@ class _RouteListScreenState extends State<RouteListScreen> {
     final loc = AppLocalizations.of(context)!;
     final cruise = _cruise;
     cruise?.route.sort((a, b) => a.date.compareTo(b.date));
+
     return Scaffold(
       appBar: AppBar(title: Text(loc.route)),
       body: cruise == null || cruise.route.isEmpty
@@ -109,58 +110,130 @@ class _RouteListScreenState extends State<RouteListScreen> {
               itemCount: cruise.route.length,
               itemBuilder: (context, idx) {
                 final r = cruise.route[idx];
+
                 if (r is PortCallItem) {
-                  return ListTile(
-                    leading: const Icon(Icons.directions_boat),
-                    title: Text(
-                      r.portName.isEmpty ? loc.unknownHarbour : r.portName,
+                  return Card(
+                    margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
                     ),
-                    subtitle: _buildPortSubtitle(context, r),
-                    onTap: () async {
-                      await Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (_) => RouteEditScreen(
-                            routeItemId: r.id,
-                            cruiseId: widget.cruiseId,
+                    elevation: 2,
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(16),
+                      onTap: () async {
+                        await Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => RouteEditScreen(
+                              routeItemId: r.id,
+                              cruiseId: widget.cruiseId,
+                            ),
                           ),
-                        ),
-                      );
-                      await _load();
-                    },
-                    trailing: IconButton(
-                      icon: const Icon(Icons.delete_outline),
-                      onPressed: () async {
-                        final s = CruiseStore();
-                        await s.load();
-                        await s.deleteRouteItem(r.id);
+                        );
                         await _load();
                       },
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            CircleAvatar(
+                              radius: 18,
+                              backgroundColor: Colors.blue.withValues(alpha: 0.12),
+                              child: const Icon(
+                                Icons.map_outlined,
+                                color: Colors.blue,
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  // Hafennamen als Titel
+                                  Text(
+                                    r.portName,
+                                    style: Theme.of(context).textTheme.titleMedium,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  const SizedBox(height: 4),
+                                  // Dein bestehender Subtitle mit Datum / Ankunft / Abfahrt / Alle an Bord
+                                  _buildPortSubtitle(context, r),
+                                ],
+                              ),
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.delete_outline),
+                              onPressed: () async {
+                                final s = CruiseStore();
+                                await s.load();
+                                await s.deleteRouteItem(r.id);
+                                await _load();
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
                   );
                 } else if (r is SeaDayItem) {
-                  return ListTile(
-                    leading: const Icon(Icons.waves),
-                    title: Text(loc.seaDay),
-                    subtitle: _buildSeaDaySubtitle(context, r),
-                    onTap: () async {
-                      await Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (_) => RouteEditScreen(
-                            routeItemId: r.id,
-                            cruiseId: widget.cruiseId,
+                  return Card(
+                    margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    elevation: 2,
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(16),
+                      onTap: () async {
+                        await Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => RouteEditScreen(
+                              routeItemId: r.id,
+                              cruiseId: widget.cruiseId,
+                            ),
                           ),
-                        ),
-                      );
-                      await _load();
-                    },
-                    trailing: IconButton(
-                      icon: const Icon(Icons.delete_outline),
-                      onPressed: () async {
-                        final s = CruiseStore();
-                        await s.load();
-                        await s.deleteRouteItem(r.id);
+                        );
                         await _load();
                       },
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            CircleAvatar(
+                              radius: 18,
+                              backgroundColor: Colors.blue.withValues(alpha: 0.12),
+                              child: const Icon(
+                                Icons.waves,
+                                color: Colors.blue,
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    loc.seaDay,
+                                    style: Theme.of(context).textTheme.titleMedium,
+                                  ),
+                                  const SizedBox(height: 4),
+                                  _buildSeaDaySubtitle(context, r),
+                                ],
+                              ),
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.delete_outline),
+                              onPressed: () async {
+                                final s = CruiseStore();
+                                await s.load();
+                                await s.deleteRouteItem(r.id);
+                                await _load();
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
                   );
                 } else {
@@ -174,6 +247,7 @@ class _RouteListScreenState extends State<RouteListScreen> {
       ),
     );
   }
+
 
   Widget _buildPortSubtitle(BuildContext context, PortCallItem r) {
     final dateStr = fmtDate(context, r.date);

@@ -1,4 +1,3 @@
-
 import 'identifiable.dart';
 import 'period.dart';
 import 'ship.dart';
@@ -14,6 +13,9 @@ class Cruise extends Identifiable {
   final String title;
   final Ship ship;
   final Period period;
+  final String? cabinNumber;
+  final String? deckNumber;
+  final String? deckname;
   final List<Excursion> excursions;
   final List<TravelItem> travel;
   final List<RouteItem> route;
@@ -23,6 +25,9 @@ class Cruise extends Identifiable {
     required this.title,
     required this.ship,
     required this.period,
+    this.cabinNumber,
+    this.deckNumber,
+    this.deckname,
     this.excursions = const [],
     this.travel = const [],
     this.route = const [],
@@ -33,6 +38,9 @@ class Cruise extends Identifiable {
     String? title,
     Ship? ship,
     Period? period,
+    String? cabinNumber,
+    String? deckNumber,
+    String? deckname,
     List<Excursion>? excursions,
     List<TravelItem>? travel,
     List<RouteItem>? route,
@@ -42,6 +50,9 @@ class Cruise extends Identifiable {
         title: title ?? this.title,
         ship: ship ?? this.ship,
         period: period ?? this.period,
+        cabinNumber: cabinNumber ?? this.cabinNumber,
+        deckNumber: deckNumber ?? this.deckNumber,
+        deckname: deckname ?? this.deckname,
         excursions: excursions ?? this.excursions,
         travel: travel ?? this.travel,
         route: route ?? this.route,
@@ -52,6 +63,9 @@ class Cruise extends Identifiable {
         'title': title,
         'ship': ship.toMap(),
         'period': period.toMap(),
+        'cabinNumber': cabinNumber,
+        'deckNumber': deckNumber,
+        'deckname': deckname,
         'excursions': excursions.map((e) => e.toMap()).toList(),
         'travel': travel.map((t) => t.toMap()).toList(),
         'route': route.map((r) => r.toMap()).toList(),
@@ -62,6 +76,9 @@ class Cruise extends Identifiable {
         title: map['title'],
         ship: Ship.fromMap(Map<String, dynamic>.from(map['ship'])),
         period: Period.fromMap(Map<String, dynamic>.from(map['period'])),
+        cabinNumber: map['cabinNumber'],
+        deckNumber: map['deckNumber'],
+        deckname: map['deckname'],
         excursions: (map['excursions'] as List? ?? const [])
             .map((e) => Excursion.fromMap(Map<String, dynamic>.from(e)))
             .toList(growable: false),

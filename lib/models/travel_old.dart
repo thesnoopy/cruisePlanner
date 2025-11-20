@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 
 /// Haupttypen für An-/Abreise
-enum TravelKind { flight, train, transfer, rentalCar }
+enum TravelKind { flight, train, transfer, rentalCar, hotel, cruiseCheckIn, cruiseCheckOut }
 
 /// Untermodus für Transfer
 enum TransferMode { shuttle, taxi, privateDriver, rideshare }
@@ -460,5 +460,145 @@ class RentalCarItem extends TravelItem {
       pickupLocation: pickupLocation ?? this.pickupLocation,
       dropoffLocation: dropoffLocation ?? this.dropoffLocation,
     );
-  }
+  }  
+}
+
+/// ------------------------------
+/// Hotel
+/// ------------------------------
+class HotelItem extends TravelItem {
+  final String? company;         // "Marriott"
+  final String name;    // "Name des Hotels"
+  final String? location;   // "Adresse"
+
+  // Hinweis: Für Hotels sind start/end die check in / check out Zeiten.
+  const HotelItem({
+    required super.id,
+    required super.start,
+    required DateTime super.end,
+    super.notes,
+    super.price,
+    super.currency,
+    this.company,
+    required this.name,
+    this.location
+  }) : super(
+          type: TravelKind.hotel,
+        );
+
+  @override
+  String summaryId() => name;
+
+  @override
+  Map<String, dynamic> toMap() => {
+        'type': 'hotel',
+        'id': id,
+        'start': start.toIso8601String(),
+        'end': end?.toIso8601String(),
+        'notes': notes,
+        'price': price,
+        'currency': currency,
+        'company': company,
+        'name': name,
+        'location': location
+      };
+
+  static HotelItem fromMap(Map<String, dynamic> j) => HotelItem(
+        id: j['id'] as String,
+        start: DateTime.parse(j['start'] as String),
+        end: DateTime.parse(j['end'] as String),
+        notes: j['notes'] as String?,
+        price: j['price'] as num?,
+        currency: j['currency'] as String?,
+        company: j['company'] as String?,
+        name: j['name'] as String,
+        location: j['location'] as String?
+      );
+
+  HotelItem copyWith({
+    String? id,
+    DateTime? start,
+    DateTime? end,
+    String? from,
+    String? to,
+    String? notes,
+    num? price,
+    String? currency,
+    String? company,
+    String? name,
+    String? location
+  }) {
+    return HotelItem(
+      id: id ?? this.id,
+      start: start ?? this.start,
+      end: end ?? this.end ?? this.end!, // end ist required
+      notes: notes ?? this.notes,
+      price: price ?? this.price,
+      currency: currency ?? this.currency,
+      company: company ?? this.company,
+      name: name ?? this.name,
+      location: location ?? this.location
+    );
+  }  
+}
+
+/// ------------------------------
+/// Cruise Check In
+/// ------------------------------
+class CruiseCheckInItem extends TravelItem {
+
+  // Hinweis: Für Hotels sind start/end die check in / check out Zeiten.
+  const CruiseCheckInItem({
+    required super.id,
+    required super.start,
+    required DateTime super.end,
+    super.notes,
+    super.price,
+    super.currency
+  }) : super(
+          type: TravelKind.hotel,
+        );
+
+  @override
+  String summaryId() => 'Cruise Check In';
+
+  @override
+  Map<String, dynamic> toMap() => {
+        'type': 'hotel',
+        'id': id,
+        'start': start.toIso8601String(),
+        'end': end?.toIso8601String(),
+        'notes': notes,
+        'price': price,
+        'currency': currency
+      };
+
+  static CruiseCheckInItem fromMap(Map<String, dynamic> j) => CruiseCheckInItem(
+        id: j['id'] as String,
+        start: DateTime.parse(j['start'] as String),
+        end: DateTime.parse(j['end'] as String),
+        notes: j['notes'] as String?,
+        price: j['price'] as num?,
+        currency: j['currency'] as String?
+      );
+
+  CruiseCheckInItem copyWith({
+    String? id,
+    DateTime? start,
+    DateTime? end,
+    String? from,
+    String? to,
+    String? notes,
+    num? price,
+    String? currency
+  }) {
+    return CruiseCheckInItem(
+      id: id ?? this.id,
+      start: start ?? this.start,
+      end: end ?? this.end ?? this.end!, // end ist required
+      notes: notes ?? this.notes,
+      price: price ?? this.price,
+      currency: currency ?? this.currency
+    );
+  }  
 }

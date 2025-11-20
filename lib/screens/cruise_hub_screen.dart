@@ -60,8 +60,8 @@ class _CruiseHubScreenState extends State<CruiseHubScreen> {
     final c = _cruise;
     return Scaffold(
       appBar: AppBar(
-        title: Text(c?.title ?? loc.cruise),
-        actions: [IconButton(icon: const Icon(Icons.refresh), onPressed: _load)],
+        title: Text(c?.title ?? loc.cruise, softWrap: true, maxLines: 2, overflow: TextOverflow.visible),
+//        actions: [IconButton(icon: const Icon(Icons.refresh), onPressed: _load)],
       ),
       body: c == null
           ? const Center(child: CircularProgressIndicator())
@@ -243,6 +243,29 @@ class _DetailsTile extends StatelessWidget {
               _datePill(context: context, icon: Icons.event_available, date: end, tooltip: 'Ende'),
             ],
           ),
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+                _iconTextChip(
+                  context: context,
+                  icon: Icons.door_front_door,
+                  text: cruise.cabinNumber ?? '',
+                ),
+                _iconTextChip(
+                  context: context,
+                  icon: Icons.layers,
+                  text: cruise.deckNumber ?? '',
+                ),
+                _iconTextChip(
+                  context: context,
+                  icon: Icons.label_outline,
+                  text: cruise.deckname ?? '',
+                ),
+                
+            ],
+          ),
         ],
       ),
       icon: Icons.info_outline,
@@ -301,7 +324,8 @@ Widget _buildRouteSubtitleWidget(_RoutePreview p, BuildContext context) {
         Icon(icon, size: 18),
         const SizedBox(width: 6),
         Expanded(
-          child: Column(
+          child: 
+          Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(

@@ -21,6 +21,9 @@ class _CruiseDetailsScreenState extends State<CruiseDetailsScreen> {
   late TextEditingController _title;
   late TextEditingController _shipName;
   late TextEditingController _shipOperator;
+  late TextEditingController _cabinNumber;
+  late TextEditingController _deckNumber;
+  late TextEditingController _deckname;
   DateTime? _start;
   DateTime? _end;
 
@@ -41,6 +44,9 @@ class _CruiseDetailsScreenState extends State<CruiseDetailsScreen> {
       _shipOperator = TextEditingController(text: c?.ship.operatorName ?? '');
       _start = c?.period.start;
       _end = c?.period.end;
+      _cabinNumber = TextEditingController(text: c?.cabinNumber ?? '');
+      _deckNumber = TextEditingController(text: c?.deckNumber ?? '');
+      _deckname = TextEditingController(text: c?.deckname ?? '');
     });
   }
 
@@ -57,6 +63,9 @@ class _CruiseDetailsScreenState extends State<CruiseDetailsScreen> {
         operatorName: _shipOperator.text.trim().isEmpty ? null : _shipOperator.text.trim(),
       ),
       period: Period(start: _start ?? c.period.start, end: _end ?? c.period.end),
+      cabinNumber: _cabinNumber.text.trim(),
+      deckNumber: _deckNumber.text.trim(),
+      deckname: _deckname.text.trim(),
     );
     await s.upsertCruise(next);
     if (!mounted) return;
@@ -110,6 +119,21 @@ class _CruiseDetailsScreenState extends State<CruiseDetailsScreen> {
                   TextFormField(
                     controller: _shipOperator,
                     decoration: InputDecoration(labelText: loc.chatterOptional),
+                  ),
+                  const SizedBox(height: 12),
+                  TextFormField(
+                    controller: _cabinNumber,
+                    decoration: InputDecoration(labelText: loc.cabinNumber),
+                  ),
+                  const SizedBox(height: 12),
+                  TextFormField(
+                    controller: _deckNumber,
+                    decoration: InputDecoration(labelText: loc.deckNumber),
+                  ),
+                  const SizedBox(height: 12),
+                  TextFormField(
+                    controller: _deckname,
+                    decoration: InputDecoration(labelText: loc.deckname),
                   ),
                   const SizedBox(height: 12),
                   Row(children: [

@@ -20,6 +20,8 @@ class TransferItem extends TravelItem {
   final num? price;
   @override
   final String? currency;
+  @override
+  final String? recordLocator;
 
   final TransferMode? mode;
 
@@ -33,6 +35,7 @@ class TransferItem extends TravelItem {
     this.price,
     this.currency,
     this.mode,
+    this.recordLocator,
   });
 
   @override
@@ -48,6 +51,7 @@ class TransferItem extends TravelItem {
     num? price,
     String? currency,
     TransferMode? mode,
+    String? recordLocator,
   }) =>
       TransferItem(
         id: id ?? this.id,
@@ -59,6 +63,7 @@ class TransferItem extends TravelItem {
         price: price ?? this.price,
         currency: currency ?? this.currency,
         mode: mode ?? this.mode,
+        recordLocator: recordLocator ?? this.recordLocator,
       );
 
   @override
@@ -73,6 +78,7 @@ class TransferItem extends TravelItem {
         'price': price,
         'currency': currency,
         'mode': mode?.name,
+        'recordLocator': recordLocator,
       };
 
   factory TransferItem.fromMap(Map<String, dynamic> map) => TransferItem(
@@ -87,6 +93,7 @@ class TransferItem extends TravelItem {
         mode: map['mode'] != null
             ? TransferMode.values.firstWhere((e) => e.name == map['mode'])
             : null,
+        recordLocator: map['recordLocator'],
       );
 
   @override

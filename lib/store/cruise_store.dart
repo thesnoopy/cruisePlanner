@@ -1,5 +1,8 @@
 
 import 'dart:convert';
+import 'package:cruiseplanner/models/travel/cruise_check_in_item.dart';
+import 'package:cruiseplanner/models/travel/cruise_check_out_item.dart';
+import 'package:cruiseplanner/models/travel/hotel_item.dart';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -80,7 +83,10 @@ class CruiseStore extends ChangeNotifier {
     if (ref.type == FlightItem ||
         ref.type == TrainItem ||
         ref.type == TransferItem ||
-        ref.type == RentalCarItem) {
+        ref.type == RentalCarItem ||
+        ref.type == HotelItem ||
+        ref.type == CruiseCheckIn ||
+        ref.type == CruiseCheckOut) {
       return cruise.travel.firstWhereOrNull((t) => t.id == id) as T?;
     }
     if (ref.type == SeaDayItem || ref.type == PortCallItem) {

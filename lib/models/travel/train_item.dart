@@ -18,6 +18,8 @@ class TrainItem extends TravelItem {
   final num? price;
   @override
   final String? currency;
+  @override
+  final String? recordLocator;
 
   TrainItem({
     required this.id,
@@ -28,6 +30,7 @@ class TrainItem extends TravelItem {
     this.notes,
     this.price,
     this.currency,
+    this.recordLocator,
   });
 
   @override
@@ -42,6 +45,7 @@ class TrainItem extends TravelItem {
     String? notes,
     num? price,
     String? currency,
+    String? recordLocator,
   }) =>
       TrainItem(
         id: id ?? this.id,
@@ -52,6 +56,7 @@ class TrainItem extends TravelItem {
         notes: notes ?? this.notes,
         price: price ?? this.price,
         currency: currency ?? this.currency,
+        recordLocator: recordLocator ?? this.recordLocator,
       );
 
   @override
@@ -65,6 +70,7 @@ class TrainItem extends TravelItem {
         'notes': notes,
         'price': price,
         'currency': currency,
+        'recordLocator': recordLocator,
       };
 
   factory TrainItem.fromMap(Map<String, dynamic> map) => TrainItem(
@@ -76,6 +82,7 @@ class TrainItem extends TravelItem {
         notes: map['notes'],
         price: map['price'],
         currency: map['currency'],
+        recordLocator: map['recordLocator'],
       );
 
   @override

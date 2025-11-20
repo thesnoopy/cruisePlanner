@@ -327,5 +327,35 @@
   "editTransfer": "An- Abreise bearbeiten",
   "@homeDeleteTooltip": {
     "description": "An- Abreise bearbeiten"
+  },
+
+  "cruiseCheckIn": "Kreuzfahrt Check-In",
+  "@cruiseCheckIn": {
+    "description": "Kreuzfahrt Check-In"
+  },
+
+  "cruiseCheckOut": "Kreuzfahrt Check-Out",
+  "@cruiseCheckOut": {
+    "description": "Kreuzfahrt Check-Out"
+  },
+
+  "hotel": "Hotel",
+  "@hotel": {
+    "description": "Hotel"
+  },
+
+  "cabinNumber": "Kabinen Nummer",
+  "@cabinNumber": {
+    "description": "Kabinen Nummer"
+  },
+
+  "deckNumber": "Deck Nummer",
+  "@deckNumber": {
+    "description": "Deck Nummer"
+  },
+
+  "deckname": "Deck Name",
+  "@deckname": {
+    "description": "Deck Nummer"
   }
 }
