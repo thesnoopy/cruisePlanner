@@ -1,5 +1,8 @@
 // Regenerated screens v2 – ID-only navigation, aligned with current models.
 
+import 'package:cruiseplanner/models/travel/cruise_check_in_item.dart';
+import 'package:cruiseplanner/models/travel/cruise_check_out_item.dart';
+import 'package:cruiseplanner/models/travel/hotel_item.dart';
 import 'package:flutter/material.dart';
 import '../../store/cruise_store.dart';
 import '../../models/cruise.dart';
@@ -44,21 +47,34 @@ class _TravelListScreenState extends State<TravelListScreen> {
     if (c == null) return;
     final now = c.period.start;
     TravelItem item;
+    debugPrint("kind = $kind");
     switch (kind) {
       case TravelKind.flight:
-        item = FlightItem(id: id, start: now, end: now, from: '', to: '', notes: null, price: null, currency: null, carrier: null, flightNo: null, recordLocator: null);
+        item = FlightItem(id: id, start: c.period.start, end: c.period.start, from: '', to: '', notes: null, price: null, currency: null, carrier: null, flightNo: null, recordLocator: null);
         break;
       case TravelKind.train:
-        item = TrainItem(id: id, start: now, end: now, from: '', to: '', notes: null, price: null, currency: null);
+        item = TrainItem(id: id, start: c.period.start, end: c.period.start, from: '', to: '', notes: null, price: null, currency: null);
         break;
       case TravelKind.transfer:
-        item = TransferItem(id: id, start: now, end: now, from: '', to: '', notes: null, price: null, currency: null, mode: null);
+        item = TransferItem(id: id, start: c.period.start, end: c.period.start, from: '', to: '', notes: null, price: null, currency: null, mode: null);
         break;
       case TravelKind.rentalCar:
-        item = RentalCarItem(id: id, start: now, end: now.add(const Duration(days: 1)), from: '', to: '', notes: null, price: null, currency: null, company: null);
+        item = RentalCarItem(id: id, start: c.period.start, end: c.period.start.add(const Duration(days: 1)), from: '', to: '', notes: null, price: null, currency: null, company: null, recordLocator: null);
+        break;
+      case TravelKind.hotel:
+        item = HotelItem(id: id, start: c.period.start, end: c.period.start, from: '', to: '', notes: null, price: null, currency: null, name: '');
+        debugPrint("$item");
+        break;
+      case TravelKind.cruiseCheckIn:
+        item = CruiseCheckIn(id: id, start: c.period.start, end: c.period.start, from: '', to: '', notes: null, price: null, currency: null);
+        break;
+      case TravelKind.cruiseCheckOut:
+        item = CruiseCheckOut(id: id, start: c.period.start, end: c.period.start, from: '', to: '', notes: null, price: null, currency: null);
         break;
     }
+    debugPrint("Before upsert");
     await s.upsertTravelItem(cruiseId: widget.cruiseId, item: item);
+    debugPrint("After upsert");
     if (!mounted) return;
     await Navigator.of(context).push(MaterialPageRoute(builder: (_) => TravelEditScreen(travelItemId: id)));
     await _load();
@@ -74,6 +90,9 @@ class _TravelListScreenState extends State<TravelListScreen> {
           ListTile(leading: const Icon(Icons.train), title: Text(loc.train), onTap: () { Navigator.pop(ctx); _create(TravelKind.train); }),
           ListTile(leading: const Icon(Icons.directions_bus), title: Text(loc.transfer), onTap: () { Navigator.pop(ctx); _create(TravelKind.transfer); }),
           ListTile(leading: const Icon(Icons.directions_car), title: Text(loc.rentalCar), onTap: () { Navigator.pop(ctx); _create(TravelKind.rentalCar); }),
+          ListTile(leading: const Icon(Icons.hotel), title: Text(loc.hotel), onTap: () { Navigator.pop(ctx); _create(TravelKind.hotel); }),
+          ListTile(leading: const Icon(Icons.sailing), title: Text(loc.cruiseCheckIn), onTap: () { Navigator.pop(ctx); _create(TravelKind.cruiseCheckIn); }),
+          ListTile(leading: const Icon(Icons.directions_boat), title: Text(loc.cruiseCheckOut), onTap: () { Navigator.pop(ctx); _create(TravelKind.cruiseCheckOut); }),
         ]),
       ),
     );
@@ -93,7 +112,7 @@ class _TravelListScreenState extends State<TravelListScreen> {
               itemBuilder: (_, i) {
                 final t = c.travel[i];
                 return ListTile(
-                  subtitle: _subtitleFor(context, t),
+                  subtitle: _subtitleTravelitemPerKind(context, t, c.id),
                   onTap: () async {
                     await Navigator.of(context).push(MaterialPageRoute(builder: (_) => TravelEditScreen(travelItemId: t.id)));
                     await _load();
@@ -114,68 +133,165 @@ class _TravelListScreenState extends State<TravelListScreen> {
     );
   }
 
-  Widget _subtitleFor(BuildContext context, TravelItem t) {
-    final from = t.from ?? '';
-    final to = t.to ?? '';
+  Widget _subtitleTravelitemPerKind(BuildContext context, TravelItem t, String cruiseId) {
+    final CruiseStore cs = CruiseStore();
+    final c = cs.getCruise(cruiseId);
+    List<Widget> childs = [];
+    if(t.from != '' || t.to != '') {
+      childs.add(
+        Row(
+          children: [
+            const Icon(Icons.location_on, size: 14),
+            const SizedBox(width: 4),
+            Flexible(
+              child: Text(
+                '${t.from} → ${t.to}',
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
+        )
+      );
+    }
+    if(t.start != c?.period.start){
+      childs.add(
+        Row(
+          children: [
+            const Icon(Icons.event, size: 14),
+            const SizedBox(width: 4),
+            Flexible(
+              child: Text(
+                fmtDate(context, t.start),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
+        )
+      );
+    }
+    if(t.start != c?.period.start){
+      final startTimeStr = 
+          fmtDate(context, t.start, timeOnly: true);
+      final endTimeStr =
+          t.end != null ? fmtDate(context, t.end, timeOnly: true) : null;
+      final timeText =
+          endTimeStr != null ? '$startTimeStr – $endTimeStr' : startTimeStr;
+      childs.add(
+        // Zeile 3: Zeit / Zeitraum
+        Row(
+          children: [
+            const Icon(Icons.schedule, size: 14),
+            const SizedBox(width: 4),
+            Flexible(
+              child: Text(
+                timeText,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
+        )
+      );
+    }
+    if(t.price != null){
+      // Row 4: Price
+      childs.add(
+        Row(
+          children: [
+            const Icon(Icons.money, size: 14,),
+            const SizedBox(width: 4),
+            Flexible(
+              child: Text(fmtMoney(context, t.price, currency: t.currency), overflow: TextOverflow.ellipsis),
+              )
+          ],)
+      );
+    }
+    /////
+    //Special handling for sub items
+    /////
+    switch (t.kind){
+      case TravelKind.flight:
+        final flight = t as FlightItem;
+        if (flight.carrier != null) {
+          childs.add(
+            Row(
+              children: [
+                const Icon(Icons.airlines, size: 14,),
+                const SizedBox(width: 4),
+                Flexible(
+                  child: Text(flight.carrier ?? '', overflow: TextOverflow.ellipsis),
+                  )
+              ],
+            )
+          );
+        }
+        if (flight.flightNo != null) {
+          childs.add(
+            Row(
+              children: [
+                const Icon(Icons.flight, size: 14,),
+                const SizedBox(width: 4),
+                Flexible(
+                  child: Text(flight.flightNo ?? '', overflow: TextOverflow.ellipsis),
+                  )
+              ],
+            )
+          );
+        }
+        if (flight.recordLocator != null) {
+          childs.add(
+            Row(
+              children: [
+                const Icon(Icons.receipt, size: 14,),
+                const SizedBox(width: 4),
+                Flexible(
+                  child: Text(flight.recordLocator ?? '', overflow: TextOverflow.ellipsis),
+                  )
+              ],
+            )
+          );
+        }
+      case TravelKind.hotel:
+        final hotel = t as HotelItem;
+          childs.add(
+          Row(
+            children: [
+              const Icon(Icons.location_city, size: 14,),
+              const SizedBox(width: 4),
+              Flexible(
+                child: Text(hotel.name, overflow: TextOverflow.ellipsis),
+                )
+            ],
+          )
+        );
+        break;
+      case TravelKind.rentalCar:
+        final rentalCar = t as RentalCarItem;
+        if (rentalCar.recordLocator != null) {
+          childs.add(
+            Row(
+              children: [
+                const Icon(Icons.receipt, size: 14,),
+                const SizedBox(width: 4),
+                Flexible(
+                  child: Text(rentalCar.recordLocator ?? '', overflow: TextOverflow.ellipsis),
+                  )
+              ],
+            )
+          );
+        }
+      default:
+        break;
+    }
 
-    final dateStr = fmtDate(context, t.start);
-    final startTimeStr = fmtDate(context, t.start, timeOnly: true);
-    final endTimeStr =
-        t.end != null ? fmtDate(context, t.end, timeOnly: true) : null;
-    final timeText =
-        endTimeStr != null ? '$startTimeStr – $endTimeStr' : startTimeStr;
 
     return ListTile(
       leading: Icon(_travelKindIcon(t.kind)),
       subtitle: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Zeile 1: Von → Nach
-          Row(
-            children: [
-              const Icon(Icons.location_on, size: 14),
-              const SizedBox(width: 4),
-              Flexible(
-                child: Text(
-                  '$from → $to',
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 2),
-          // Zeile 2: Datum
-          Row(
-            children: [
-              const Icon(Icons.event, size: 14),
-              const SizedBox(width: 4),
-              Flexible(
-                child: Text(
-                  dateStr,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 2),
-          // Zeile 3: Zeit / Zeitraum
-          Row(
-            children: [
-              const Icon(Icons.schedule, size: 14),
-              const SizedBox(width: 4),
-              Flexible(
-                child: Text(
-                  timeText,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-            ],
-          ),
-        ],
+        children: childs
       )
     );
   }
-
 }
 
 IconData _travelKindIcon(TravelKind k) {
@@ -188,5 +304,11 @@ IconData _travelKindIcon(TravelKind k) {
       return Icons.local_taxi;
     case TravelKind.rentalCar:
       return Icons.directions_car;
+    case TravelKind.hotel:
+      return Icons.hotel;
+    case TravelKind.cruiseCheckIn:
+      return Icons.sailing_outlined;
+    case TravelKind.cruiseCheckOut:
+      return Icons.directions_boat;
   }
 }

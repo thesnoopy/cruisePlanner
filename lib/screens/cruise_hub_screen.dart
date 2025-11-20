@@ -1,6 +1,9 @@
 // CruiseHubScreen – Route & Details tiles use icon-rich subtitle widgets.
 // - Route tile: icon-only time badges for arrival/departure/all aboard
 // - Details tile: ship row (icon + name) and date pills for start/end
+import 'package:cruiseplanner/models/travel/hotel_item.dart';
+import 'package:cruiseplanner/models/travel/cruise_check_in_item.dart';
+import 'package:cruiseplanner/models/travel/cruise_check_out_item.dart';
 import 'package:cruiseplanner/utils/format.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
@@ -96,35 +99,34 @@ class _CruiseHubScreenState extends State<CruiseHubScreen> {
                           await _load();
                         },
                       );
-                    
-case 2:
-  return _HubTile(
-    title: loc.excursion,
-    subtitleWidget: _buildExcursionPreview(context, c.excursions),
-    icon: Icons.directions_walk,
-    color: Colors.teal,
-    onTap: () async {
-      await Navigator.of(context).push(MaterialPageRoute(
-        builder: (_) => ExcursionListScreen(cruiseId: c.id),
-      ));
-      await _load();
-    },
-  );
+                    case 2:
+                      return _HubTile(
+                        title: loc.excursion,
+                        subtitleWidget: _buildExcursionPreview(context, c.excursions),
+                        icon: Icons.directions_walk,
+                        color: Colors.teal,
+                        onTap: () async {
+                          await Navigator.of(context).push(MaterialPageRoute(
+                            builder: (_) => ExcursionListScreen(cruiseId: c.id),
+                          ));
+                          await _load();
+                        },
+                      );
 
-default:
-  return _HubTile(
-    title: loc.travel,
-    subtitleWidget: _buildTravelPreview(context, c.travel),
-    icon: Icons.flight_takeoff,
-    color: Colors.indigo,
-    onTap: () async {
-      await Navigator.of(context).push(MaterialPageRoute(
-        builder: (_) => TravelListScreen(cruiseId: c.id),
-      ));
-      await _load();
-    },
-  );
-}
+                    default:
+                      return _HubTile(
+                        title: loc.travel,
+                        subtitleWidget: _buildTravelPreview(context, c.travel),
+                        icon: Icons.flight_takeoff,
+                        color: Colors.indigo,
+                        onTap: () async {
+                          await Navigator.of(context).push(MaterialPageRoute(
+                            builder: (_) => TravelListScreen(cruiseId: c.id),
+                          ));
+                          await _load();
+                        },
+                      );
+                    }
                 },
               ),
             ),
@@ -691,6 +693,12 @@ IconData _travelKindIcon(TravelKind k) {
       return Icons.local_taxi;
     case TravelKind.rentalCar:
       return Icons.directions_car;
+    case TravelKind.hotel:
+      return Icons.hotel;
+    case TravelKind.cruiseCheckIn:
+      return Icons.sailing_outlined;
+    case TravelKind.cruiseCheckOut:
+      return Icons.directions_boat;
   }
 }
 
@@ -712,6 +720,13 @@ String _travelTitle(TravelItem t, AppLocalizations loc) {
       final rc = t as RentalCarItem;
       final company = (rc.company ?? '').trim();
       return company.isEmpty ? loc.rentalCar : company;
+    case TravelKind.hotel:
+      final h = t as HotelItem;
+      return h.name;
+    case TravelKind.cruiseCheckIn:
+      return loc.cruiseCheckIn;
+    case TravelKind.cruiseCheckOut:
+      return loc.cruiseCheckOut;
   }
 }
 
@@ -751,6 +766,41 @@ Widget? _typeSpecificChip(BuildContext context, TravelItem t) {
           icon: Icons.directions_car_filled,
           text: rc.company!.trim(),
           tooltip: loc.rentalCarCompany,
+        );
+      }
+      return null;
+    case TravelKind.hotel:
+      final ht = t as HotelItem;
+      if (ht.name.trim().isNotEmpty) {
+        return _iconTextChip(
+          context: context,
+          icon: Icons.hotel,
+          text: ht.name.trim(),
+          tooltip: loc.hotel,
+        );
+      }
+      return null;
+    case TravelKind.cruiseCheckIn:
+      final cci = t as CruiseCheckIn;
+      final timestring = fmtDate(context, cci.start);
+      if (timestring.trim().isNotEmpty) {
+        return _iconTextChip(
+          context: context,
+          icon: Icons.hotel,
+          text: timestring.trim(),
+          tooltip: loc.hotel,
+        );
+      }
+      return null;
+    case TravelKind.cruiseCheckOut:
+      final cco = t as CruiseCheckOut;
+      final timestring = fmtDate(context, cco.end);
+      if (timestring.trim().isNotEmpty) {
+        return _iconTextChip(
+          context: context,
+          icon: Icons.hotel,
+          text: timestring.trim(),
+          tooltip: loc.hotel,
         );
       }
       return null;
