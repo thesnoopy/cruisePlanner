@@ -22,14 +22,38 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver  {
   CruiseStore? _store;
   bool _loading = true;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _triggerAutoSyncOnAppOpen();
+    });
     _reload();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      // App kommt aus dem Hintergrund in den Vordergrund
+      _triggerAutoSyncOnAppOpen();
+    }
+  }
+
+  Future<void> _triggerAutoSyncOnAppOpen() async {
+    final s = CruiseStore();
+    await s.load();
+    await s.triggerAutoSyncOnAppOpen();
   }
 
   Future<void> _reload() async {

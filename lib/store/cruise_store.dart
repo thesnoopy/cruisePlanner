@@ -18,6 +18,11 @@ import '../models/route/sea_day_item.dart';
 import '../models/route/port_call_item.dart';
 import '../models/identifiable.dart';
 
+import '../settings/webdav_settings_store.dart';
+import '../sync/webdav_sync.dart';
+import '../sync/cruise_sync_service.dart';
+import 'dart:async';
+
 class _IndexRef {
   final String cruiseId;
   final Type type;
@@ -33,6 +38,60 @@ class CruiseStore extends ChangeNotifier {
 
   bool get isLoaded => _loaded;
   List<Cruise> get cruises => _cruises;
+
+  // NEU: Auto-Sync-Status
+  Timer? _autoSyncTimer;
+  bool _isAutoSyncRunning = false;
+
+  void _scheduleAutoSync() {
+    // kleine Entprellung, damit nicht bei jeder kleinen Änderung sofort gesynct wird
+    _autoSyncTimer?.cancel();
+    _autoSyncTimer = Timer(const Duration(seconds: 1), () {
+      _runAutoSync();
+    });
+  }
+
+  Future<void> _runAutoSync() async {
+    debugPrint("Sync triggered");
+    if (_isAutoSyncRunning) return;
+    _isAutoSyncRunning = true;
+
+    try {
+      // WebDAV Settings laden – wenn nichts konfiguriert ist, einfach leise abbrechen
+      final settingsStore = const WebDavSettingsStore();
+      final settings = await settingsStore.load();
+      if (settings == null || !settings.isValid) {
+        return;
+      }
+
+      final webDav = WebDavSync(settings);
+      final syncService = CruiseSyncService(webDav);
+
+      // aktueller lokaler Stand als Input
+      final merged = await syncService.sync(_cruises);
+
+      // nur wenn erfolgreich: lokalen Store aktualisieren
+      _cruises = List<Cruise>.unmodifiable(merged);
+      _rebuildIndex();
+      await _persist();
+      notifyListeners();
+      debugPrint('Auto sync complete');
+    } catch (e) {
+      // Automatischer Sync: KEINE UI-Meldung, nur optionales Logging
+      if (kDebugMode) {
+        // ignore: avoid_print
+        debugPrint('Auto sync failed: $e');
+      }
+    } finally {
+      _isAutoSyncRunning = false;
+    }
+  }
+
+  /// NEU: Öffentlicher Trigger für "App geöffnet / App im Vordergrund".
+  /// Kann direkt ohne Delay syncen oder (wenn du magst) über _scheduleAutoSync gehen.
+  Future<void> triggerAutoSyncOnAppOpen() async {
+    await _runAutoSync();
+  }
 
   Future<void> load() async {
     final prefs = await SharedPreferences.getInstance();
@@ -111,6 +170,9 @@ class CruiseStore extends ChangeNotifier {
     _rebuildIndex();
     await _persist();
     notifyListeners();
+
+    // NEU: automatische Synchronisation anstoßen (leise)
+    _scheduleAutoSync();
   }
 
   Future<void> upsertExcursion({required String cruiseId, required Excursion excursion}) async {
@@ -150,6 +212,9 @@ class CruiseStore extends ChangeNotifier {
     _rebuildIndex();
     await _persist();
     notifyListeners();
+
+    // NEU:
+    _scheduleAutoSync();
   }
 
   Future<void> deleteExcursion(String excursionId) async {
@@ -211,6 +276,9 @@ class CruiseStore extends ChangeNotifier {
     _rebuildIndex();    // falls vorhanden
     await _persist();   // damit SharedPreferences aktualisiert werden
     notifyListeners();
+
+    // NEU:
+    _scheduleAutoSync();
   }
 
 }
