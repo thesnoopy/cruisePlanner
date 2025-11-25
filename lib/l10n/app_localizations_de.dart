@@ -222,4 +222,100 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get deckname => 'Deck Name';
+
+  @override
+  String get deposit => 'Anzahlung';
+
+  @override
+  String get finalPayment => 'Restzahlung';
+
+  @override
+  String get noPaymentInformation => 'Keine Zahlungsinformationen hinterlegt';
+
+  @override
+  String get fullyPayed => 'Vollständig bezahlt';
+
+  @override
+  String get payOnBooking => 'Bei Buchung zu zahlen';
+
+  @override
+  String get stillOpen => 'noch offen';
+
+  @override
+  String get withoutDate => 'ohne Datum';
+
+  @override
+  String get payed => 'bezahlt';
+
+  @override
+  String get open => 'offen';
+
+  @override
+  String get onSide => 'vor Ort';
+
+  @override
+  String get amountPayableOnSide => 'Gesamter Betrag vor Ort zu zahlen';
+
+  @override
+  String get amountOnSide => 'Gesamter Betrag vor Ort';
+
+  @override
+  String get payment => 'Zahlung';
+
+  @override
+  String get paymentType => 'Zahlungsart';
+
+  @override
+  String get finalPaymentOnDate => 'Restzahlung zu Termin';
+
+  @override
+  String get finalPaymentOnSide => 'Restzahlung vor Ort';
+
+  @override
+  String get amountAlreadyPayed => 'Betrag bereits bezahlt';
+
+  @override
+  String get depositAlreadyPayed => 'Anzahlung bereits bezahlt';
+
+  @override
+  String get remainingAmountOptional => 'Restbetrag (optional)';
+
+  @override
+  String get leaveEmptyForAutomaticCalculation => 'Leer lassen, um aus Gesamtpreis - Anzahlung zu berechnen';
+
+  @override
+  String get remainingAmountDueUntill => 'Restzahlung fällig bis';
+
+  @override
+  String get noDateSelected => 'Kein Datum gewählt';
+
+  @override
+  String get remainingAmountAlreadyPaied => 'Restbetrag bereits bezahlt';
+
+  @override
+  String get remainingAmountOnSide => 'Restbetrag vor Ort';
+
+  @override
+  String get paymentTypesOnSide => 'Zahlungsarten vor Ort';
+
+  @override
+  String get cash => 'Bargeld';
+
+  @override
+  String get credit => 'Kreditkarte';
+
+  @override
+  String get cashCurrency => 'Bargeld-Währung';
+
+  @override
+  String get onlyLocalCurrency => 'Nur Landeswährung';
+
+  @override
+  String get localCurrencyOrOwnCurrency => 'Landeswährung oder eigene Währung';
+
+  @override
+  String get finalPaymentAlreadyPayed => 'Restbetrag bereits bezahlt';
+
+  @override
+  String get fullPaymentOnSide => 'Gesamter Betrag wird vor Ort bezahlt';
 }

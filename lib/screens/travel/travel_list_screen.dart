@@ -345,6 +345,6 @@ IconData _travelKindIcon(TravelKind k) {
     case TravelKind.cruiseCheckIn:
       return Icons.sailing_outlined;
     case TravelKind.cruiseCheckOut:
-      return Icons.directions_boat;
+      return Icons.sailing_outlined;
   }
 }

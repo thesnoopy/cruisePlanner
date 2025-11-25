@@ -1,5 +1,6 @@
 
 import 'identifiable.dart';
+import 'excursions/excursion_payment_plan.dart';
 
 class Excursion extends Identifiable {
   @override
@@ -12,6 +13,8 @@ class Excursion extends Identifiable {
   final num? price;
   final String? currency;
 
+  final ExcursionPaymentPlan? paymentPlan;
+
   Excursion({
     required this.id,
     required this.title,
@@ -21,6 +24,7 @@ class Excursion extends Identifiable {
     this.notes,
     this.price,
     this.currency,
+    this.paymentPlan,
   });
 
   Excursion copyWith({
@@ -32,17 +36,36 @@ class Excursion extends Identifiable {
     String? notes,
     num? price,
     String? currency,
-  }) =>
-      Excursion(
-        id: id ?? this.id,
-        title: title ?? this.title,
-        date: date ?? this.date,
-        port: port ?? this.port,
-        meetingPoint: meetingPoint ?? this.meetingPoint,
-        notes: notes ?? this.notes,
-        price: price ?? this.price,
-        currency: currency ?? this.currency,
-      );
+    ExcursionPaymentPlan? paymentPlan,
+  }) {
+    return Excursion(
+      id: id ?? this.id,
+      title: title ?? this.title,
+      date: date ?? this.date,
+      port: port ?? this.port,
+      meetingPoint: meetingPoint ?? this.meetingPoint,
+      notes: notes ?? this.notes,
+      price: price ?? this.price,
+      currency: currency ?? this.currency,
+      paymentPlan: paymentPlan ?? this.paymentPlan,
+    );
+  }
+
+  factory Excursion.fromMap(Map<String, dynamic> map) {
+    return Excursion(
+      id: map['id'],
+      title: map['title'],
+      date: DateTime.parse(map['date']),
+      port: map['port'],
+      meetingPoint: map['meetingPoint'],
+      notes: map['notes'],
+      price: map['price'],
+      currency: map['currency'],
+      paymentPlan: map['paymentPlan'] != null
+          ? ExcursionPaymentPlan.fromMap(Map<String, dynamic>.from(map['paymentPlan']))
+          : null,
+    );
+  }
 
   Map<String, dynamic> toMap() => {
         'id': id,
@@ -53,19 +76,19 @@ class Excursion extends Identifiable {
         'notes': notes,
         'price': price,
         'currency': currency,
+        'paymentPlan': paymentPlan?.toMap(),
       };
 
-  factory Excursion.fromMap(Map<String, dynamic> map) => Excursion(
-        id: map['id'],
-        title: map['title'],
-        date: DateTime.parse(map['date']),
-        port: map['port'],
-        meetingPoint: map['meetingPoint'],
-        notes: map['notes'],
-        price: map['price'],
-        currency: map['currency'],
-      );
-
   @override
-  List<Object?> get props => [id, title, date, port, meetingPoint, notes, price, currency];
+  List<Object?> get props => [
+        id,
+        title,
+        date,
+        port,
+        meetingPoint,
+        notes,
+        price,
+        currency,
+        paymentPlan,
+      ];
 }

@@ -357,5 +357,165 @@
   "deckname": "Deck Name",
   "@deckname": {
     "description": "Deck Nummer"
+  },
+
+  "deposit": "Anzahlung",
+  "@deposit": {
+    "description": "Anzahlung"
+  },
+
+  "finalPayment": "Restzahlung",
+  "@deposit": {
+    "description": "Restzahlung"
+  },
+
+  "noPaymentInformation": "Keine Zahlungsinformationen hinterlegt",
+  "@noPaymentInformation": {
+    "description": "Keine Zahlungsinformationen hinterlegt"
+  },
+
+  "fullyPayed": "Vollständig bezahlt",
+  "@fullyPayed": {
+    "description": "Vollständig bezahlt"
+  },
+
+  "payOnBooking": "Bei Buchung zu zahlen",
+  "@fullyPayed": {
+    "description": "Bei Buchung zu zahlen"
+  },
+
+  "stillOpen": "noch offen",
+  "@stillOpen": {
+    "description": "noch offen"
+  },
+
+  "withoutDate": "ohne Datum",
+  "@withoutDate": {
+    "description": "ohne Datum"
+  },
+
+  "payed": "bezahlt",
+  "@payed": {
+    "description": "bezahlt"
+  },
+
+  "open": "offen",
+  "@open": {
+    "description": "offen"
+  },
+
+  "onSide": "vor Ort",
+  "@onSide": {
+    "description": "vor Ort"
+  },
+
+  "amountPayableOnSide": "Gesamter Betrag vor Ort zu zahlen",
+  "@amountPayableOnSide": {
+    "description": "vor Ort"
+  },
+
+  "amountOnSide": "Gesamter Betrag vor Ort",
+  "@amountOnSide": {
+    "description": "Gesamter Betrag vor Ort"
+  },
+
+  "payment": "Zahlung",
+  "@payment": {
+    "description": "Zahlung"
+  },
+
+  "paymentType": "Zahlungsart",
+  "@paymentType": {
+    "description": "Zahlungsart"
+  },
+
+  "finalPaymentOnDate": "Restzahlung zu Termin",
+  "@finalPaymentOnDate": {
+    "description": "Restzahlung zu Termin"
+  },
+
+  "finalPaymentOnSide": "Restzahlung vor Ort",
+  "@finalPaymentOnSide": {
+    "description": "Restzahlung vor Ort"
+  },
+
+  "amountAlreadyPayed": "Betrag bereits bezahlt",
+  "@amountAlreadyPayed": {
+    "description": "Betrag bereits bezahlt"
+  },
+
+  "depositAlreadyPayed": "Anzahlung bereits bezahlt",
+  "@amountAlreadyPayed": {
+    "description": "Anzahlung bereits bezahlt"
+  },
+
+  "remainingAmountOptional": "Restbetrag (optional)",
+  "@amountAlreadyPayed": {
+    "description": "Restbetrag (optional)"
+  },
+
+  "leaveEmptyForAutomaticCalculation": "Leer lassen, um aus Gesamtpreis - Anzahlung zu berechnen",
+  "@leaveEmptyForAutomaticCalculation": {
+    "description": "Leer lassen, um aus Gesamtpreis - Anzahlung zu berechnen"
+  },
+
+  "remainingAmountDueUntill": "Restzahlung fällig bis",
+  "@remainingAmountDueUntill": {
+    "description": "Restzahlung fällig bis"
+  },
+
+  "noDateSelected": "Kein Datum gewählt",
+  "@noDateSelected": {
+    "description": "Kein Datum gewählt"
+  },
+
+  "remainingAmountAlreadyPaied": "Restbetrag bereits bezahlt",
+  "@remainingAmountAlreadyPaied": {
+    "description": "Restbetrag bereits bezahlt"
+  },
+
+  "remainingAmountOnSide": "Restbetrag vor Ort",
+  "@remainingAmountOnSide": {
+    "description": "Restbetrag vor Ort"
+  },
+
+  "paymentTypesOnSide": "Zahlungsarten vor Ort",
+  "@paymentTypesOnSide": {
+    "description": "Zahlungsarten vor Ort"
+  },
+
+  "cash": "Bargeld",
+  "@cash": {
+    "description": "Bargeld"
+  },
+
+  "credit": "Kreditkarte",
+  "@credit": {
+    "description": "Kreditkarte"
+  },
+
+  "cashCurrency": "Bargeld-Währung",
+  "@cashCurrency": {
+    "description": "Bargeld-Währung"
+  },
+
+  "onlyLocalCurrency": "Nur Landeswährung",
+  "@onlyLocalCurrency": {
+    "description": "Nur Landeswährung"
+  },
+
+  "localCurrencyOrOwnCurrency": "Landeswährung oder eigene Währung",
+  "@localCurrencyOrOwnCurrency": {
+    "description": "Landeswährung oder eigene Währung"
+  },
+
+  "finalPaymentAlreadyPayed": "Restbetrag bereits bezahlt",
+  "@localCurrencyOrOwnCurrency": {
+    "description": "Landeswährung oder eigene Währung"
+  },
+
+  "fullPaymentOnSide": "Gesamter Betrag wird vor Ort bezahlt",
+  "@fullPaymentOnSide": {
+    "description": "Gesamter Betrag wird vor Ort bezahlt"
   }
 }

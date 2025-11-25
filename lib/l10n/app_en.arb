@@ -1,366 +1,243 @@
 {
   "@@locale": "en",
-
   "appTitle": "Cruise Planner",
   "@appTitle": {
     "description": "Main application title"
   },
-
   "homeTitle": "Your cruises",
   "@homeTitle": {
     "description": "Title of the home screen app bar"
   },
-
   "homeNoCruises": "No cruises yet. Tap + to add one.",
   "@homeNoCruises": {
     "description": "Empty state text when there are no cruises"
   },
-
   "homeNewCruiseLabel": "New cruise",
   "@homeNewCruiseLabel": {
     "description": "Label of the FAB to add a cruise"
   },
-
   "homeWebdavSettingsTooltip": "WebDAV settings",
   "@homeWebdavSettingsTooltip": {
     "description": "Tooltip for the WebDAV settings icon button"
   },
-
   "homeCloudSyncTooltip": "Cloud sync",
   "@homeCloudSyncTooltip": {
     "description": "Tooltip for the cloud sync icon button"
   },
-
   "homeCloudSyncNoStore": "Cruise store not available – sync not possible.",
   "@homeCloudSyncNoStore": {
     "description": "Snack bar message when store is null during sync"
   },
-
   "homeCloudSyncNoWebdav": "Please save WebDAV settings first.",
   "@homeCloudSyncNoWebdav": {
     "description": "Snack bar message when WebDAV is not configured"
   },
-
   "homeCloudSyncDone": "Cloud sync finished.",
   "@homeCloudSyncDone": {
     "description": "Snack bar when cloud sync succeeded"
   },
-
   "homeCloudSyncFailed": "Cloud sync failed: {error}",
   "@homeCloudSyncFailed": {
     "description": "Snack bar when cloud sync throws an exception",
     "placeholders": {
-      "error": { "type": "String" }
+      "error": {
+        "type": "String"
+      }
     }
   },
-
   "homeDeleteTooltip": "Delete",
   "@homeDeleteTooltip": {
-    "description": "Tooltip for delete icon in cruise tile"
+    "description": "Edit Travel"
   },
-
   "cruisePlanner": "Cruise Planer",
-  "@homeDeleteTooltip": {
-    "description": "Titel of this app"
-  },
-
   "ship": "Ship",
-  "@homeDeleteTooltip": {
-    "description": "Ship"
-  },
-
   "cruise": "Cruise",
-  "@homeDeleteTooltip": {
-    "description": "Cruise"
-  },
-
-  "route": "Route",
-  "@homeDeleteTooltip": {
-    "description": "Route"
-  },
-
+  "route": "Itinerary",
   "excursion": "Shore excursion",
-  "@homeDeleteTooltip": {
-    "description": "Shore excursion"
-  },
-
   "travel": "Travel",
-  "@homeDeleteTooltip": {
-    "description": "Travel"
-  },
-
   "cruiseDetails": "Cruise Details",
-  "@homeDeleteTooltip": {
-    "description": "Cruise Details"
-  },
-
   "unknownHarbour": "Unknown Harbour",
-  "@homeDeleteTooltip": {
-    "description": "Unknown Harbour"
-  },
-
   "noHarbour": "Keine Harbour today or in Future",
-  "@homeDeleteTooltip": {
-    "description": "Keine Harbour today or in Future"
-  },
-
   "arrival": "Arrival",
-  "@homeDeleteTooltip": {
-    "description": "Arrival"
-  },
-
   "departure": "Departure",
-  "@homeDeleteTooltip": {
-    "description": "Departure"
-  },
-
   "allOnBoard": "All on Board",
-  "@homeDeleteTooltip": {
-    "description": "All on Board"
-  },
-
-  "noFutureExcursions": "No future Excursion",
-  "@homeDeleteTooltip": {
-    "description": "No future Excursion"
-  },
-
   "noFutureExcursions": "No Excursion",
-  "@homeDeleteTooltip": {
-    "description": "No Excursion"
-  },
-
   "today": "Today",
-  "@homeDeleteTooltip": {
-    "description": "Today"
-  },
-
   "harbour": "Port",
-  "@homeDeleteTooltip": {
-    "description": "Port"
-  },
-
   "meetingPoint": "Meeting Point",
-  "@homeDeleteTooltip": {
-    "description": "Meeting Point"
-  },
-
   "price": "Price",
-  "@homeDeleteTooltip": {
-    "description": "Price"
-  },
-
   "noTravelItem": "No Travel Item",
-  "@homeDeleteTooltip": {
-    "description": "No Travel Item"
-  },
-
-  "start": "Start",
-  "@homeDeleteTooltip": {
-    "description": "Start"
-  },
-
+  "start": "Departure",
   "end": "End",
-  "@homeDeleteTooltip": {
-    "description": "End"
-  },
-
   "from": "From",
-  "@homeDeleteTooltip": {
-    "description": "From"
-  },
-
   "to": "To",
-  "@homeDeleteTooltip": {
-    "description": "To"
-  },
-
   "flight": "Flight",
-  "@homeDeleteTooltip": {
-    "description": "Flight"
-  },
-
   "train": "Train",
-  "@homeDeleteTooltip": {
-    "description": "Train"
-  },
-
-  "transfer": "Transfer",
-  "@homeDeleteTooltip": {
-    "description": "Transfer"
-  },
-
+  "transfer": "Transfer service",
   "rentalCar": "Rental Car",
-  "@homeDeleteTooltip": {
-    "description": "Rental Car"
-  },
-
   "flightnumber": "Flight Number",
-  "@homeDeleteTooltip": {
-    "description": "Flight Number"
-  },
-
   "rentalCarCompany": "Rental Car Company",
-  "@homeDeleteTooltip": {
-    "description": "Rental Car Company"
-  },
-
   "title": "Title",
-  "@homeDeleteTooltip": {
-    "description": "Title"
-  },
-
   "requiredField": "Required Field",
-  "@homeDeleteTooltip": {
-    "description": "Required Field"
-  },
-
   "chatterOptional": "Chatter (optional)",
-  "@homeDeleteTooltip": {
-    "description": "Chatter (optional)"
-  },
-
   "save": "Save",
-  "@homeDeleteTooltip": {
-    "description": "Save"
-  },
-
   "seaDay": "Sea Day",
-  "@homeDeleteTooltip": {
-    "description": "Seetag"
-  },
-
   "editPort": "Edit Port",
-  "@homeDeleteTooltip": {
-    "description": "Edit Port"
-  },
-
   "editSeaDay": "Edit Seaday",
-  "@homeDeleteTooltip": {
-    "description": "Edit Seaday"
-  },
-
   "date": "Date",
-  "@homeDeleteTooltip": {
-    "description": "Date"
-  },
-
   "arrivalOptional": "Arrival (optional)",
-  "@homeDeleteTooltip": {
-    "description": "Arrival (optional)"
-  },
-
   "departureOptional": "Departure (optional)",
-  "@homeDeleteTooltip": {
-    "description": "Departure (optional)"
-  },
-
   "dateAndTime": "Date & Time",
-  "@homeDeleteTooltip": {
-    "description": "Date & Time"
-  },
-
   "allOnBoardOptional": "All on Board (optional)",
-  "@homeDeleteTooltip": {
-    "description": "All on Board (optional)"
-  },
-
   "notesOptional": "Notes (optional)",
-  "@homeDeleteTooltip": {
-    "description": "Notes (optional)"
-  },
-
   "newExcursion": "New Excursion",
-  "@homeDeleteTooltip": {
-    "description": "New Excursion"
-  },
-
   "noPort": "No Port",
-  "@homeDeleteTooltip": {
-    "description": "No Port"
-  },
-
   "excursions": "Excursions",
-  "@homeDeleteTooltip": {
-    "description": "Excursions"
-  },
-
   "editExcursion": "Edit Excursion",
-  "@homeDeleteTooltip": {
-    "description": "Edit Excursion"
-  },
-
   "currencyOptional": "Currency (optional)",
-  "@homeDeleteTooltip": {
-    "description": "Currency (optional)"
-  },
-
   "editTravel": "Edit Travel",
-  "@homeDeleteTooltip": {
-    "description": "Edit Travel"
-  },
-
   "airlineOptional": "Airline (optional)",
-  "@homeDeleteTooltip": {
-    "description": "Airline (optional)"
-  },
-
   "bookingNumberOptional": "Booking number (optional)",
-  "@homeDeleteTooltip": {
-    "description": "Booking number (optional)"
-  },
-
   "modeOptional": "Mode (optional)",
-  "@homeDeleteTooltip": {
-    "description": "Mode (optional)"
-  },
-
   "editFlight": "Edit Flight",
-  "@homeDeleteTooltip": {
-    "description": "Flug bearbeiten"
-  },
-
   "editTrain": "Edit Train",
-  "@homeDeleteTooltip": {
-    "description": "Zugfahrt bearbeiten"
-  },
-
   "editRentalCar": "Edit Rental Car",
-  "@homeDeleteTooltip": {
-    "description": "Mietwagen bearbeiten"
-  },
-
   "editTransfer": "Edit Travel",
-  "@homeDeleteTooltip": {
-    "description": "Edit Travel"
-  },
-
   "cruiseCheckIn": "Cruise Check-In",
   "@cruiseCheckIn": {
     "description": "Cruise Check-In"
   },
-
   "cruiseCheckOut": "Cruise Check-Out",
   "@cruiseCheckOut": {
     "description": "Cruise Check-Out"
   },
-
   "hotel": "Hotel",
   "@hotel": {
     "description": "Hotel"
   },
-
   "cabinNumber": "Cabin Number",
   "@cabinNumber": {
     "description": "Cabin Number"
   },
-
   "deckNumber": "Deck Number",
   "@deckNumber": {
     "description": "Deck Number"
   },
-
-  "deckname": "Deck Name",
+  "deckname": "Deck name",
   "@deckname": {
     "description": "Deck Name"
+  },
+  "deposit": "Deposit",
+  "@deposit": {
+    "description": "Final Payment"
+  },
+  "finalPayment": "Final Payment",
+  "noPaymentInformation": "No payment information",
+  "@noPaymentInformation": {
+    "description": "No payment information"
+  },
+  "fullyPayed": "Fully paied",
+  "@fullyPayed": {
+    "description": "Pay on Booking"
+  },
+  "payOnBooking": "Pay on Booking",
+  "stillOpen": "still open",
+  "@stillOpen": {
+    "description": "still open"
+  },
+  "withoutDate": "without Date",
+  "@withoutDate": {
+    "description": "without Date"
+  },
+  "payed": "payed",
+  "@payed": {
+    "description": "payed"
+  },
+  "open": "open",
+  "@open": {
+    "description": "open"
+  },
+  "onSide": "on side",
+  "@onSide": {
+    "description": "on side"
+  },
+  "amountPayableOnSide": "The total amount is payable on-site",
+  "@amountPayableOnSide": {
+    "description": "The total amount is payable on-site"
+  },
+  "amountOnSide": "The total amount is on-site",
+  "@amountOnSide": {
+    "description": "The total amount is on-site"
+  },
+  "payment": "Payment",
+  "@payment": {
+    "description": "Payment"
+  },
+  "paymentType": "Payment Type",
+  "@paymentType": {
+    "description": "Payment Type"
+  },
+  "finalPaymentOnDate": "Final Payment on Date",
+  "@finalPaymentOnDate": {
+    "description": "Final Payment on Date"
+  },
+  "finalPaymentOnSide": "Final Payment on Side",
+  "@finalPaymentOnSide": {
+    "description": "Final Payment on Side"
+  },
+  "amountAlreadyPayed": "Amount already paied",
+  "@amountAlreadyPayed": {
+    "description": "Remaining amount (optional)"
+  },
+  "depositAlreadyPayed": "Deposit already paied",
+  "remainingAmountOptional": "Remaining amount (optional)",
+  "leaveEmptyForAutomaticCalculation": "Leave empty for automatic calculation",
+  "@leaveEmptyForAutomaticCalculation": {
+    "description": "Leave empty for automatic calculation"
+  },
+  "remainingAmountDueUntill": "remaining amount due untill",
+  "@remainingAmountDueUntill": {
+    "description": "remaining amount due untill"
+  },
+  "noDateSelected": "No date selected",
+  "@noDateSelected": {
+    "description": "No date selected"
+  },
+  "remainingAmountAlreadyPaied": "remaining amount already paied",
+  "@remainingAmountAlreadyPaied": {
+    "description": "remaining amount already paied"
+  },
+  "remainingAmountOnSide": "Remaining amount on side",
+  "@remainingAmountOnSide": {
+    "description": "Remaining amount on side"
+  },
+  "paymentTypesOnSide": "Payment types on side",
+  "@paymentTypesOnSide": {
+    "description": "Payment types on side"
+  },
+  "cash": "Cash",
+  "@cash": {
+    "description": "Cash"
+  },
+  "credit": "Credit",
+  "@credit": {
+    "description": "Credit"
+  },
+  "cashCurrency": "Cash-currency",
+  "@cashCurrency": {
+    "description": "Cash-currency"
+  },
+  "onlyLocalCurrency": "Only local currency",
+  "@onlyLocalCurrency": {
+    "description": "Only local currency"
+  },
+  "localCurrencyOrOwnCurrency": "Local currency or own currency",
+  "@localCurrencyOrOwnCurrency": {
+    "description": "Final payment already paied"
+  },
+  "finalPaymentAlreadyPayed": "Final payment already paied",
+  "fullPaymentOnSide": "Full payment on side",
+  "@fullPaymentOnSide": {
+    "description": "Full payment on side"
   }
 }

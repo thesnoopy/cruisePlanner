@@ -114,13 +114,24 @@ class WebDavSync {
     final data = Uint8List.fromList(utf8.encode(jsonStr));
     await client.write(settings.remotePath, data);
   }
-
+/*
   /// Einfache Union-Strategie (nur zur Rückwärtskompatibilität):
   /// Remote + Local nach id gemerged, lokal gewinnt.
   ///
   /// Für "vernünftigen" Sync zwischen mehreren Systemen solltest du
   /// stattdessen [CruiseSyncService] verwenden.
   Future<List<Cruise>> mergeRemoteIntoLocal(List<Cruise> local) async {
+    final remote = await downloadCruises();
+    final byId = {for (final c in remote) c.id: c};
+    for (final c in local) {
+      byId[c.id] = c;
+    }
+    final merged = byId.values.toList(growable: false);
+    await uploadCruises(merged);
+    return merged;
+  }
+  */
+   Future<List<Cruise>> CruiseSyncService(List<Cruise> local) async {
     final remote = await downloadCruises();
     final byId = {for (final c in remote) c.id: c};
     for (final c in local) {

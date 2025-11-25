@@ -182,7 +182,7 @@ abstract class AppLocalizations {
   /// No description provided for @route.
   ///
   /// In en, this message translates to:
-  /// **'Route'**
+  /// **'Itinerary'**
   String get route;
 
   /// No description provided for @excursion.
@@ -272,7 +272,7 @@ abstract class AppLocalizations {
   /// No description provided for @start.
   ///
   /// In en, this message translates to:
-  /// **'Start'**
+  /// **'Departure'**
   String get start;
 
   /// No description provided for @end.
@@ -308,7 +308,7 @@ abstract class AppLocalizations {
   /// No description provided for @transfer.
   ///
   /// In en, this message translates to:
-  /// **'Transfer'**
+  /// **'Transfer service'**
   String get transfer;
 
   /// No description provided for @rentalCar.
@@ -518,8 +518,200 @@ abstract class AppLocalizations {
   /// Deck Name
   ///
   /// In en, this message translates to:
-  /// **'Deck Name'**
+  /// **'Deck name'**
   String get deckname;
+
+  /// Final Payment
+  ///
+  /// In en, this message translates to:
+  /// **'Deposit'**
+  String get deposit;
+
+  /// No description provided for @finalPayment.
+  ///
+  /// In en, this message translates to:
+  /// **'Final Payment'**
+  String get finalPayment;
+
+  /// No payment information
+  ///
+  /// In en, this message translates to:
+  /// **'No payment information'**
+  String get noPaymentInformation;
+
+  /// Pay on Booking
+  ///
+  /// In en, this message translates to:
+  /// **'Fully paied'**
+  String get fullyPayed;
+
+  /// No description provided for @payOnBooking.
+  ///
+  /// In en, this message translates to:
+  /// **'Pay on Booking'**
+  String get payOnBooking;
+
+  /// still open
+  ///
+  /// In en, this message translates to:
+  /// **'still open'**
+  String get stillOpen;
+
+  /// without Date
+  ///
+  /// In en, this message translates to:
+  /// **'without Date'**
+  String get withoutDate;
+
+  /// payed
+  ///
+  /// In en, this message translates to:
+  /// **'payed'**
+  String get payed;
+
+  /// open
+  ///
+  /// In en, this message translates to:
+  /// **'open'**
+  String get open;
+
+  /// on side
+  ///
+  /// In en, this message translates to:
+  /// **'on side'**
+  String get onSide;
+
+  /// The total amount is payable on-site
+  ///
+  /// In en, this message translates to:
+  /// **'The total amount is payable on-site'**
+  String get amountPayableOnSide;
+
+  /// The total amount is on-site
+  ///
+  /// In en, this message translates to:
+  /// **'The total amount is on-site'**
+  String get amountOnSide;
+
+  /// Payment
+  ///
+  /// In en, this message translates to:
+  /// **'Payment'**
+  String get payment;
+
+  /// Payment Type
+  ///
+  /// In en, this message translates to:
+  /// **'Payment Type'**
+  String get paymentType;
+
+  /// Final Payment on Date
+  ///
+  /// In en, this message translates to:
+  /// **'Final Payment on Date'**
+  String get finalPaymentOnDate;
+
+  /// Final Payment on Side
+  ///
+  /// In en, this message translates to:
+  /// **'Final Payment on Side'**
+  String get finalPaymentOnSide;
+
+  /// Remaining amount (optional)
+  ///
+  /// In en, this message translates to:
+  /// **'Amount already paied'**
+  String get amountAlreadyPayed;
+
+  /// No description provided for @depositAlreadyPayed.
+  ///
+  /// In en, this message translates to:
+  /// **'Deposit already paied'**
+  String get depositAlreadyPayed;
+
+  /// No description provided for @remainingAmountOptional.
+  ///
+  /// In en, this message translates to:
+  /// **'Remaining amount (optional)'**
+  String get remainingAmountOptional;
+
+  /// Leave empty for automatic calculation
+  ///
+  /// In en, this message translates to:
+  /// **'Leave empty for automatic calculation'**
+  String get leaveEmptyForAutomaticCalculation;
+
+  /// remaining amount due untill
+  ///
+  /// In en, this message translates to:
+  /// **'remaining amount due untill'**
+  String get remainingAmountDueUntill;
+
+  /// No date selected
+  ///
+  /// In en, this message translates to:
+  /// **'No date selected'**
+  String get noDateSelected;
+
+  /// remaining amount already paied
+  ///
+  /// In en, this message translates to:
+  /// **'remaining amount already paied'**
+  String get remainingAmountAlreadyPaied;
+
+  /// Remaining amount on side
+  ///
+  /// In en, this message translates to:
+  /// **'Remaining amount on side'**
+  String get remainingAmountOnSide;
+
+  /// Payment types on side
+  ///
+  /// In en, this message translates to:
+  /// **'Payment types on side'**
+  String get paymentTypesOnSide;
+
+  /// Cash
+  ///
+  /// In en, this message translates to:
+  /// **'Cash'**
+  String get cash;
+
+  /// Credit
+  ///
+  /// In en, this message translates to:
+  /// **'Credit'**
+  String get credit;
+
+  /// Cash-currency
+  ///
+  /// In en, this message translates to:
+  /// **'Cash-currency'**
+  String get cashCurrency;
+
+  /// Only local currency
+  ///
+  /// In en, this message translates to:
+  /// **'Only local currency'**
+  String get onlyLocalCurrency;
+
+  /// Final payment already paied
+  ///
+  /// In en, this message translates to:
+  /// **'Local currency or own currency'**
+  String get localCurrencyOrOwnCurrency;
+
+  /// No description provided for @finalPaymentAlreadyPayed.
+  ///
+  /// In en, this message translates to:
+  /// **'Final payment already paied'**
+  String get finalPaymentAlreadyPayed;
+
+  /// Full payment on side
+  ///
+  /// In en, this message translates to:
+  /// **'Full payment on side'**
+  String get fullPaymentOnSide;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

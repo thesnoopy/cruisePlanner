@@ -53,7 +53,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get cruise => 'Cruise';
 
   @override
-  String get route => 'Route';
+  String get route => 'Itinerary';
 
   @override
   String get excursion => 'Shore excursion';
@@ -98,7 +98,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get noTravelItem => 'No Travel Item';
 
   @override
-  String get start => 'Start';
+  String get start => 'Departure';
 
   @override
   String get end => 'End';
@@ -116,7 +116,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get train => 'Train';
 
   @override
-  String get transfer => 'Transfer';
+  String get transfer => 'Transfer service';
 
   @override
   String get rentalCar => 'Rental Car';
@@ -221,5 +221,101 @@ class AppLocalizationsEn extends AppLocalizations {
   String get deckNumber => 'Deck Number';
 
   @override
-  String get deckname => 'Deck Name';
+  String get deckname => 'Deck name';
+
+  @override
+  String get deposit => 'Deposit';
+
+  @override
+  String get finalPayment => 'Final Payment';
+
+  @override
+  String get noPaymentInformation => 'No payment information';
+
+  @override
+  String get fullyPayed => 'Fully paied';
+
+  @override
+  String get payOnBooking => 'Pay on Booking';
+
+  @override
+  String get stillOpen => 'still open';
+
+  @override
+  String get withoutDate => 'without Date';
+
+  @override
+  String get payed => 'payed';
+
+  @override
+  String get open => 'open';
+
+  @override
+  String get onSide => 'on side';
+
+  @override
+  String get amountPayableOnSide => 'The total amount is payable on-site';
+
+  @override
+  String get amountOnSide => 'The total amount is on-site';
+
+  @override
+  String get payment => 'Payment';
+
+  @override
+  String get paymentType => 'Payment Type';
+
+  @override
+  String get finalPaymentOnDate => 'Final Payment on Date';
+
+  @override
+  String get finalPaymentOnSide => 'Final Payment on Side';
+
+  @override
+  String get amountAlreadyPayed => 'Amount already paied';
+
+  @override
+  String get depositAlreadyPayed => 'Deposit already paied';
+
+  @override
+  String get remainingAmountOptional => 'Remaining amount (optional)';
+
+  @override
+  String get leaveEmptyForAutomaticCalculation => 'Leave empty for automatic calculation';
+
+  @override
+  String get remainingAmountDueUntill => 'remaining amount due untill';
+
+  @override
+  String get noDateSelected => 'No date selected';
+
+  @override
+  String get remainingAmountAlreadyPaied => 'remaining amount already paied';
+
+  @override
+  String get remainingAmountOnSide => 'Remaining amount on side';
+
+  @override
+  String get paymentTypesOnSide => 'Payment types on side';
+
+  @override
+  String get cash => 'Cash';
+
+  @override
+  String get credit => 'Credit';
+
+  @override
+  String get cashCurrency => 'Cash-currency';
+
+  @override
+  String get onlyLocalCurrency => 'Only local currency';
+
+  @override
+  String get localCurrencyOrOwnCurrency => 'Local currency or own currency';
+
+  @override
+  String get finalPaymentAlreadyPayed => 'Final payment already paied';
+
+  @override
+  String get fullPaymentOnSide => 'Full payment on side';
 }
