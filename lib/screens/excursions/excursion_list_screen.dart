@@ -11,6 +11,7 @@ import '../../models/excursions/cash_currency_preference.dart';
 import '../../screens/excursions/excursion_edit_screen.dart';
 import '../../store/cruise_store.dart';
 import '../../utils/format.dart';
+import '../../models/identifiable.dart';
 
 class ExcursionListScreen extends StatefulWidget {
   final String cruiseId;
@@ -63,6 +64,47 @@ class _ExcursionListScreenState extends State<ExcursionListScreen> {
     await _load();
   }
 
+  // ADDED — neuer Ausflug
+  Future<void> _createExcursion() async {
+    final store = CruiseStore();
+    await store.load();
+    final cruise = store.getCruise(widget.cruiseId);
+    if (cruise == null) return;
+
+    final newExc = Excursion(
+      id: Identifiable.newId(),
+      title: '',
+      date: cruise.period.start,
+      port: null,
+      meetingPoint: null,
+      notes: null,
+      price: null,
+      currency: null,
+      paymentPlan: null,
+    );
+
+    await store.upsertExcursion(
+      cruiseId: cruise.id,
+      excursion: newExc,
+    );
+
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => ExcursionEditScreen(excursionId: newExc.id),
+      ),
+    );
+
+    await _load();
+  }
+
+  // ADDED — Ausflug löschen
+  Future<void> _deleteExcursion(String id) async {
+    final store = CruiseStore();
+    await store.load();
+    await store.deleteExcursion(id);
+    await _load();
+  }
+
   @override
   Widget build(BuildContext context) {
     final loc = AppLocalizations.of(context)!;
@@ -81,6 +123,11 @@ class _ExcursionListScreenState extends State<ExcursionListScreen> {
         appBar: AppBar(title: Text(loc.excursions)),
         body: Center(
           child: Text(loc.noFutureExcursions),
+        ),
+        floatingActionButton: FloatingActionButton(
+          onPressed: _createExcursion,
+          tooltip: loc.newExcursion,
+          child: const Icon(Icons.add),
         ),
       );
     }
@@ -113,11 +160,25 @@ class _ExcursionListScreenState extends State<ExcursionListScreen> {
                 ),
               title: Text(ex.title),
               subtitle: _buildSubtitle(context, ex),
-              trailing: const Icon(Icons.chevron_right),
+              trailing: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.delete_outline),
+                    onPressed: () => _deleteExcursion(ex.id),
+                  ),
+                  const Icon(Icons.chevron_right),
+                ],
+              ),
             ),
           );
         },
       ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: _createExcursion,
+        tooltip: loc.newExcursion,
+        child: const Icon(Icons.add),
+      )
     );
   }
 
