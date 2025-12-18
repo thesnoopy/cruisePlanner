@@ -68,7 +68,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get unknownHarbour => 'Unknown Harbour';
 
   @override
-  String get noHarbour => 'Keine Harbour today or in Future';
+  String get noHarbour => 'No Harbour today or in Future';
 
   @override
   String get arrival => 'Arrival';
@@ -318,4 +318,43 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get fullPaymentOnSide => 'Full payment on side';
+
+  @override
+  String get confirmDefaultTitle => 'Confirm';
+
+  @override
+  String get confirmDefaultMessage => 'Do you want to proceed?';
+
+  @override
+  String get confirmOk => 'OK';
+
+  @override
+  String get confirmCancel => 'Cancel';
+
+  @override
+  String get deleteExcursionTitle => 'Delete Excursion';
+
+  @override
+  String get deleteExcursionQuestionmark => 'Really delete excursion?';
+
+  @override
+  String get delete => 'delete';
+
+  @override
+  String get deleteCruiseTitle => 'Delete Cruise';
+
+  @override
+  String get deleteCruiseQuestionmark => 'Really delete this cruise?';
+
+  @override
+  String get deleteRouteItemTitle => 'Delete Port / Seeday';
+
+  @override
+  String get deleteRouteItemQuestionmark => 'Really delete this Port / Seeday?';
+
+  @override
+  String get deleteTravelItemTitle => 'Delete travel item';
+
+  @override
+  String get deleteTravelItemQuestionmark => 'Really delete this travel item?';
 }

@@ -8,6 +8,7 @@ import '../../models/identifiable.dart';
 import '../../utils/format.dart';
 import 'route_edit_screen.dart';
 import '../../l10n/app_localizations.dart';
+import '../../widgets/confirmation_dialog.dart';
 
 class RouteListScreen extends StatefulWidget {
   final String cruiseId;
@@ -164,8 +165,21 @@ class _RouteListScreenState extends State<RouteListScreen> {
                             IconButton(
                               icon: const Icon(Icons.delete_outline),
                               onPressed: () async {
+
                                 final s = CruiseStore();
                                 await s.load();
+                                final loc = AppLocalizations.of(context)!;
+                                final confirmed = await showConfirmationDialog(
+                                  context: context,
+                                  title: loc.deleteRouteItemTitle,              // optional
+                                  message: loc.deleteRouteItemQuestionmark, // optional
+                                  okText: loc.delete,                     // optional
+                                  cancelText: loc.confirmCancel,               // optional
+                                  icon: Icons.warning_amber_rounded,     // optional
+                                  destructive: true,                     // optional (OK Button rot)
+                                );
+
+                                if (!confirmed) return;
                                 await s.deleteRouteItem(r.id);
                                 await _load();
                               },
@@ -227,6 +241,18 @@ class _RouteListScreenState extends State<RouteListScreen> {
                               onPressed: () async {
                                 final s = CruiseStore();
                                 await s.load();
+                                final loc = AppLocalizations.of(context)!;
+                                final confirmed = await showConfirmationDialog(
+                                  context: context,
+                                  title: loc.deleteRouteItemTitle,              // optional
+                                  message: loc.deleteRouteItemQuestionmark, // optional
+                                  okText: loc.delete,                     // optional
+                                  cancelText: loc.confirmCancel,               // optional
+                                  icon: Icons.warning_amber_rounded,     // optional
+                                  destructive: true,                     // optional (OK Button rot)
+                                );
+
+                                if (!confirmed) return;
                                 await s.deleteRouteItem(r.id);
                                 await _load();
                               },

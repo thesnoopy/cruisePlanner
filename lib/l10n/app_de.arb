@@ -517,5 +517,30 @@
   "fullPaymentOnSide": "Gesamter Betrag wird vor Ort bezahlt",
   "@fullPaymentOnSide": {
     "description": "Gesamter Betrag wird vor Ort bezahlt"
-  }
+  },
+  "confirmDefaultTitle": "Bestätigung",
+  "confirmDefaultMessage": "Möchtest du diese Aktion wirklich durchführen?",
+  "confirmOk": "OK",
+  "confirmCancel": "Abbrechen",
+  "@confirmDefaultTitle": {
+    "description": "Standardtitel für generische Bestätigungsdialoge"
+  },
+  "@confirmDefaultMessage": {
+    "description": "Standardtext für generische Bestätigungsdialoge"
+  },
+  "@confirmOk": {
+    "description": "Standardtext für OK/Bestätigen-Button in generischen Dialogen"
+  },
+  "@confirmCancel": {
+    "description": "Standardtext für Abbrechen-Button in generischen Dialogen"
+  },
+  "deleteExcursionTitle": "Ausflug löschen",
+  "deleteExcursionQuestionmark": "Diesen Ausflug wirklich löschen?",
+  "delete": "Löschen",
+  "deleteCruiseTitle": "Kreuzfahrt löschen",
+  "deleteCruiseQuestionmark": "Diese Kreuzfahrt wirklich löschen?",
+  "deleteRouteItemTitle": "Hafen / Seetag löschen",
+  "deleteRouteItemQuestionmark": "Diesen Hafen / Seetag wirklich löschen?",
+  "deleteTravelItemTitle": "Lösche An- Abreise Teil",
+  "deleteTravelItemQuestionmark": "An- Abreiseteil löschen?"
 }

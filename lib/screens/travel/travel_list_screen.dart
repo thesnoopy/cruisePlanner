@@ -15,6 +15,7 @@ import '../../models/identifiable.dart';
 import '../../utils/format.dart';
 import 'travel_edit_screen.dart';
 import '../../l10n/app_localizations.dart';
+import '../../widgets/confirmation_dialog.dart';
 
 class TravelListScreen extends StatefulWidget {
   final String cruiseId;
@@ -150,6 +151,18 @@ class _TravelListScreenState extends State<TravelListScreen> {
                             onPressed: () async {
                               final s = CruiseStore();
                               await s.load();
+                                final loc = AppLocalizations.of(context)!;
+                                final confirmed = await showConfirmationDialog(
+                                  context: context,
+                                  title: loc.deleteTravelItemTitle,              // optional
+                                  message: loc.deleteTravelItemQuestionmark, // optional
+                                  okText: loc.delete,                     // optional
+                                  cancelText: loc.confirmCancel,               // optional
+                                  icon: Icons.warning_amber_rounded,     // optional
+                                  destructive: true,                     // optional (OK Button rot)
+                                );
+
+                                if (!confirmed) return;
                               await s.deleteTravelItem(t.id);
                               await _load();
                             },

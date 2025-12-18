@@ -13,6 +13,7 @@ import '../settings/webdav_settings_store.dart';
 import '../sync/webdav_sync.dart';
 import '../sync/cruise_sync_service.dart';
 import 'package:cruiseplanner/l10n/app_localizations.dart';
+import '../../widgets/confirmation_dialog.dart';
 
 
 class HomeScreen extends StatefulWidget {
@@ -208,6 +209,18 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver  {
                     await _reload();
                   },
                   onDelete: () async {
+                    final loc = AppLocalizations.of(context)!;
+                    final confirmed = await showConfirmationDialog(
+                      context: context,
+                      title: loc.deleteCruiseTitle,              // optional
+                      message: loc.deleteCruiseQuestionmark, // optional
+                      okText: loc.delete,                     // optional
+                      cancelText: loc.confirmCancel,               // optional
+                      icon: Icons.warning_amber_rounded,     // optional
+                      destructive: true,                     // optional (OK Button rot)
+                    );
+
+                    if (!confirmed) return;
                     final s = CruiseStore();
                     await s.load();
                     await s.deleteCruise(c.id);

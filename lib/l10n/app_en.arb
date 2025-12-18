@@ -57,7 +57,7 @@
   "travel": "Travel",
   "cruiseDetails": "Cruise Details",
   "unknownHarbour": "Unknown Harbour",
-  "noHarbour": "Keine Harbour today or in Future",
+  "noHarbour": "No Harbour today or in Future",
   "arrival": "Arrival",
   "departure": "Departure",
   "allOnBoard": "All on Board",
@@ -239,5 +239,30 @@
   "fullPaymentOnSide": "Full payment on side",
   "@fullPaymentOnSide": {
     "description": "Full payment on side"
-  }
+  },
+  "confirmDefaultTitle": "Confirm",
+  "confirmDefaultMessage": "Do you want to proceed?",
+  "confirmOk": "OK",
+  "confirmCancel": "Cancel",
+  "@confirmDefaultTitle": {
+    "description": "Default title for generic confirmation dialogs"
+  },
+  "@confirmDefaultMessage": {
+    "description": "Default message for generic confirmation dialogs"
+  },
+  "@confirmOk": {
+    "description": "Default OK/confirm button label for generic dialogs"
+  },
+  "@confirmCancel": {
+    "description": "Default cancel button label for generic dialogs"
+  },
+  "deleteExcursionTitle": "Delete Excursion",
+  "deleteExcursionQuestionmark": "Really delete excursion?",
+  "delete": "delete",
+  "deleteCruiseTitle": "Delete Cruise",
+  "deleteCruiseQuestionmark": "Really delete this cruise?",
+  "deleteRouteItemTitle": "Delete Port / Seeday",
+  "deleteRouteItemQuestionmark": "Really delete this Port / Seeday?",
+  "deleteTravelItemTitle": "Delete travel item",
+  "deleteTravelItemQuestionmark": "Really delete this travel item?"
 }

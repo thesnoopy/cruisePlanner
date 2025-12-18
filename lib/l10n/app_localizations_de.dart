@@ -318,4 +318,43 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get fullPaymentOnSide => 'Gesamter Betrag wird vor Ort bezahlt';
+
+  @override
+  String get confirmDefaultTitle => 'Bestätigung';
+
+  @override
+  String get confirmDefaultMessage => 'Möchtest du diese Aktion wirklich durchführen?';
+
+  @override
+  String get confirmOk => 'OK';
+
+  @override
+  String get confirmCancel => 'Abbrechen';
+
+  @override
+  String get deleteExcursionTitle => 'Ausflug löschen';
+
+  @override
+  String get deleteExcursionQuestionmark => 'Diesen Ausflug wirklich löschen?';
+
+  @override
+  String get delete => 'Löschen';
+
+  @override
+  String get deleteCruiseTitle => 'Kreuzfahrt löschen';
+
+  @override
+  String get deleteCruiseQuestionmark => 'Diese Kreuzfahrt wirklich löschen?';
+
+  @override
+  String get deleteRouteItemTitle => 'Hafen / Seetag löschen';
+
+  @override
+  String get deleteRouteItemQuestionmark => 'Diesen Hafen / Seetag wirklich löschen?';
+
+  @override
+  String get deleteTravelItemTitle => 'Lösche An- Abreise Teil';
+
+  @override
+  String get deleteTravelItemQuestionmark => 'An- Abreiseteil löschen?';
 }

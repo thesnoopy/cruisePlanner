@@ -9,6 +9,7 @@ import '../../models/excursions/excursion_payment_trigger.dart';
 import '../../models/excursions/excursion_payment_method.dart';
 import '../../models/excursions/cash_currency_preference.dart';
 import '../../screens/excursions/excursion_edit_screen.dart';
+import '../../widgets/confirmation_dialog.dart';
 import '../../store/cruise_store.dart';
 import '../../utils/format.dart';
 import '../../models/identifiable.dart';
@@ -99,6 +100,19 @@ class _ExcursionListScreenState extends State<ExcursionListScreen> {
 
   // ADDED — Ausflug löschen
   Future<void> _deleteExcursion(String id) async {
+    final loc = AppLocalizations.of(context)!;
+    final confirmed = await showConfirmationDialog(
+      context: context,
+      title: loc.deleteExcursionTitle,              // optional
+      message: loc.deleteExcursionQuestionmark, // optional
+      okText: loc.delete,                     // optional
+      cancelText: loc.confirmCancel,               // optional
+      icon: Icons.warning_amber_rounded,     // optional
+      destructive: true,                     // optional (OK Button rot)
+    );
+
+    if (!confirmed) return;
+
     final store = CruiseStore();
     await store.load();
     await store.deleteExcursion(id);

@@ -212,7 +212,7 @@ abstract class AppLocalizations {
   /// No description provided for @noHarbour.
   ///
   /// In en, this message translates to:
-  /// **'Keine Harbour today or in Future'**
+  /// **'No Harbour today or in Future'**
   String get noHarbour;
 
   /// No description provided for @arrival.
@@ -712,6 +712,84 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Full payment on side'**
   String get fullPaymentOnSide;
+
+  /// Default title for generic confirmation dialogs
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm'**
+  String get confirmDefaultTitle;
+
+  /// Default message for generic confirmation dialogs
+  ///
+  /// In en, this message translates to:
+  /// **'Do you want to proceed?'**
+  String get confirmDefaultMessage;
+
+  /// Default OK/confirm button label for generic dialogs
+  ///
+  /// In en, this message translates to:
+  /// **'OK'**
+  String get confirmOk;
+
+  /// Default cancel button label for generic dialogs
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get confirmCancel;
+
+  /// No description provided for @deleteExcursionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Excursion'**
+  String get deleteExcursionTitle;
+
+  /// No description provided for @deleteExcursionQuestionmark.
+  ///
+  /// In en, this message translates to:
+  /// **'Really delete excursion?'**
+  String get deleteExcursionQuestionmark;
+
+  /// No description provided for @delete.
+  ///
+  /// In en, this message translates to:
+  /// **'delete'**
+  String get delete;
+
+  /// No description provided for @deleteCruiseTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Cruise'**
+  String get deleteCruiseTitle;
+
+  /// No description provided for @deleteCruiseQuestionmark.
+  ///
+  /// In en, this message translates to:
+  /// **'Really delete this cruise?'**
+  String get deleteCruiseQuestionmark;
+
+  /// No description provided for @deleteRouteItemTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Port / Seeday'**
+  String get deleteRouteItemTitle;
+
+  /// No description provided for @deleteRouteItemQuestionmark.
+  ///
+  /// In en, this message translates to:
+  /// **'Really delete this Port / Seeday?'**
+  String get deleteRouteItemQuestionmark;
+
+  /// No description provided for @deleteTravelItemTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete travel item'**
+  String get deleteTravelItemTitle;
+
+  /// No description provided for @deleteTravelItemQuestionmark.
+  ///
+  /// In en, this message translates to:
+  /// **'Really delete this travel item?'**
+  String get deleteTravelItemQuestionmark;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {
