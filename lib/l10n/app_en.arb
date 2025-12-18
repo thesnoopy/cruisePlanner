@@ -265,5 +265,6 @@
   "deleteRouteItemQuestionmark": "Really delete this Port / Seeday?",
   "deleteTravelItemTitle": "Delete travel item",
   "deleteTravelItemQuestionmark": "Really delete this travel item?",
-  "location": "Address"
+  "location": "Address",
+  "startNavigation": "Start Navigation"
 }

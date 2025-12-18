@@ -360,4 +360,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get location => 'Address';
+
+  @override
+  String get startNavigation => 'Start Navigation';
 }

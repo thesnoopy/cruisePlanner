@@ -543,5 +543,6 @@
   "deleteRouteItemQuestionmark": "Diesen Hafen / Seetag wirklich löschen?",
   "deleteTravelItemTitle": "Lösche An- Abreise Teil",
   "deleteTravelItemQuestionmark": "An- Abreiseteil löschen?",
-  "location": "Adresse"
+  "location": "Adresse",
+  "startNavigation": "Navigation starten"
 }

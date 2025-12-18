@@ -16,6 +16,7 @@ import '../../utils/format.dart';
 import 'travel_edit_screen.dart';
 import '../../l10n/app_localizations.dart';
 import '../../widgets/confirmation_dialog.dart';
+import '../../widgets/showMapAppPicker.dart';
 
 class TravelListScreen extends StatefulWidget {
   final String cruiseId;
@@ -113,6 +114,11 @@ class _TravelListScreenState extends State<TravelListScreen> {
               itemCount: c.travel.length,
               itemBuilder: (_, i) {
                 final t = c.travel[i];
+                String address = "";
+                if(t.kind == TravelKind.hotel) {
+                  final hotel = t as HotelItem;
+                  address = hotel.location ?? '';
+                }
                 return Card(
                   margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   shape: RoundedRectangleBorder(
@@ -145,6 +151,15 @@ class _TravelListScreenState extends State<TravelListScreen> {
                           Expanded(
                             child: _subtitleTravelitemPerKind(context, t, c.id),
                           ),
+                          if (address != '')   
+                            IconButton(
+                              icon: const Icon(Icons.navigation_outlined),
+                              onPressed: () => showMapAppPicker(
+                                        context: context,
+                                        address: address,
+                                        title: loc.startNavigation,
+                                      ),
+                            ),
                           // neuer Lösch-Button
                           IconButton(
                             icon: const Icon(Icons.delete_outline),
