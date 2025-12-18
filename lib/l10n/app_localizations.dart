@@ -790,6 +790,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Really delete this travel item?'**
   String get deleteTravelItemQuestionmark;
+
+  /// No description provided for @location.
+  ///
+  /// In en, this message translates to:
+  /// **'Address'**
+  String get location;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

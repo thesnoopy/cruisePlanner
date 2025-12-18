@@ -25,6 +25,14 @@ class HotelItem extends TravelItem {
   final String name;
   final String? location;
 
+  /// Free-form postal address (e.g. "Musterstraße 1, 40210 Düsseldorf, Deutschland").
+  ///
+  /// Most taxi/navigation apps accept either a plain-text query/address or
+  /// coordinates. We start with a human-readable address and can extend the
+  /// model later with optional latitude/longitude if you want deterministic
+  /// routing and fewer ambiguities.
+  final String? address;
+
   HotelItem({
     required this.id,
     required this.start,
@@ -37,6 +45,7 @@ class HotelItem extends TravelItem {
     this.company,
     required this.name,
     this.location,
+    this.address,
     this.recordLocator,
   });
 
@@ -55,6 +64,7 @@ class HotelItem extends TravelItem {
     String? company,
     String? name,
     String? location,
+    String? address,
     String? recordLocator,
   }) =>
       HotelItem(
@@ -69,7 +79,8 @@ class HotelItem extends TravelItem {
         company: company ?? this.company,
         name: name ?? this.name,
         location: location ?? this.location,
-        recordLocator: recordLocator ?? this.location,
+        address: address ?? this.address,
+        recordLocator: recordLocator ?? this.recordLocator,
       );
 
   @override
@@ -86,6 +97,7 @@ class HotelItem extends TravelItem {
         'company': company,
         'name': name,
         'location': location,
+        'address': address,
         'recordLocator': recordLocator,
       };
 
@@ -101,9 +113,10 @@ class HotelItem extends TravelItem {
         company: map['company'],
         name: map['name'],
         location: map['location'],
+        address: map['address'],
         recordLocator: map['recordLocator'],
       );
 
   @override
-  List<Object?> get props => [id, kind, start, end, from, to, notes, price, currency, company, name, location];
+  List<Object?> get props => [id, kind, start, end, from, to, notes, price, currency, company, name, location, address, recordLocator];
 }

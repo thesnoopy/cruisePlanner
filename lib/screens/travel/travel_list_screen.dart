@@ -63,7 +63,7 @@ class _TravelListScreenState extends State<TravelListScreen> {
         item = RentalCarItem(id: id, start: c.period.start, end: c.period.start.add(const Duration(days: 1)), from: '', to: '', notes: null, price: null, currency: null, company: null, recordLocator: null);
         break;
       case TravelKind.hotel:
-        item = HotelItem(id: id, start: c.period.start, end: c.period.start, from: '', to: '', notes: null, price: null, currency: null, name: '');
+        item = HotelItem(id: id, start: c.period.start, end: c.period.start, from: '', to: '', notes: null, price: null, currency: null, name: '',recordLocator: '', location: '');
         debugPrint("$item");
         break;
       case TravelKind.cruiseCheckIn:
@@ -308,6 +308,17 @@ class _TravelListScreenState extends State<TravelListScreen> {
               const SizedBox(width: 4),
               Flexible(
                 child: Text(hotel.name, overflow: TextOverflow.ellipsis),
+                )
+            ],
+          )
+        );
+          childs.add(
+          Row(
+            children: [
+              const Icon(Icons.location_pin, size: 14,),
+              const SizedBox(width: 4),
+              Flexible(
+                child: Text(hotel.location ?? '', overflow: TextOverflow.ellipsis),
                 )
             ],
           )

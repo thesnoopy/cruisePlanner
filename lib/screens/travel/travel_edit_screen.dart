@@ -261,6 +261,7 @@ _pickDateTime(bool start) async {
       String transferMode = "",
       String company = "",
       String name = "",
+      String location = "",
 
     }){
       final List<Widget> collection = [];
@@ -312,6 +313,9 @@ _pickDateTime(bool start) async {
         }
       if(name != ""){
         collection.add(TextFormField(controller: _name, decoration: InputDecoration(labelText: loc.hotel)));
+      }
+      if(location != ""){
+        collection.add(TextFormField(controller: _location, decoration: InputDecoration(labelText: loc.location)));
       }
       collection.add(const SizedBox(height: 24));
       collection.add(FilledButton.icon(onPressed: _save, icon: const Icon(Icons.save), label: Text(loc.save)));
@@ -370,6 +374,7 @@ _pickDateTime(bool start) async {
               price: loc.price,
               name: loc.hotel,
               recordLocator: loc.bookingNumberOptional,
+              location: loc.location,
             ),
             if(item.kind == TravelKind.cruiseCheckIn) ...writeScreen(
               start: loc.start,

@@ -357,4 +357,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get deleteTravelItemQuestionmark => 'Really delete this travel item?';
+
+  @override
+  String get location => 'Address';
 }
