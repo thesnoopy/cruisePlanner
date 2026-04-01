@@ -55,12 +55,16 @@ class _RouteListScreenState extends State<RouteListScreen> {
         ),
       ),
     );
-    if (type == null) return;
+    if (type == null) {
+      return;
+    }
 
     final s = CruiseStore();
     await s.load();
     final cruise = s.getCruise(widget.cruiseId);
-    if (cruise == null) return;
+    if (cruise == null) {
+      return;
+    }
 
     final id = Identifiable.newId();
     final date = cruise.period.start;
@@ -86,7 +90,9 @@ class _RouteListScreenState extends State<RouteListScreen> {
     }
 
     await _load();
-    if (!mounted) return;
+    if (!mounted) {
+      return;
+    }
 
     await Navigator.of(context).push(
       MaterialPageRoute(
@@ -179,7 +185,9 @@ class _RouteListScreenState extends State<RouteListScreen> {
                                   destructive: true,                     // optional (OK Button rot)
                                 );
 
-                                if (!confirmed) return;
+                                if (!confirmed) {
+                                  return;
+                                }
                                 await s.deleteRouteItem(r.id);
                                 await _load();
                               },
@@ -252,7 +260,9 @@ class _RouteListScreenState extends State<RouteListScreen> {
                                   destructive: true,                     // optional (OK Button rot)
                                 );
 
-                                if (!confirmed) return;
+                                if (!confirmed) {
+                                  return;
+                                }
                                 await s.deleteRouteItem(r.id);
                                 await _load();
                               },

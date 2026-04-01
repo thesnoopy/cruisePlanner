@@ -10,7 +10,9 @@ Future<void> showMapAppPicker({
 }) async {
   // 1) Geocoding
   final locations = await locationFromAddress(address);
-  if (!context.mounted) return;
+  if (!context.mounted) {
+    return;
+  }
 
   if (locations.isEmpty) {
     ScaffoldMessenger.of(context).showSnackBar(
@@ -23,7 +25,9 @@ Future<void> showMapAppPicker({
 
   // 2) Installierte Karten-Apps
   final maps = await MapLauncher.installedMaps;
-  if (!context.mounted) return;
+  if (!context.mounted) {
+    return;
+  }
 
   if (maps.isEmpty) {
     ScaffoldMessenger.of(context).showSnackBar(

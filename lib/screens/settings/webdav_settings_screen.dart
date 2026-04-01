@@ -48,7 +48,9 @@ class _WebDavSettingsScreenState extends State<WebDavSettingsScreen> {
   }
 
   Future<void> _save() async {
-    if (!_formKey.currentState!.validate()) return;
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
 
     setState(() => _saving = true);
 
@@ -61,7 +63,9 @@ class _WebDavSettingsScreenState extends State<WebDavSettingsScreen> {
 
     await _store.save(settings);
 
-    if (!mounted) return;
+    if (!mounted) {
+      return;
+    }
 
     setState(() => _saving = false);
 
@@ -91,7 +95,9 @@ class _WebDavSettingsScreenState extends State<WebDavSettingsScreen> {
       ),
     );
 
-    if (confirm != true) return;
+    if (confirm != true) {
+      return;
+    }
 
     await _store.clear();
 
@@ -100,7 +106,9 @@ class _WebDavSettingsScreenState extends State<WebDavSettingsScreen> {
     _passwordController.clear();
     _remotePathController.clear();
 
-    if (!mounted) return;
+    if (!mounted) {
+      return;
+    }
 
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('WebDAV-Einstellungen gelöscht')),

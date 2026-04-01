@@ -302,7 +302,9 @@ _RoutePreview _routePreview(List<RouteItem> items) {
   PortCallItem? next;
   for (final p in ports) {
     if (p.date.isAfter(todayEnd.subtract(const Duration(milliseconds: 1)))) {
-      if (today != null && p.id == today.id) continue;
+      if (today != null && p.id == today.id) {
+        continue;
+      }
       next = p;
       break;
     }
@@ -435,7 +437,9 @@ Widget _timeRow(
     ));
   }
   if (departure != null) {
-    if (chips.isNotEmpty) chips.add(const SizedBox(width: 8));
+    if (chips.isNotEmpty) {
+      chips.add(const SizedBox(width: 8));
+    }
     chips.add(_timePill(
       context: context,
       icon: Icons.logout, // oder: Icons.north_east, Icons.call_made
@@ -444,7 +448,9 @@ Widget _timeRow(
     ));
   }
   if (allAboard != null) {
-    if (chips.isNotEmpty) chips.add(const SizedBox(width: 8));
+    if (chips.isNotEmpty) {
+      chips.add(const SizedBox(width: 8));
+    }
     chips.add(_timePill(
       context: context,
       icon: Icons.warning_amber_outlined,
@@ -453,7 +459,9 @@ Widget _timeRow(
     ));
   }
 
-  if (chips.isEmpty) return const SizedBox.shrink();
+  if (chips.isEmpty) {
+    return const SizedBox.shrink();
+  }
   return Wrap(spacing: 0, runSpacing: 8, children: chips);
 }
 
@@ -475,7 +483,9 @@ Widget _buildExcursionPreview(BuildContext context, List<Excursion> list) {
   Excursion? findToday(List<Excursion> src, DateTime day) {
     for (final e in src) {
       final d = DateTime(e.date.year, e.date.month, e.date.day);
-      if (d == day) return e;
+      if (d == day) {
+        return e;
+      }
     }
     return null;
   }
@@ -483,7 +493,9 @@ Widget _buildExcursionPreview(BuildContext context, List<Excursion> list) {
   Excursion? firstAfter(List<Excursion> src, DateTime day) {
     for (final e in src) {
       final d = DateTime(e.date.year, e.date.month, e.date.day);
-      if (d.isAfter(day)) return e;
+      if (d.isAfter(day)) {
+        return e;
+      }
     }
     return null;
   }
@@ -697,9 +709,15 @@ Widget _buildTravelPreview(BuildContext context, List<TravelItem> list) {
 String _compactFromTo(String? from, String? to) {
   final f = (from ?? '').trim();
   final t = (to ?? '').trim();
-  if (f.isEmpty && t.isEmpty) return '';
-  if (f.isEmpty) return '→ $t';
-  if (t.isEmpty) return '$f →';
+  if (f.isEmpty && t.isEmpty) {
+    return '';
+  }
+  if (f.isEmpty) {
+    return '→ $t';
+  }
+  if (t.isEmpty) {
+    return '$f →';
+  }
   return '$f → $t';
 }
 

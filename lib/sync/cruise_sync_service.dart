@@ -20,7 +20,7 @@ class CruiseSyncService {
 
   final WebDavSync webDav;
 
-  CruiseSyncService(this.webDav);
+  const CruiseSyncService(this.webDav);
 
   Future<List<Cruise>> _loadBaseline() async {
     final prefs = await SharedPreferences.getInstance();
@@ -92,7 +92,9 @@ class CruiseSyncService {
 
       // 1) Beide Seiten unverändert -> Baseline übernehmen
       if (lc == ChangeKind.unchanged && rc == ChangeKind.unchanged) {
-        if (b != null) result[id] = b;
+        if (b != null) {
+          result[id] = b;
+        }
         continue;
       }
 
@@ -118,12 +120,16 @@ class CruiseSyncService {
       // Variante A: Änderung schlägt Löschung
       if (lc == ChangeKind.removed && rc != ChangeKind.removed) {
         // remote hat geändert, lokal gelöscht -> remote gewinnt
-        if (r != null) result[id] = r;
+        if (r != null) {
+          result[id] = r;
+        }
         continue;
       }
       if (rc == ChangeKind.removed && lc != ChangeKind.removed) {
         // lokal hat geändert, remote gelöscht -> lokal gewinnt
-        if (l != null) result[id] = l;
+        if (l != null) {
+          result[id] = l;
+        }
         continue;
       }
 
@@ -148,9 +154,15 @@ class CruiseSyncService {
       {for (final c in list) c.id: c};
 
   ChangeKind _classifyChange(Cruise? base, Cruise? next) {
-    if (base == null && next == null) return ChangeKind.unchanged;
-    if (base == null && next != null) return ChangeKind.added;
-    if (base != null && next == null) return ChangeKind.removed;
+    if (base == null && next == null) {
+      return ChangeKind.unchanged;
+    }
+    if (base == null && next != null) {
+      return ChangeKind.added;
+    }
+    if (base != null && next == null) {
+      return ChangeKind.removed;
+    }
     // base & next != null
     return base == next ? ChangeKind.unchanged : ChangeKind.modified;
   }

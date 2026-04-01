@@ -12,7 +12,9 @@ List<RouteItem> sortRoute(List<RouteItem> route) {
 RouteItem? routeForToday(DateTime now, List<RouteItem> route) {
   final today = _asDay(now);
   for (final r in route) {
-    if (_asDay(r.date) == today) return r;
+    if (_asDay(r.date) == today) {
+      return r;
+    }
   }
   return null;
 }
@@ -20,7 +22,9 @@ RouteItem? routeForToday(DateTime now, List<RouteItem> route) {
 RouteItem? routeForTomorrow(DateTime now, List<RouteItem> route) {
   final tomorrow = _asDay(now).add(const Duration(days: 1));
   for (final r in route) {
-    if (_asDay(r.date) == tomorrow) return r;
+    if (_asDay(r.date) == tomorrow) {
+      return r;
+    }
   }
   return null;
 }

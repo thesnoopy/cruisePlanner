@@ -26,7 +26,7 @@ import 'dart:async';
 class _IndexRef {
   final String cruiseId;
   final Type type;
-  _IndexRef(this.cruiseId, this.type);
+  const _IndexRef(this.cruiseId, this.type);
 }
 
 class CruiseStore extends ChangeNotifier {
@@ -53,7 +53,9 @@ class CruiseStore extends ChangeNotifier {
 
   Future<void> _runAutoSync() async {
     debugPrint("Sync triggered");
-    if (_isAutoSyncRunning) return;
+    if (_isAutoSyncRunning) {
+      return;
+    }
     _isAutoSyncRunning = true;
 
     try {
@@ -123,18 +125,26 @@ class CruiseStore extends ChangeNotifier {
   // Safe nullable lookup without returning null from a non-nullable closure
   Cruise? getCruise(String id) {
     for (final c in _cruises) {
-      if (c.id == id) return c;
+      if (c.id == id) {
+        return c;
+      }
     }
     return null;
   }
 
   T? getById<T extends Identifiable>(String id) {
     final ref = _index[id];
-    if (ref == null) return null;
+    if (ref == null) {
+      return null;
+    }
     final cruise = getCruise(ref.cruiseId);
-    if (cruise == null) return null;
+    if (cruise == null) {
+      return null;
+    }
 
-    if (T == Cruise || ref.type == Cruise) return cruise as T?;
+    if (T == Cruise || ref.type == Cruise) {
+      return cruise as T?;
+    }
 
     if (ref.type == Excursion) {
       return cruise.excursions.firstWhereOrNull((e) => e.id == id) as T?;
@@ -177,31 +187,49 @@ class CruiseStore extends ChangeNotifier {
 
   Future<void> upsertExcursion({required String cruiseId, required Excursion excursion}) async {
     final idx = _cruises.indexWhere((c) => c.id == cruiseId);
-    if (idx < 0) return;
+    if (idx < 0) {
+      return;
+    }
     final cruise = _cruises[idx];
     final list = [...cruise.excursions];
     final i = list.indexWhere((e) => e.id == excursion.id);
-    if (i >= 0) list[i] = excursion; else list.add(excursion);
+    if (i >= 0) {
+      list[i] = excursion;
+    } else {
+      list.add(excursion);
+    }
     await upsertCruise(cruise.copyWith(excursions: List.unmodifiable(list)));
   }
 
   Future<void> upsertTravelItem({required String cruiseId, required TravelItem item}) async {
     final idx = _cruises.indexWhere((c) => c.id == cruiseId);
-    if (idx < 0) return;
+    if (idx < 0) {
+      return;
+    }
     final cruise = _cruises[idx];
     final list = [...cruise.travel];
     final i = list.indexWhere((t) => t.id == item.id);
-    if (i >= 0) list[i] = item; else list.add(item);
+    if (i >= 0) {
+      list[i] = item;
+    } else {
+      list.add(item);
+    }
     await upsertCruise(cruise.copyWith(travel: List.unmodifiable(list)));
   }
 
   Future<void> upsertRouteItem({required String cruiseId, required RouteItem item}) async {
     final idx = _cruises.indexWhere((c) => c.id == cruiseId);
-    if (idx < 0) return;
+    if (idx < 0) {
+      return;
+    }
     final cruise = _cruises[idx];
     final list = [...cruise.route];
     final i = list.indexWhere((r) => r.id == item.id);
-    if (i >= 0) list[i] = item; else list.add(item);
+    if (i >= 0) {
+      list[i] = item;
+    } else {
+      list.add(item);
+    }
     await upsertCruise(cruise.copyWith(route: List.unmodifiable(list)));
   }
 
@@ -219,9 +247,13 @@ class CruiseStore extends ChangeNotifier {
 
   Future<void> deleteExcursion(String excursionId) async {
     final ref = _index[excursionId];
-    if (ref == null) return;
+    if (ref == null) {
+      return;
+    }
     final idx = _cruises.indexWhere((c) => c.id == ref.cruiseId);
-    if (idx < 0) return;
+    if (idx < 0) {
+      return;
+    }
     final cruise = _cruises[idx];
     final next = cruise.copyWith(
       excursions: List.unmodifiable(cruise.excursions.where((e) => e.id != excursionId)),
@@ -231,9 +263,13 @@ class CruiseStore extends ChangeNotifier {
 
   Future<void> deleteTravelItem(String travelItemId) async {
     final ref = _index[travelItemId];
-    if (ref == null) return;
+    if (ref == null) {
+      return;
+    }
     final idx = _cruises.indexWhere((c) => c.id == ref.cruiseId);
-    if (idx < 0) return;
+    if (idx < 0) {
+      return;
+    }
     final cruise = _cruises[idx];
     final next = cruise.copyWith(
       travel: List.unmodifiable(cruise.travel.where((t) => t.id != travelItemId)),
@@ -243,9 +279,13 @@ class CruiseStore extends ChangeNotifier {
 
   Future<void> deleteRouteItem(String routeItemId) async {
     final ref = _index[routeItemId];
-    if (ref == null) return;
+    if (ref == null) {
+      return;
+    }
     final idx = _cruises.indexWhere((c) => c.id == ref.cruiseId);
-    if (idx < 0) return;
+    if (idx < 0) {
+      return;
+    }
     final cruise = _cruises[idx];
     final next = cruise.copyWith(
       route: List.unmodifiable(cruise.route.where((r) => r.id != routeItemId)),
@@ -287,7 +327,9 @@ class CruiseStore extends ChangeNotifier {
 extension _FirstWhereOrNull<E> on Iterable<E> {
   E? firstWhereOrNull(bool Function(E e) test) {
     for (final e in this) {
-      if (test(e)) return e;
+      if (test(e)) {
+        return e;
+      }
     }
     return null;
   }

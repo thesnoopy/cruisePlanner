@@ -52,8 +52,8 @@ class CruiseRepository {
         }
       }
       return result;
-    } catch (e, st) {
-      debugPrint('CruiseRepository.load parse error: $e\n$st');
+    } catch (e) {
+      debugPrint('CruiseRepository.load parse error: $e');
       return <Cruise>[];
     }
   }

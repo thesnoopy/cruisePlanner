@@ -4,7 +4,9 @@ import 'package:cruiseplanner/l10n/app_localizations.dart';
 extension L10nX on BuildContext {
   AppLocalizations get t {
     final l = AppLocalizations.of(this);
-    if (l != null) return l;
+    if (l != null) {
+      return l;
+    }
     // Harter Fallback – knallt nicht, gibt neutrale Defaults aus
     return _L10nFallback();
   }

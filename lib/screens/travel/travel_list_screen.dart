@@ -16,7 +16,7 @@ import '../../utils/format.dart';
 import 'travel_edit_screen.dart';
 import '../../l10n/app_localizations.dart';
 import '../../widgets/confirmation_dialog.dart';
-import '../../widgets/showMapAppPicker.dart';
+import '../../widgets/show_map_app_picker.dart';
 
 class TravelListScreen extends StatefulWidget {
   final String cruiseId;
@@ -46,8 +46,9 @@ class _TravelListScreenState extends State<TravelListScreen> {
     final s = CruiseStore();
     await s.load();
     final c = s.getCruise(widget.cruiseId);
-    if (c == null) return;
-    final now = c.period.start;
+    if (c == null) {
+      return;
+    }
     TravelItem item;
     debugPrint("kind = $kind");
     switch (kind) {
@@ -77,7 +78,9 @@ class _TravelListScreenState extends State<TravelListScreen> {
     debugPrint("Before upsert");
     await s.upsertTravelItem(cruiseId: widget.cruiseId, item: item);
     debugPrint("After upsert");
-    if (!mounted) return;
+    if (!mounted) {
+      return;
+    }
     await Navigator.of(context).push(MaterialPageRoute(builder: (_) => TravelEditScreen(travelItemId: id)));
     await _load();
   }
@@ -115,7 +118,7 @@ class _TravelListScreenState extends State<TravelListScreen> {
               itemBuilder: (_, i) {
                 final t = c.travel[i];
                 String address = "";
-                if(t.kind == TravelKind.hotel) {
+                if (t.kind == TravelKind.hotel) {
                   final hotel = t as HotelItem;
                   address = hotel.location ?? '';
                 }
@@ -177,7 +180,9 @@ class _TravelListScreenState extends State<TravelListScreen> {
                                   destructive: true,                     // optional (OK Button rot)
                                 );
 
-                                if (!confirmed) return;
+                                if (!confirmed) {
+                                  return;
+                                }
                               await s.deleteTravelItem(t.id);
                               await _load();
                             },

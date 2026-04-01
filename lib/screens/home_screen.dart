@@ -60,7 +60,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver  {
   Future<void> _reload() async {
     final s = CruiseStore();
     await s.load();
-    if (!mounted) return;
+    if (!mounted) {
+      return;
+    }
     setState(() {
       _store = s;
       _loading = false;
@@ -152,7 +154,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver  {
     final s = CruiseStore();
     await s.load();
     await s.upsertCruise(cruise);
-    if (!mounted) return;
+    if (!mounted) {
+      return;
+    }
     await Navigator.of(context).push(MaterialPageRoute(
       builder: (_) => CruiseHubScreen(cruiseId: id),
     ));
@@ -220,7 +224,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver  {
                       destructive: true,                     // optional (OK Button rot)
                     );
 
-                    if (!confirmed) return;
+                    if (!confirmed) {
+                      return;
+                    }
                     final s = CruiseStore();
                     await s.load();
                     await s.deleteCruise(c.id);

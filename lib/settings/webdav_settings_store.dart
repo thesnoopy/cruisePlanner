@@ -15,7 +15,9 @@ class WebDavSettingsStore {
   /// Lädt die gespeicherten Settings (oder null, wenn nichts gespeichert ist).
   Future<WebDavSettings?> load() async {
     final json = await _storage.read(key: _key);
-    if (json == null || json.isEmpty) return null;
+    if (json == null || json.isEmpty) {
+      return null;
+    }
     return WebDavSettings.fromJson(json);
   }
 

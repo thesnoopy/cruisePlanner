@@ -12,7 +12,9 @@ String fmtDate(
   bool timeOnly = false,
   String? pattern,
 }) {
-  if (dt == null) return '';
+  if (dt == null) {
+    return '';
+  }
 
   final locale = localeNameOf(context);
 
@@ -36,7 +38,7 @@ String fmtDate(
 
     // 4) Default: nur Datum
     return DateFormat.yMMMd(locale).format(dt);
-  } catch (e, stack) {
+  } catch (e) {
     // Hier siehst du im Log, warum es schiefgeht
     debugPrint('fmtDate error for locale "$locale": $e');
     // Fallback: neutrale Datumsausgabe im Default-Locale
@@ -50,7 +52,9 @@ String fmtDate(
 }
 
 String fmtTime(BuildContext ctx, DateTime? dt) {
-  if (dt == null) return '—';
+  if (dt == null) {
+    return '—';
+  }
   try {
     return DateFormat.jm(localeNameOf(ctx)).format(dt);
   } catch (_) {
@@ -59,7 +63,9 @@ String fmtTime(BuildContext ctx, DateTime? dt) {
 }
 
 String fmtMoney(BuildContext ctx, num? value, {String? currency}) {
-  if (value == null) return '—';
+  if (value == null) {
+    return '—';
+  }
   try {
     final locale = localeNameOf(ctx);
     if (currency != null && currency.isNotEmpty) {
@@ -73,7 +79,9 @@ String fmtMoney(BuildContext ctx, num? value, {String? currency}) {
 }
 
 String fmtNumber(BuildContext ctx, num? value) {
-  if (value == null) return '—';
+  if (value == null) {
+    return '—';
+  }
   try {
     return NumberFormat.decimalPattern(localeNameOf(ctx)).format(value);
   } catch (_) {
@@ -84,9 +92,13 @@ String fmtNumber(BuildContext ctx, num? value) {
 // in format.dart
 
 num? parseLocalizedNumber(BuildContext context, String? input) {
-  if (input == null) return null;
+  if (input == null) {
+    return null;
+  }
   var text = input.trim();
-  if (text.isEmpty) return null;
+  if (text.isEmpty) {
+    return null;
+  }
 
   final locale = localeNameOf(context);
 

@@ -11,6 +11,8 @@ num? parseLocalizedNumber(BuildContext context, String raw) {
       .replaceAll(symbols.GROUP_SEP, '')            // Tausendertrenner raus
       .replaceAll(RegExp('[^0-9${RegExp.escape(symbols.DECIMAL_SEP)}-]'), '');
 
-  if (cleaned.isEmpty) return null;
+  if (cleaned.isEmpty) {
+    return null;
+  }
   return f.parse(cleaned);
 }

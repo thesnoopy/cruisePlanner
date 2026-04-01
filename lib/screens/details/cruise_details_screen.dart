@@ -52,8 +52,12 @@ class _CruiseDetailsScreenState extends State<CruiseDetailsScreen> {
 
   Future<void> _save() async {
     final c = _cruise;
-    if (c == null) return;
-    if (!_formKey.currentState!.validate()) return;
+    if (c == null) {
+      return;
+    }
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
     final s = CruiseStore();
     await s.load();
     final next = c.copyWith(
@@ -68,7 +72,9 @@ class _CruiseDetailsScreenState extends State<CruiseDetailsScreen> {
       deckname: _deckname.text.trim(),
     );
     await s.upsertCruise(next);
-    if (!mounted) return;
+    if (!mounted) {
+      return;
+    }
     Navigator.of(context).pop();
   }
 

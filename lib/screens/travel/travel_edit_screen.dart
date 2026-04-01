@@ -1,7 +1,5 @@
 // Regenerated screens v2 – ID-only navigation, aligned with current models.
 
-import 'dart:ffi';
-
 import 'package:cruiseplanner/models/travel/cruise_check_in_item.dart';
 import 'package:cruiseplanner/models/travel/cruise_check_out_item.dart';
 import 'package:cruiseplanner/models/travel/hotel_item.dart';
@@ -115,13 +113,17 @@ _pickDateTime(bool start) async {
     lastDate: DateTime(2100),
     initialDate: initial,
   );
-  if (date == null) return;
+  if (date == null) {
+    return;
+  }
 
   final time = await showTimePicker(
     context: context,
     initialTime: TimeOfDay.fromDateTime(initial),
   );
-  if (time == null) return;
+  if (time == null) {
+    return;
+  }
 
   final value = DateTime(date.year, date.month, date.day, time.hour, time.minute);
 
@@ -140,8 +142,12 @@ _pickDateTime(bool start) async {
   Future<void> _save() async {
     final item = _item;
     final cid = _cruiseId;
-    if (item == null || cid == null) return;
-    if (!_formKey.currentState!.validate()) return;
+    if (item == null || cid == null) {
+      return;
+    }
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
     TravelItem next;
     switch (item.kind) {
       case TravelKind.flight:
@@ -227,7 +233,9 @@ _pickDateTime(bool start) async {
     final s = CruiseStore();
     await s.load();
     await s.upsertTravelItem(cruiseId: cid, item: next);
-    if (!mounted) return;
+    if (!mounted) {
+      return;
+    }
     Navigator.of(context).pop();
   }
 

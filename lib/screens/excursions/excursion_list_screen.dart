@@ -48,7 +48,9 @@ class _ExcursionListScreenState extends State<ExcursionListScreen> {
       }
     }
 
-    if (!mounted) return;
+    if (!mounted) {
+      return;
+    }
 
     setState(() {
       _cruise = cruise;
@@ -70,7 +72,9 @@ class _ExcursionListScreenState extends State<ExcursionListScreen> {
     final store = CruiseStore();
     await store.load();
     final cruise = store.getCruise(widget.cruiseId);
-    if (cruise == null) return;
+    if (cruise == null) {
+      return;
+    }
 
     final newExc = Excursion(
       id: Identifiable.newId(),
@@ -111,7 +115,9 @@ class _ExcursionListScreenState extends State<ExcursionListScreen> {
       destructive: true,                     // optional (OK Button rot)
     );
 
-    if (!confirmed) return;
+    if (!confirmed) {
+      return;
+    }
 
     final store = CruiseStore();
     await store.load();

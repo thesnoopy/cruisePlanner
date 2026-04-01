@@ -96,14 +96,18 @@ class _ExcursionEditScreenState extends State<ExcursionEditScreen> {
       }
     }
 
-    if (!mounted) return;
+    if (!mounted) {
+      return;
+    }
 
     setState(() {
       _ex = ex;
       _cruiseId = cruiseId;
     });
 
-    if (ex == null) return;
+    if (ex == null) {
+      return;
+    }
 
     final context = this.context;
     _title.text = ex.title;
@@ -224,7 +228,9 @@ class _ExcursionEditScreenState extends State<ExcursionEditScreen> {
       firstDate: DateTime(2000),
       lastDate: DateTime(2100),
     );
-    if (d == null) return;
+    if (d == null) {
+      return;
+    }
 
     final t = await showTimePicker(
       context: context,
@@ -232,9 +238,13 @@ class _ExcursionEditScreenState extends State<ExcursionEditScreen> {
         _date ?? DateTime(base.year, base.month, base.day, 9, 0),
       ),
     );
-    if (t == null) return;
+    if (t == null) {
+      return;
+    }
 
-    if (!mounted) return;
+    if (!mounted) {
+      return;
+    }
     setState(() {
       _date = DateTime(d.year, d.month, d.day, t.hour, t.minute);
     });
@@ -248,8 +258,12 @@ class _ExcursionEditScreenState extends State<ExcursionEditScreen> {
       firstDate: DateTime(2000),
       lastDate: DateTime(2100),
     );
-    if (d == null) return;
-    if (!mounted) return;
+    if (d == null) {
+      return;
+    }
+    if (!mounted) {
+      return;
+    }
     setState(() {
       _restDueDate = DateTime(d.year, d.month, d.day);
     });
@@ -302,8 +316,12 @@ class _ExcursionEditScreenState extends State<ExcursionEditScreen> {
             restExplicit ?? (totalPrice - deposit).clamp(0, double.infinity);
 
         final methods = <ExcursionPaymentMethod>{};
-        if (_onSiteCash) methods.add(ExcursionPaymentMethod.cash);
-        if (_onSiteCard) methods.add(ExcursionPaymentMethod.creditCard);
+        if (_onSiteCash) {
+          methods.add(ExcursionPaymentMethod.cash);
+        }
+        if (_onSiteCard) {
+          methods.add(ExcursionPaymentMethod.creditCard);
+        }
 
         return ExcursionPaymentPlan(
           mode: _paymentMode,
@@ -328,8 +346,12 @@ class _ExcursionEditScreenState extends State<ExcursionEditScreen> {
 
       case ExcursionPaymentMode.fullOnSite:
         final methods = <ExcursionPaymentMethod>{};
-        if (_onSiteCash) methods.add(ExcursionPaymentMethod.cash);
-        if (_onSiteCard) methods.add(ExcursionPaymentMethod.creditCard);
+        if (_onSiteCash) {
+          methods.add(ExcursionPaymentMethod.cash);
+        }
+        if (_onSiteCard) {
+          methods.add(ExcursionPaymentMethod.creditCard);
+        }
 
         return ExcursionPaymentPlan(
           mode: _paymentMode,
@@ -352,8 +374,12 @@ class _ExcursionEditScreenState extends State<ExcursionEditScreen> {
   Future<void> _save() async {
     final ex = _ex;
     final cid = _cruiseId;
-    if (ex == null || cid == null) return;
-    if (!_formKey.currentState!.validate()) return;
+    if (ex == null || cid == null) {
+      return;
+    }
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
 
     final priceValue = _price.text.isEmpty
         ? null
@@ -380,7 +406,9 @@ class _ExcursionEditScreenState extends State<ExcursionEditScreen> {
     await store.load();
     await store.upsertExcursion(cruiseId: cid, excursion: updated);
 
-    if (mounted) Navigator.of(context).pop();
+    if (mounted) {
+      Navigator.of(context).pop();
+    }
   }
 
   Widget _buildPaymentSection(BuildContext context) {
@@ -423,7 +451,9 @@ class _ExcursionEditScreenState extends State<ExcursionEditScreen> {
                 ),
               ],
               onChanged: (m) {
-                if (m == null) return;
+                if (m == null) {
+                  return;
+                }
                 setState(() => _paymentMode = m);
               },
             ),
@@ -562,7 +592,9 @@ class _ExcursionEditScreenState extends State<ExcursionEditScreen> {
                 value: CashCurrencyPreference.localOnly,
                 groupValue: _cashPref,
                 onChanged: (v) {
-                  if (v == null) return;
+                  if (v == null) {
+                    return;
+                  }
                   setState(() => _cashPref = v);
                 },
               ),
@@ -572,7 +604,9 @@ class _ExcursionEditScreenState extends State<ExcursionEditScreen> {
                 value: CashCurrencyPreference.localOrHome,
                 groupValue: _cashPref,
                 onChanged: (v) {
-                  if (v == null) return;
+                  if (v == null) {
+                    return;
+                  }
                   setState(() => _cashPref = v);
                 },
               ),
@@ -623,7 +657,9 @@ class _ExcursionEditScreenState extends State<ExcursionEditScreen> {
                 value: CashCurrencyPreference.localOnly,
                 groupValue: _cashPref,
                 onChanged: (v) {
-                  if (v == null) return;
+                  if (v == null) {
+                    return;
+                  }
                   setState(() => _cashPref = v);
                 },
               ),
@@ -633,7 +669,9 @@ class _ExcursionEditScreenState extends State<ExcursionEditScreen> {
                 value: CashCurrencyPreference.localOrHome,
                 groupValue: _cashPref,
                 onChanged: (v) {
-                  if (v == null) return;
+                  if (v == null) {
+                    return;
+                  }
                   setState(() => _cashPref = v);
                 },
               ),

@@ -24,7 +24,7 @@ class RemoteInfo {
 class WebDavSync {
   final WebDavSettings settings;
 
-  WebDavSync(this.settings);
+  const WebDavSync(this.settings);
 
   webdav.Client _createClient() {
     final client = webdav.newClient(
@@ -72,7 +72,9 @@ class WebDavSync {
     final client = _createClient();
     try {
       final bytes = await client.read(settings.remotePath);
-      if (bytes.isEmpty) return const <Cruise>[];
+      if (bytes.isEmpty) {
+        return const <Cruise>[];
+      }
 
       final data = Uint8List.fromList(bytes);
       final jsonStr = utf8.decode(data);
@@ -123,7 +125,7 @@ class WebDavSync {
   /// Sichert die aktuell vorhandene Remote-Datei in einem "old"-Ordner,
   /// bevor sie überschrieben wird.
   ///
-  /// Zielpfad: <parent>/old/<filename>_<yyyyMMdd_HHmmss>.json
+  /// Zielpfad: `<parent>/old/<filename>_<yyyyMMdd_HHmmss>.json`
   ///
   /// Falls die Remote-Datei nicht existiert, passiert nichts.
   Future<void> _backupCurrentRemoteFileIfExists(webdav.Client client) async {
@@ -183,9 +185,13 @@ class WebDavSync {
 
   String _normalizePath(String p) {
     var s = p.trim();
-    if (s.isEmpty) return '/';
+    if (s.isEmpty) {
+      return '/';
+    }
     // WebDAV clients typically expect leading '/'
-    if (!s.startsWith('/')) s = '/$s';
+    if (!s.startsWith('/')) {
+      s = '/$s';
+    }
     // Collapse duplicate slashes
     while (s.contains('//')) {
       s = s.replaceAll('//', '/');
@@ -196,7 +202,9 @@ class WebDavSync {
   String _parentDir(String path) {
     final p = _normalizePath(path);
     final idx = p.lastIndexOf('/');
-    if (idx <= 0) return '/';
+    if (idx <= 0) {
+      return '/';
+    }
     return p.substring(0, idx);
   }
 
@@ -209,7 +217,9 @@ class WebDavSync {
   String _joinPath(String a, String b) {
     final left = _normalizePath(a);
     final right = b.trim().replaceAll('\n', '').replaceAll('\r', '');
-    if (left == '/') return '/$right'.replaceAll('//', '/');
+    if (left == '/') {
+      return '/$right'.replaceAll('//', '/');
+    }
     return '$left/$right'.replaceAll('//', '/');
   }
 

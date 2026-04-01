@@ -38,7 +38,9 @@ class _RouteEditScreenState extends State<RouteEditScreen> {
     final s = CruiseStore();
     await s.load();
     final it = s.getById<RouteItem>(widget.routeItemId);
-    if (!mounted) return;
+    if (!mounted) {
+      return;
+    }
     setState(() {
       _item = it;
       _date = it?.date;
@@ -56,7 +58,9 @@ class _RouteEditScreenState extends State<RouteEditScreen> {
 
   Future<void> _save() async {
     final it = _item;
-    if (it == null) return;
+    if (it == null) {
+      return;
+    }
     final s = CruiseStore();
     await s.load();
     late RouteItem next;
@@ -78,7 +82,9 @@ class _RouteEditScreenState extends State<RouteEditScreen> {
       return;
     }
     await s.upsertRouteItem(cruiseId: widget.cruiseId, item: next);
-    if (!mounted) return;
+    if (!mounted) {
+      return;
+    }
     Navigator.of(context).pop();
   }
 
@@ -109,15 +115,21 @@ class _RouteEditScreenState extends State<RouteEditScreen> {
       firstDate: DateTime(2000),
       lastDate: DateTime(2100),
     );
-    if (d == null) return;
+    if (d == null) {
+      return;
+    }
 
     final t = await showTimePicker(
       context: context,
       initialTime: TimeOfDay.fromDateTime(current ?? DateTime(baseDay.year, baseDay.month, baseDay.day, 18, 0)),
     );
-    if (t == null) return;
+    if (t == null) {
+      return;
+    }
 
-    if (!mounted) return;
+    if (!mounted) {
+      return;
+    }
     setState(() {
       final combined = DateTime(d.year, d.month, d.day, t.hour, t.minute);
       switch (field) {
