@@ -91,5 +91,15 @@ class Cruise extends Identifiable {
       );
 
   @override
-  List<Object?> get props => [id, title, ship, period, excursions, travel, route];
+  List<Object?> get props => [
+        id,
+        title,
+        ship,
+        period,
+        cabinNumber,
+        deckNumber,
+        excursions,
+        travel,
+        route,
+      ];
 }

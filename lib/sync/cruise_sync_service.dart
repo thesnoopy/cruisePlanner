@@ -136,9 +136,7 @@ class CruiseSyncService {
 
       // 6) Beide modified (von gleicher Baseline aus)
       if (lc == ChangeKind.modified && rc == ChangeKind.modified) {
-        // Konfliktstrategie: aktuell gewinnt REMOTE.
-        // Wenn du lieber lokal gewinnen lassen willst, einfach auf `l!` ändern.
-        result[id] = r!;
+        result[id] = _mergeModifiedCruise(b!, l!, r!);
         continue;
       }
     }
@@ -155,6 +153,24 @@ class CruiseSyncService {
     if (base != null && next == null) return ChangeKind.removed;
     // base & next != null
     return base == next ? ChangeKind.unchanged : ChangeKind.modified;
+  }
+
+  Cruise _mergeModifiedCruise(Cruise base, Cruise local, Cruise remote) {
+    final localCabinChanged = local.cabinNumber != base.cabinNumber;
+    final remoteCabinChanged = remote.cabinNumber != base.cabinNumber;
+    final localDeckChanged = local.deckNumber != base.deckNumber;
+    final remoteDeckChanged = remote.deckNumber != base.deckNumber;
+
+    // Behalte das bestehende Konfliktverhalten bei: Die Remote-Version bleibt
+    // Basis für echte Konflikte. Felder, die nur lokal geändert wurden, werden
+    // aus der lokalen Version übernommen.
+    return remote.copyWith(
+      cabinNumber: localCabinChanged && !remoteCabinChanged
+          ? local.cabinNumber
+          : remote.cabinNumber,
+      deckNumber:
+          localDeckChanged && !remoteDeckChanged ? local.deckNumber : remote.deckNumber,
+    );
   }
 }
 
