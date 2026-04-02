@@ -49,6 +49,10 @@ dependencies:
   url_launcher: ^6.3.0
   map_launcher: ^3.0.0
 
+  crypto: ^3.0.0
+  path:
+  path_provider:
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
