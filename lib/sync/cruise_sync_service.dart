@@ -168,21 +168,33 @@ class CruiseSyncService {
   }
 
   Cruise _mergeModifiedCruise(Cruise base, Cruise local, Cruise remote) {
-    final localCabinChanged = local.cabinNumber != base.cabinNumber;
-    final remoteCabinChanged = remote.cabinNumber != base.cabinNumber;
-    final localDeckChanged = local.deckNumber != base.deckNumber;
-    final remoteDeckChanged = remote.deckNumber != base.deckNumber;
+    final baseMap = base.toMap();
+    final localMap = local.toMap();
+    final remoteMap = remote.toMap();
 
-    // Behalte das bestehende Konfliktverhalten bei: Die Remote-Version bleibt
-    // Basis für echte Konflikte. Felder, die nur lokal geändert wurden, werden
-    // aus der lokalen Version übernommen.
-    return remote.copyWith(
-      cabinNumber: localCabinChanged && !remoteCabinChanged
-          ? local.cabinNumber
-          : remote.cabinNumber,
-      deckNumber:
-          localDeckChanged && !remoteDeckChanged ? local.deckNumber : remote.deckNumber,
-    );
+    // Remote bleibt die Fallback-Basis. Nur Felder, die exklusiv lokal gegen
+    // die gemeinsame Baseline geändert wurden, überschreiben die Remote-Version.
+    final mergedMap = Map<String, dynamic>.from(remoteMap);
+    final mergeableKeys = <String>{
+      ...baseMap.keys,
+      ...localMap.keys,
+      ...remoteMap.keys,
+    }..remove('id');
+
+    for (final key in mergeableKeys) {
+      final localChanged = !_fieldValueEquals(baseMap[key], localMap[key]);
+      final remoteChanged = !_fieldValueEquals(baseMap[key], remoteMap[key]);
+
+      if (localChanged && !remoteChanged) {
+        mergedMap[key] = localMap[key];
+      }
+    }
+
+    return Cruise.fromMap(mergedMap);
+  }
+
+  bool _fieldValueEquals(dynamic a, dynamic b) {
+    return jsonEncode(a) == jsonEncode(b);
   }
 }
 
