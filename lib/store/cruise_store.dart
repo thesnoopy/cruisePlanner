@@ -29,8 +29,19 @@ class _IndexRef {
   const _IndexRef(this.cruiseId, this.type);
 }
 
+class _StoredCruisesData {
+  final List<Cruise> cruises;
+  final bool needsMigration;
+
+  const _StoredCruisesData({
+    required this.cruises,
+    required this.needsMigration,
+  });
+}
+
 class CruiseStore extends ChangeNotifier {
   static const String _spKey = 'cruises_json_v1';
+  static const int _currentSchemaVersion = 2;
 
   List<Cruise> _cruises = const [];
   final Map<String, _IndexRef> _index = {};
@@ -101,15 +112,11 @@ class CruiseStore extends ChangeNotifier {
     if (jsonStr == null || jsonStr.trim().isEmpty) {
       _cruises = const [];
     } else {
-      final decoded = jsonDecode(jsonStr);
-      final list = (decoded is List)
-          ? decoded
-          : (decoded is Map<String, dynamic> && decoded['cruises'] is List)
-              ? decoded['cruises']
-              : <dynamic>[];
-      _cruises = List.unmodifiable(
-        (list as List).map((e) => Cruise.fromMap(Map<String, dynamic>.from(e))).toList(),
-      );
+      final stored = _decodeStoredCruises(jsonStr);
+      _cruises = List.unmodifiable(stored.cruises);
+      if (stored.needsMigration) {
+        await _persist();
+      }
     }
     _rebuildIndex();
     _loaded = true;
@@ -118,8 +125,64 @@ class CruiseStore extends ChangeNotifier {
 
   Future<void> _persist() async {
     final prefs = await SharedPreferences.getInstance();
-    final payload = jsonEncode(_cruises.map((c) => c.toMap()).toList());
+    final payload = jsonEncode(_buildStoragePayload(_cruises));
     await prefs.setString(_spKey, payload);
+  }
+
+  _StoredCruisesData _decodeStoredCruises(String jsonStr) {
+    final decoded = jsonDecode(jsonStr);
+
+    if (decoded is List) {
+      return _StoredCruisesData(
+        cruises: _parseCruises(decoded),
+        needsMigration: true,
+      );
+    }
+
+    if (decoded is Map<String, dynamic>) {
+      final schemaVersion = decoded['schemaVersion'];
+      final cruises = decoded['cruises'];
+
+      if (schemaVersion == _currentSchemaVersion && cruises is List) {
+        return _StoredCruisesData(
+          cruises: _parseCruises(cruises),
+          needsMigration: false,
+        );
+      }
+
+      if ((schemaVersion == null || schemaVersion == 1) && cruises is List) {
+        return _StoredCruisesData(
+          cruises: _migrateV1ToV2(decoded),
+          needsMigration: true,
+        );
+      }
+    }
+
+    return const _StoredCruisesData(
+      cruises: <Cruise>[],
+      needsMigration: false,
+    );
+  }
+
+  List<Cruise> _migrateV1ToV2(Map<String, dynamic> legacyData) {
+    final cruises = legacyData['cruises'];
+    if (cruises is! List) {
+      return const <Cruise>[];
+    }
+    return _parseCruises(cruises);
+  }
+
+  List<Cruise> _parseCruises(List<dynamic> list) {
+    return list
+        .map((e) => Cruise.fromMap(Map<String, dynamic>.from(e)))
+        .toList(growable: false);
+  }
+
+  Map<String, dynamic> _buildStoragePayload(List<Cruise> cruises) {
+    return <String, dynamic>{
+      'schemaVersion': _currentSchemaVersion,
+      'cruises': cruises.map((c) => c.toMap()).toList(growable: false),
+    };
   }
 
   // Safe nullable lookup without returning null from a non-nullable closure
