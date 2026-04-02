@@ -1,6 +1,7 @@
 
 import 'identifiable.dart';
 import 'excursions/excursion_payment_plan.dart';
+import 'excursions/excursion_stop.dart';
 
 class Excursion extends Identifiable {
   @override
@@ -12,6 +13,7 @@ class Excursion extends Identifiable {
   final String? notes;
   final num? price;
   final String? currency;
+  final List<ExcursionStop> stops;
 
   final ExcursionPaymentPlan? paymentPlan;
 
@@ -24,6 +26,7 @@ class Excursion extends Identifiable {
     this.notes,
     this.price,
     this.currency,
+    this.stops = const [],
     this.paymentPlan,
   });
 
@@ -36,6 +39,7 @@ class Excursion extends Identifiable {
     String? notes,
     num? price,
     String? currency,
+    List<ExcursionStop>? stops,
     ExcursionPaymentPlan? paymentPlan,
   }) {
     return Excursion(
@@ -47,6 +51,7 @@ class Excursion extends Identifiable {
       notes: notes ?? this.notes,
       price: price ?? this.price,
       currency: currency ?? this.currency,
+      stops: stops ?? this.stops,
       paymentPlan: paymentPlan ?? this.paymentPlan,
     );
   }
@@ -61,6 +66,9 @@ class Excursion extends Identifiable {
       notes: map['notes'],
       price: map['price'],
       currency: map['currency'],
+      stops: (map['stops'] as List? ?? const [])
+          .map((e) => ExcursionStop.fromMap(Map<String, dynamic>.from(e as Map)))
+          .toList(growable: false),
       paymentPlan: map['paymentPlan'] != null
           ? ExcursionPaymentPlan.fromMap(Map<String, dynamic>.from(map['paymentPlan']))
           : null,
@@ -76,6 +84,7 @@ class Excursion extends Identifiable {
         'notes': notes,
         'price': price,
         'currency': currency,
+        'stops': stops.map((stop) => stop.toMap()).toList(growable: false),
         'paymentPlan': paymentPlan?.toMap(),
       };
 
@@ -89,6 +98,7 @@ class Excursion extends Identifiable {
         notes,
         price,
         currency,
+        stops,
         paymentPlan,
       ];
 }
