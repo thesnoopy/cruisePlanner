@@ -270,8 +270,37 @@
   },
 
   "noPort": "Kein Hafen",
-  "@homeDeleteTooltip": {
-    "description": "Kein Hafen"
+  "@noPort": {
+    "description": "Hinweistext, wenn kein Hafen gesetzt ist"
+  },
+
+  "stop": "Stopp",
+  "@stop": {
+    "description": "Bezeichnung für einen einzelnen Ausflugsstopp"
+  },
+
+  "stops": "Stopps",
+  "@stops": {
+    "description": "Abschnittstitel für die bearbeitbare Liste der Ausflugsstopps"
+  },
+
+  "addStop": "Stopp hinzufügen",
+  "@addStop": {
+    "description": "Beschriftung für die Aktion zum Hinzufügen eines Ausflugsstopps"
+  },
+
+  "stopName": "Name",
+  "@stopName": {
+    "description": "Eingabefeld für den Namen eines Ausflugsstopps"
+  },
+
+  "visited": "Besucht",
+  "@visited": {
+    "description": "Checkbox für den Besuchsstatus eines Ausflugsstopps"
+  },
+  "excursionNotFound": "Ausflug nicht gefunden",
+  "@excursionNotFound": {
+    "description": "Hinweis, wenn der angeforderte Ausflug nicht geladen werden konnte"
   },
 
   "excursions": "Ausflüge",

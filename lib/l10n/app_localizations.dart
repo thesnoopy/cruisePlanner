@@ -419,6 +419,42 @@ abstract class AppLocalizations {
   /// **'No Port'**
   String get noPort;
 
+  /// Label for a single excursion stop
+  ///
+  /// In en, this message translates to:
+  /// **'Stop'**
+  String get stop;
+
+  /// Section title for the editable excursion stops list
+  ///
+  /// In en, this message translates to:
+  /// **'Stops'**
+  String get stops;
+
+  /// Button label to add a new excursion stop
+  ///
+  /// In en, this message translates to:
+  /// **'Add stop'**
+  String get addStop;
+
+  /// Input label for the excursion stop name
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get stopName;
+
+  /// Checkbox label indicating whether an excursion stop was visited
+  ///
+  /// In en, this message translates to:
+  /// **'Visited'**
+  String get visited;
+
+  /// Message shown when the requested excursion could not be loaded
+  ///
+  /// In en, this message translates to:
+  /// **'Excursion not found'**
+  String get excursionNotFound;
+
   /// No description provided for @excursions.
   ///
   /// In en, this message translates to:

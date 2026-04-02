@@ -173,6 +173,24 @@ class AppLocalizationsDe extends AppLocalizations {
   String get noPort => 'Kein Hafen';
 
   @override
+  String get stop => 'Stopp';
+
+  @override
+  String get stops => 'Stopps';
+
+  @override
+  String get addStop => 'Stopp hinzufügen';
+
+  @override
+  String get stopName => 'Name';
+
+  @override
+  String get visited => 'Besucht';
+
+  @override
+  String get excursionNotFound => 'Ausflug nicht gefunden';
+
+  @override
   String get excursions => 'Ausflüge';
 
   @override

@@ -92,6 +92,30 @@
   "notesOptional": "Notes (optional)",
   "newExcursion": "New Excursion",
   "noPort": "No Port",
+  "stop": "Stop",
+  "@stop": {
+    "description": "Label for a single excursion stop"
+  },
+  "stops": "Stops",
+  "@stops": {
+    "description": "Section title for the editable excursion stops list"
+  },
+  "addStop": "Add stop",
+  "@addStop": {
+    "description": "Button label to add a new excursion stop"
+  },
+  "stopName": "Name",
+  "@stopName": {
+    "description": "Input label for the excursion stop name"
+  },
+  "visited": "Visited",
+  "@visited": {
+    "description": "Checkbox label indicating whether an excursion stop was visited"
+  },
+  "excursionNotFound": "Excursion not found",
+  "@excursionNotFound": {
+    "description": "Message shown when the requested excursion could not be loaded"
+  },
   "excursions": "Excursions",
   "editExcursion": "Edit Excursion",
   "currencyOptional": "Currency (optional)",

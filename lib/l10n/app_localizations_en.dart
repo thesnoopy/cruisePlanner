@@ -173,6 +173,24 @@ class AppLocalizationsEn extends AppLocalizations {
   String get noPort => 'No Port';
 
   @override
+  String get stop => 'Stop';
+
+  @override
+  String get stops => 'Stops';
+
+  @override
+  String get addStop => 'Add stop';
+
+  @override
+  String get stopName => 'Name';
+
+  @override
+  String get visited => 'Visited';
+
+  @override
+  String get excursionNotFound => 'Excursion not found';
+
+  @override
   String get excursions => 'Excursions';
 
   @override

@@ -2,8 +2,10 @@
 
 import 'package:flutter/material.dart';
 
+import '../../models/identifiable.dart';
 import '../../store/cruise_store.dart';
 import '../../models/excursion.dart';
+import '../../models/excursions/excursion_stop.dart';
 import '../../models/excursions/excursion_payment_mode.dart';
 import '../../models/excursions/excursion_payment_plan.dart';
 import '../../models/excursions/excursion_payment_part.dart';
@@ -39,6 +41,7 @@ class _ExcursionEditScreenState extends State<ExcursionEditScreen> {
   final _notes = TextEditingController();
   final _price = TextEditingController();
   final _currency = TextEditingController();
+  final List<_EditableExcursionStop> _stops = [];
 
   // Payment-State (max. 2 Teile: Anzahlung + Rest)
   ExcursionPaymentMode _paymentMode = ExcursionPaymentMode.fullOnBooking;
@@ -74,6 +77,9 @@ class _ExcursionEditScreenState extends State<ExcursionEditScreen> {
     _currency.dispose();
     _depositAmount.dispose();
     _restAmount.dispose();
+    for (final stop in _stops) {
+      stop.dispose();
+    }
     super.dispose();
   }
 
@@ -117,8 +123,20 @@ class _ExcursionEditScreenState extends State<ExcursionEditScreen> {
     _notes.text = ex.notes ?? '';
     _price.text = fmtNumber(context, ex.price);
     _currency.text = ex.currency ?? '';
+    _setStops(ex.stops);
 
     _initPaymentFromExcursion(ex);
+  }
+
+  void _setStops(List<ExcursionStop> stops) {
+    for (final stop in _stops) {
+      stop.dispose();
+    }
+    _stops
+      ..clear()
+      ..addAll(
+        stops.map(_EditableExcursionStop.fromStop),
+      );
   }
 
   void _initPaymentFromExcursion(Excursion ex) {
@@ -387,6 +405,16 @@ class _ExcursionEditScreenState extends State<ExcursionEditScreen> {
     final totalPrice = (priceValue ?? 0).toDouble();
 
     final plan = _buildPaymentPlan(totalPrice);
+    final stops = _stops
+        .map((stop) => ExcursionStop(
+              id: stop.id,
+              name: stop.nameController.text.trim(),
+              address: stop.addressController.text.trim().isEmpty
+                  ? null
+                  : stop.addressController.text.trim(),
+              visited: stop.visited,
+            ))
+        .toList(growable: false);
 
     final updated = Excursion(
       id: ex.id,
@@ -399,6 +427,7 @@ class _ExcursionEditScreenState extends State<ExcursionEditScreen> {
       price: priceValue,
       currency:
           _currency.text.trim().isEmpty ? null : _currency.text.trim(),
+      stops: stops,
       paymentPlan: plan,
     );
 
@@ -461,6 +490,125 @@ class _ExcursionEditScreenState extends State<ExcursionEditScreen> {
             _buildPaymentDetails(context),
           ],
         ),
+      ),
+    );
+  }
+
+  void _addStop() {
+    setState(() {
+      _stops.add(
+        _EditableExcursionStop(
+          id: Identifiable.newId(),
+          nameController: TextEditingController(),
+          addressController: TextEditingController(),
+        ),
+      );
+    });
+  }
+
+  void _removeStop(_EditableExcursionStop stop) {
+    setState(() {
+      _stops.remove(stop);
+      stop.dispose();
+    });
+  }
+
+  Widget _buildStopsSection(BuildContext context) {
+    final theme = Theme.of(context);
+    final loc = AppLocalizations.of(context)!;
+
+    return Card(
+      margin: const EdgeInsets.only(top: 16),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              loc.stops,
+              style: theme.textTheme.titleMedium,
+            ),
+            const SizedBox(height: 12),
+            if (_stops.isEmpty)
+              Text(
+                loc.addStop,
+                style: theme.textTheme.bodyMedium,
+              ),
+            for (var i = 0; i < _stops.length; i++) ...[
+              if (i > 0) const SizedBox(height: 12),
+              _buildStopEditor(
+                context,
+                stop: _stops[i],
+                index: i,
+              ),
+            ],
+            const SizedBox(height: 12),
+            OutlinedButton.icon(
+              onPressed: _addStop,
+              icon: const Icon(Icons.add),
+              label: Text(loc.addStop),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStopEditor(
+    BuildContext context, {
+    required _EditableExcursionStop stop,
+    required int index,
+  }) {
+    final loc = AppLocalizations.of(context)!;
+
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        border: Border.all(color: Theme.of(context).dividerColor),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            '${loc.stop} ${index + 1}',
+            style: Theme.of(context).textTheme.titleSmall,
+          ),
+          const SizedBox(height: 12),
+          TextFormField(
+            controller: stop.nameController,
+            decoration: InputDecoration(labelText: loc.stopName),
+            validator: (value) {
+              if (value == null || value.trim().isEmpty) {
+                return loc.requiredField;
+              }
+              return null;
+            },
+          ),
+          const SizedBox(height: 12),
+          TextFormField(
+            controller: stop.addressController,
+            decoration: InputDecoration(labelText: loc.location),
+          ),
+          CheckboxListTile(
+            contentPadding: EdgeInsets.zero,
+            title: Text(loc.visited),
+            value: stop.visited,
+            onChanged: (value) {
+              setState(() {
+                stop.visited = value ?? false;
+              });
+            },
+          ),
+          Align(
+            alignment: Alignment.centerRight,
+            child: IconButton(
+              tooltip: loc.delete,
+              onPressed: () => _removeStop(stop),
+              icon: const Icon(Icons.delete_outline),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -756,6 +904,7 @@ class _ExcursionEditScreenState extends State<ExcursionEditScreen> {
                       labelText: loc.currencyOptional,
                     ),
                   ),
+                  _buildStopsSection(context),
                   _buildPaymentSection(context),
                   const SizedBox(height: 24),
                   FilledButton.icon(
@@ -767,5 +916,33 @@ class _ExcursionEditScreenState extends State<ExcursionEditScreen> {
               ),
             ),
     );
+  }
+}
+
+class _EditableExcursionStop {
+  final String id;
+  final TextEditingController nameController;
+  final TextEditingController addressController;
+  bool visited;
+
+  _EditableExcursionStop({
+    required this.id,
+    required this.nameController,
+    required this.addressController,
+    this.visited = false,
+  });
+
+  factory _EditableExcursionStop.fromStop(ExcursionStop stop) {
+    return _EditableExcursionStop(
+      id: stop.id,
+      nameController: TextEditingController(text: stop.name),
+      addressController: TextEditingController(text: stop.address ?? ''),
+      visited: stop.visited,
+    );
+  }
+
+  void dispose() {
+    nameController.dispose();
+    addressController.dispose();
   }
 }

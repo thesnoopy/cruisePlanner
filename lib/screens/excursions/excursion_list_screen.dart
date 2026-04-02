@@ -4,10 +4,11 @@ import 'package:flutter/material.dart';
 import '../../l10n/app_localizations.dart';
 import '../../models/cruise.dart';
 import '../../models/excursion.dart';
-import '../../models/excursions/excursion_payment_mode.dart';
+import '../../models/excursions/excursion_payment_status_extension.dart';
 import '../../models/excursions/excursion_payment_trigger.dart';
 import '../../models/excursions/excursion_payment_method.dart';
 import '../../models/excursions/cash_currency_preference.dart';
+import '../../screens/excursions/excursion_detail_screen.dart';
 import '../../screens/excursions/excursion_edit_screen.dart';
 import '../../widgets/confirmation_dialog.dart';
 import '../../store/cruise_store.dart';
@@ -58,10 +59,13 @@ class _ExcursionListScreenState extends State<ExcursionListScreen> {
     });
   }
 
-  Future<void> _openEdit(Excursion ex) async {
+  Future<void> _openDetail(Excursion ex) async {
     await Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) => ExcursionEditScreen(excursionId: ex.id),
+        builder: (_) => ExcursionDetailScreen(
+          cruiseId: widget.cruiseId,
+          excursionId: ex.id,
+        ),
       ),
     );
     await _load();
@@ -168,7 +172,7 @@ class _ExcursionListScreenState extends State<ExcursionListScreen> {
               borderRadius: BorderRadius.circular(16),
             ),
             child: ListTile(
-              onTap: () => _openEdit(ex),
+              onTap: () => _openDetail(ex),
               leading:      
                 CircleAvatar(
                   radius: 18,
@@ -205,7 +209,7 @@ class _ExcursionListScreenState extends State<ExcursionListScreen> {
   Widget _buildSubtitle(BuildContext context, Excursion ex) {
     final dateLine = fmtDate(context, ex.date, includeTime: true);
     final portLine = ex.port?.isNotEmpty == true ? ex.port! : null;
-    final paymentText = _buildPaymentSummary(context, ex);
+    final paymentText = ex.paymentStatusText(context);
     final paymentIcons = _buildPaymentIcons(ex);
 
     return Column(
@@ -246,100 +250,6 @@ class _ExcursionListScreenState extends State<ExcursionListScreen> {
         ],
       ],
     );
-  }
-
-  String _buildPaymentSummary(BuildContext context, Excursion ex) {
-    final plan = ex.paymentPlan;
-    final price = ex.price;
-    final currency = ex.currency ?? '';
-    final loc = AppLocalizations.of(context)!;
-
-    String priceStr;
-    if (price != null) {
-      priceStr = fmtMoney(context, price, currency: currency);
-    } else {
-      priceStr = '';
-    }
-
-    if (plan == null || plan.parts.isEmpty) {
-      if (priceStr.isEmpty) {
-        return loc.noPaymentInformation;
-      }
-      return '${loc.price} $priceStr';
-    }
-
-    final onBooking = plan.parts
-        .where((p) => p.trigger == ExcursionPaymentTrigger.onBooking)
-        .toList();
-    final beforeDate = plan.parts
-        .where((p) => p.trigger == ExcursionPaymentTrigger.beforeDate)
-        .toList();
-    final onSite = plan.parts
-        .where((p) => p.trigger == ExcursionPaymentTrigger.onSite)
-        .toList();
-
-    final totalOpen = plan.openAmount;
-
-    switch (plan.mode) {
-      case ExcursionPaymentMode.fullOnBooking:
-        if (plan.isFullyPaid) {
-          return priceStr.isEmpty
-              ? loc.fullyPayed
-              : '${loc.fullyPayed} ($priceStr)';
-        } else {
-          return priceStr.isEmpty
-              ? '${loc.payOnBooking}, ${loc.stillOpen}'
-              : '${loc.payOnBooking}: $priceStr (${loc.stillOpen})';
-        }
-
-      case ExcursionPaymentMode.depositAndRestDate:
-        final deposit = onBooking.isNotEmpty ? onBooking.first : null;
-        final rest = beforeDate.isNotEmpty ? beforeDate.first : null;
-        
-
-        final depositStr =
-            deposit != null ? fmtNumber(context, deposit.amount) : '-';
-        final restStr =
-            rest != null ? fmtNumber(context, rest.amount) : '-';
-        final restDateStr = rest?.dueDate != null
-            ? fmtDate(context, rest!.dueDate)
-            : loc.withoutDate;
-
-        final depositStatus =
-            deposit?.isPaid == true ? loc.payed : loc.open;
-        final restStatus = rest?.isPaid == true ? loc.payed : loc.open;
-
-        return '${loc.deposit} $depositStr $currency ($depositStatus), '
-            '${loc.finalPayment} $restStr $currency - $restDateStr ($restStatus)';
-
-      case ExcursionPaymentMode.depositAndRestOnSite:
-        final deposit = onBooking.isNotEmpty ? onBooking.first : null;
-        final rest = onSite.isNotEmpty ? onSite.first : null;
-
-        final depositStr =
-            deposit != null ? fmtNumber(context, deposit.amount) : '-';
-        final restStr =
-            rest != null ? fmtNumber(context, rest.amount) : '-';
-        final depositStatus =
-            deposit?.isPaid == true ? loc.payed : loc.open;
-        final restStatus = rest?.isPaid == true ? loc.payed : loc.open;
-
-        return '${loc.deposit} $depositStr $currency ($depositStatus), '
-            '${loc.finalPayment} $restStr $currency ${loc.onSide} ($restStatus)';
-
-      case ExcursionPaymentMode.fullOnSite:
-        if (plan.isFullyPaid) {
-          return priceStr.isEmpty
-              ? '${loc.payed} ${loc.onSide}'
-              : '${loc.payed} ${loc.onSide} ($priceStr)';
-        } else {
-          if (priceStr.isEmpty) {
-            return loc.amountPayableOnSide;
-          }
-          return '${loc.amountOnSide}: $priceStr '
-              '(${loc.open}: ${fmtNumber(context, totalOpen)})';
-        }
-    }
   }
 
   Widget _chipIcon(IconData icon, BuildContext context) {

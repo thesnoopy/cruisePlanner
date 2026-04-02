@@ -296,6 +296,50 @@ class CruiseStore extends ChangeNotifier {
     await upsertCruise(cruise.copyWith(route: List.unmodifiable(list)));
   }
 
+  Future<void> updateExcursionStopVisited(
+    String cruiseId,
+    String excursionId,
+    String stopId,
+    bool visited,
+  ) async {
+    if (!_loaded) {
+      await load();
+    }
+
+    final cruise = getCruise(cruiseId);
+    if (cruise == null) {
+      return;
+    }
+
+    final excursionIndex = cruise.excursions.indexWhere((e) => e.id == excursionId);
+    if (excursionIndex < 0) {
+      return;
+    }
+
+    final excursion = cruise.excursions[excursionIndex];
+    final stopIndex = excursion.stops.indexWhere((s) => s.id == stopId);
+    if (stopIndex < 0) {
+      return;
+    }
+
+    final stops = [...excursion.stops];
+    final stop = stops[stopIndex];
+    if (stop.visited == visited) {
+      return;
+    }
+
+    stops[stopIndex] = stop.copyWith(visited: visited);
+
+    final excursions = [...cruise.excursions];
+    excursions[excursionIndex] = excursion.copyWith(
+      stops: List.unmodifiable(stops),
+    );
+
+    await upsertCruise(
+      cruise.copyWith(excursions: List.unmodifiable(excursions)),
+    );
+  }
+
   // ---------------- Deletes ----------------
 
   Future<void> deleteCruise(String cruiseId) async {
