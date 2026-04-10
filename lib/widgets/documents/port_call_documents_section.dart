@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../l10n/app_localizations.dart';
 import '../../models/documents/document_kind.dart';
 import '../../models/documents/document_record.dart';
+import '../../services/documents/document_open_service.dart';
 import '../../services/documents/port_call_document_section_service.dart';
 
 class PortCallDocumentsSection extends StatefulWidget {
@@ -24,6 +25,7 @@ class PortCallDocumentsSection extends StatefulWidget {
 
 class _PortCallDocumentsSectionState extends State<PortCallDocumentsSection> {
   late final PortCallDocumentSectionService _service;
+  late final DocumentOpenService _openService;
   PortCallDocumentSectionData? _data;
   bool _isLoading = true;
   bool _isMutating = false;
@@ -32,6 +34,7 @@ class _PortCallDocumentsSectionState extends State<PortCallDocumentsSection> {
   void initState() {
     super.initState();
     _service = widget.service ?? PortCallDocumentSectionService();
+    _openService = DocumentOpenService();
     _reload();
   }
 
@@ -71,6 +74,22 @@ class _PortCallDocumentsSectionState extends State<PortCallDocumentsSection> {
       return;
     }
     setState(() => _isMutating = false);
+  }
+
+  Future<void> _openDocument(DocumentRecord document) async {
+    final loc = AppLocalizations.of(context)!;
+
+    try {
+      await _openService.openDocument(document);
+    } catch (_) {
+      if (!mounted) {
+        return;
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(loc.documentOpenFailed)),
+      );
+    }
   }
 
   Future<void> _showAttachSheet() async {
@@ -190,6 +209,7 @@ class _PortCallDocumentsSectionState extends State<PortCallDocumentsSection> {
                         overflow: TextOverflow.ellipsis,
                       ),
                       subtitle: Text(_subtitleForDocument(loc, document)),
+                      onTap: () => _openDocument(document),
                       trailing: widget.isReadOnly
                           ? null
                           : IconButton(

@@ -905,6 +905,12 @@ abstract class AppLocalizations {
   /// **'Document import failed.'**
   String get documentImportFailed;
 
+  /// Snack bar shown when opening a linked document fails
+  ///
+  /// In en, this message translates to:
+  /// **'Document could not be opened.'**
+  String get documentOpenFailed;
+
   /// Label for PDF documents
   ///
   /// In en, this message translates to:

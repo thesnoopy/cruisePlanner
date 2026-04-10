@@ -416,6 +416,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get documentImportFailed => 'Dokumentimport fehlgeschlagen.';
 
   @override
+  String get documentOpenFailed => 'Dokument konnte nicht geöffnet werden.';
+
+  @override
   String get documentKindPdf => 'PDF';
 
   @override

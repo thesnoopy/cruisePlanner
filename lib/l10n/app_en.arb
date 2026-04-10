@@ -335,6 +335,10 @@
   "@documentImportFailed": {
     "description": "Snack bar shown when importing or attaching a document fails"
   },
+  "documentOpenFailed": "Document could not be opened.",
+  "@documentOpenFailed": {
+    "description": "Snack bar shown when opening a linked document fails"
+  },
   "documentKindPdf": "PDF",
   "@documentKindPdf": {
     "description": "Label for PDF documents"

@@ -618,6 +618,10 @@
   "@documentImportFailed": {
     "description": "SnackBar, wenn Import oder Verknüpfen eines Dokuments fehlschlägt"
   },
+  "documentOpenFailed": "Dokument konnte nicht geöffnet werden.",
+  "@documentOpenFailed": {
+    "description": "SnackBar, wenn ein verknüpftes Dokument nicht geöffnet werden kann"
+  },
   "documentKindPdf": "PDF",
   "@documentKindPdf": {
     "description": "Bezeichnung für PDF-Dokumente"

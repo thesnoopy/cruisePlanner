@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../l10n/app_localizations.dart';
 import '../../models/documents/document_kind.dart';
 import '../../models/documents/document_record.dart';
+import '../../services/documents/document_open_service.dart';
 import '../../services/documents/travel_document_section_service.dart';
 
 class TravelDocumentsSection extends StatefulWidget {
@@ -23,6 +24,7 @@ class TravelDocumentsSection extends StatefulWidget {
 
 class _TravelDocumentsSectionState extends State<TravelDocumentsSection> {
   late final TravelDocumentSectionService _service;
+  late final DocumentOpenService _openService;
   TravelDocumentSectionData? _data;
   bool _isLoading = true;
   bool _isMutating = false;
@@ -31,6 +33,7 @@ class _TravelDocumentsSectionState extends State<TravelDocumentsSection> {
   void initState() {
     super.initState();
     _service = widget.service ?? TravelDocumentSectionService();
+    _openService = DocumentOpenService();
     _reload();
   }
 
@@ -70,6 +73,22 @@ class _TravelDocumentsSectionState extends State<TravelDocumentsSection> {
       return;
     }
     setState(() => _isMutating = false);
+  }
+
+  Future<void> _openDocument(DocumentRecord document) async {
+    final loc = AppLocalizations.of(context)!;
+
+    try {
+      await _openService.openDocument(document);
+    } catch (_) {
+      if (!mounted) {
+        return;
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(loc.documentOpenFailed)),
+      );
+    }
   }
 
   Future<void> _showAttachSheet() async {
@@ -189,6 +208,7 @@ class _TravelDocumentsSectionState extends State<TravelDocumentsSection> {
                         overflow: TextOverflow.ellipsis,
                       ),
                       subtitle: Text(_subtitleForDocument(loc, document)),
+                      onTap: () => _openDocument(document),
                       trailing: widget.isReadOnly
                           ? null
                           : IconButton(

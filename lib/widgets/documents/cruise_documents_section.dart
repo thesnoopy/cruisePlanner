@@ -5,6 +5,7 @@ import '../../l10n/app_localizations.dart';
 import '../../models/documents/document_kind.dart';
 import '../../models/documents/document_record.dart';
 import '../../services/documents/cruise_document_section_service.dart';
+import '../../services/documents/document_open_service.dart';
 
 class CruiseDocumentsSection extends StatefulWidget {
   const CruiseDocumentsSection({
@@ -22,6 +23,7 @@ class CruiseDocumentsSection extends StatefulWidget {
 
 class _CruiseDocumentsSectionState extends State<CruiseDocumentsSection> {
   late final CruiseDocumentSectionService _service;
+  late final DocumentOpenService _openService;
   CruiseDocumentSectionData? _data;
   bool _isLoading = true;
   bool _isMutating = false;
@@ -30,6 +32,7 @@ class _CruiseDocumentsSectionState extends State<CruiseDocumentsSection> {
   void initState() {
     super.initState();
     _service = widget.service ?? CruiseDocumentSectionService();
+    _openService = DocumentOpenService();
     _reload();
   }
 
@@ -69,6 +72,22 @@ class _CruiseDocumentsSectionState extends State<CruiseDocumentsSection> {
       return;
     }
     setState(() => _isMutating = false);
+  }
+
+  Future<void> _openDocument(DocumentRecord document) async {
+    final loc = AppLocalizations.of(context)!;
+
+    try {
+      await _openService.openDocument(document);
+    } catch (_) {
+      if (!mounted) {
+        return;
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(loc.documentOpenFailed)),
+      );
+    }
   }
 
   Future<void> _showAttachSheet() async {
@@ -256,6 +275,7 @@ class _CruiseDocumentsSectionState extends State<CruiseDocumentsSection> {
                         overflow: TextOverflow.ellipsis,
                       ),
                       subtitle: Text(_subtitleForDocument(loc, document)),
+                      onTap: () => _openDocument(document),
                       trailing: IconButton(
                         tooltip: loc.detachDocument,
                         onPressed: _isMutating ? null : () => _detachDocument(document),
