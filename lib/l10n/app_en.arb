@@ -123,6 +123,30 @@
   "airlineOptional": "Airline (optional)",
   "bookingNumberOptional": "Booking number (optional)",
   "modeOptional": "Mode (optional)",
+  "travelCompany": "Company",
+  "@travelCompany": {
+    "description": "Label for a company associated with a travel item in read-only detail view"
+  },
+  "travelAddressDetails": "Address details",
+  "@travelAddressDetails": {
+    "description": "Label for a detailed address shown for a travel item in read-only detail view"
+  },
+  "transferModeShuttle": "Shuttle",
+  "@transferModeShuttle": {
+    "description": "Read-only label for transfer mode shuttle"
+  },
+  "transferModeTaxi": "Taxi",
+  "@transferModeTaxi": {
+    "description": "Read-only label for transfer mode taxi"
+  },
+  "transferModePrivateDriver": "Private Driver",
+  "@transferModePrivateDriver": {
+    "description": "Read-only label for transfer mode private driver"
+  },
+  "transferModeRideshare": "Rideshare",
+  "@transferModeRideshare": {
+    "description": "Read-only label for transfer mode rideshare"
+  },
   "editFlight": "Edit Flight",
   "editTrain": "Edit Train",
   "editRentalCar": "Edit Rental Car",

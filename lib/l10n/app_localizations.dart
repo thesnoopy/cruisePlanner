@@ -497,6 +497,42 @@ abstract class AppLocalizations {
   /// **'Mode (optional)'**
   String get modeOptional;
 
+  /// Label for a company associated with a travel item in read-only detail view
+  ///
+  /// In en, this message translates to:
+  /// **'Company'**
+  String get travelCompany;
+
+  /// Label for a detailed address shown for a travel item in read-only detail view
+  ///
+  /// In en, this message translates to:
+  /// **'Address details'**
+  String get travelAddressDetails;
+
+  /// Read-only label for transfer mode shuttle
+  ///
+  /// In en, this message translates to:
+  /// **'Shuttle'**
+  String get transferModeShuttle;
+
+  /// Read-only label for transfer mode taxi
+  ///
+  /// In en, this message translates to:
+  /// **'Taxi'**
+  String get transferModeTaxi;
+
+  /// Read-only label for transfer mode private driver
+  ///
+  /// In en, this message translates to:
+  /// **'Private Driver'**
+  String get transferModePrivateDriver;
+
+  /// Read-only label for transfer mode rideshare
+  ///
+  /// In en, this message translates to:
+  /// **'Rideshare'**
+  String get transferModeRideshare;
+
   /// No description provided for @editFlight.
   ///
   /// In en, this message translates to:

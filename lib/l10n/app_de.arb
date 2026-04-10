@@ -332,6 +332,30 @@
   "@homeDeleteTooltip": {
     "description": "Modus (optional)"
   },
+  "travelCompany": "Unternehmen",
+  "@travelCompany": {
+    "description": "Label für ein Unternehmen in der schreibgeschützten Reise-Detailansicht"
+  },
+  "travelAddressDetails": "Adressdetails",
+  "@travelAddressDetails": {
+    "description": "Label für eine detaillierte Adresse in der schreibgeschützten Reise-Detailansicht"
+  },
+  "transferModeShuttle": "Shuttle",
+  "@transferModeShuttle": {
+    "description": "Schreibgeschützte Bezeichnung für Transfermodus Shuttle"
+  },
+  "transferModeTaxi": "Taxi",
+  "@transferModeTaxi": {
+    "description": "Schreibgeschützte Bezeichnung für Transfermodus Taxi"
+  },
+  "transferModePrivateDriver": "Privatfahrer",
+  "@transferModePrivateDriver": {
+    "description": "Schreibgeschützte Bezeichnung für Transfermodus Privatfahrer"
+  },
+  "transferModeRideshare": "Mitfahrdienst",
+  "@transferModeRideshare": {
+    "description": "Schreibgeschützte Bezeichnung für Transfermodus Mitfahrdienst"
+  },
 
   "bookingNumberOptional": "Buchungsnummer (optional)",
   "@homeDeleteTooltip": {

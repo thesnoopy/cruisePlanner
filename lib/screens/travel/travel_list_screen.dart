@@ -13,6 +13,7 @@ import '../../models/travel/transfer_item.dart';
 import '../../models/travel/rental_car_item.dart';
 import '../../models/identifiable.dart';
 import '../../utils/format.dart';
+import 'travel_detail_screen.dart';
 import 'travel_edit_screen.dart';
 import '../../l10n/app_localizations.dart';
 import '../../widgets/confirmation_dialog.dart';
@@ -133,7 +134,7 @@ class _TravelListScreenState extends State<TravelListScreen> {
                     onTap: () async {
                       await Navigator.of(context).push(
                         MaterialPageRoute(
-                          builder: (_) => TravelEditScreen(travelItemId: t.id),
+                          builder: (_) => TravelDetailScreen(travelItemId: t.id),
                         ),
                       );
                       await _load();

@@ -212,6 +212,24 @@ class AppLocalizationsEn extends AppLocalizations {
   String get modeOptional => 'Mode (optional)';
 
   @override
+  String get travelCompany => 'Company';
+
+  @override
+  String get travelAddressDetails => 'Address details';
+
+  @override
+  String get transferModeShuttle => 'Shuttle';
+
+  @override
+  String get transferModeTaxi => 'Taxi';
+
+  @override
+  String get transferModePrivateDriver => 'Private Driver';
+
+  @override
+  String get transferModeRideshare => 'Rideshare';
+
+  @override
   String get editFlight => 'Edit Flight';
 
   @override
