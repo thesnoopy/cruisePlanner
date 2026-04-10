@@ -20,6 +20,8 @@ class FlightItem extends TravelItem {
   final String? currency;
   @override
   final String? recordLocator;
+  @override
+  final List<String> documentIds;
 
   final String? carrier;
   final String? flightNo;
@@ -37,7 +39,8 @@ class FlightItem extends TravelItem {
     this.carrier,
     this.flightNo,
     this.recordLocator,
-  });
+    List<String> documentIds = const [],
+  }) : documentIds = TravelItem.readDocumentIds(documentIds);
 
   @override
   TravelKind get kind => TravelKind.flight;
@@ -54,6 +57,7 @@ class FlightItem extends TravelItem {
     String? carrier,
     String? flightNo,
     String? recordLocator,
+    List<String>? documentIds,
   }) =>
       FlightItem(
         id: id ?? this.id,
@@ -67,6 +71,7 @@ class FlightItem extends TravelItem {
         carrier: carrier ?? this.carrier,
         flightNo: flightNo ?? this.flightNo,
         recordLocator: recordLocator ?? this.recordLocator,
+        documentIds: documentIds ?? this.documentIds,
       );
 
   @override
@@ -83,6 +88,7 @@ class FlightItem extends TravelItem {
         'carrier': carrier,
         'flightNo': flightNo,
         'recordLocator': recordLocator,
+        'documentIds': documentIds,
       };
 
   factory FlightItem.fromMap(Map<String, dynamic> map) => FlightItem(
@@ -97,10 +103,11 @@ class FlightItem extends TravelItem {
         carrier: map['carrier'],
         flightNo: map['flightNo'],
         recordLocator: map['recordLocator'],
+        documentIds: TravelItem.readDocumentIds(map['documentIds']),
       );
 
   @override
   List<Object?> get props => [
-    id, kind, start, end, from, to, notes, price, currency, carrier, flightNo, recordLocator
+    id, kind, start, end, from, to, notes, price, currency, carrier, flightNo, recordLocator, documentIds
   ];
 }

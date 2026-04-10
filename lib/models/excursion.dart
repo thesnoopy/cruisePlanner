@@ -1,5 +1,6 @@
 
 import 'identifiable.dart';
+import 'documents/document_ids.dart';
 import 'excursions/excursion_payment_plan.dart';
 import 'excursions/excursion_stop.dart';
 
@@ -14,6 +15,7 @@ class Excursion extends Identifiable {
   final num? price;
   final String? currency;
   final List<ExcursionStop> stops;
+  final List<String> documentIds;
 
   final ExcursionPaymentPlan? paymentPlan;
 
@@ -27,8 +29,9 @@ class Excursion extends Identifiable {
     this.price,
     this.currency,
     this.stops = const [],
+    List<String> documentIds = const [],
     this.paymentPlan,
-  });
+  }) : documentIds = DocumentIds.fromJsonValue(documentIds);
 
   Excursion copyWith({
     String? id,
@@ -40,6 +43,7 @@ class Excursion extends Identifiable {
     num? price,
     String? currency,
     List<ExcursionStop>? stops,
+    List<String>? documentIds,
     ExcursionPaymentPlan? paymentPlan,
   }) {
     return Excursion(
@@ -52,6 +56,7 @@ class Excursion extends Identifiable {
       price: price ?? this.price,
       currency: currency ?? this.currency,
       stops: stops ?? this.stops,
+      documentIds: documentIds ?? this.documentIds,
       paymentPlan: paymentPlan ?? this.paymentPlan,
     );
   }
@@ -69,6 +74,7 @@ class Excursion extends Identifiable {
       stops: (map['stops'] as List? ?? const [])
           .map((e) => ExcursionStop.fromMap(Map<String, dynamic>.from(e as Map)))
           .toList(growable: false),
+      documentIds: DocumentIds.fromJsonValue(map['documentIds']),
       paymentPlan: map['paymentPlan'] != null
           ? ExcursionPaymentPlan.fromMap(Map<String, dynamic>.from(map['paymentPlan']))
           : null,
@@ -85,6 +91,7 @@ class Excursion extends Identifiable {
         'price': price,
         'currency': currency,
         'stops': stops.map((stop) => stop.toMap()).toList(growable: false),
+        'documentIds': documentIds,
         'paymentPlan': paymentPlan?.toMap(),
       };
 
@@ -99,6 +106,7 @@ class Excursion extends Identifiable {
         price,
         currency,
         stops,
+        documentIds,
         paymentPlan,
       ];
 }

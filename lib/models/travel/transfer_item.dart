@@ -22,6 +22,8 @@ class TransferItem extends TravelItem {
   final String? currency;
   @override
   final String? recordLocator;
+  @override
+  final List<String> documentIds;
 
   final TransferMode? mode;
 
@@ -36,7 +38,8 @@ class TransferItem extends TravelItem {
     this.currency,
     this.mode,
     this.recordLocator,
-  });
+    List<String> documentIds = const [],
+  }) : documentIds = TravelItem.readDocumentIds(documentIds);
 
   @override
   TravelKind get kind => TravelKind.transfer;
@@ -52,6 +55,7 @@ class TransferItem extends TravelItem {
     String? currency,
     TransferMode? mode,
     String? recordLocator,
+    List<String>? documentIds,
   }) =>
       TransferItem(
         id: id ?? this.id,
@@ -64,6 +68,7 @@ class TransferItem extends TravelItem {
         currency: currency ?? this.currency,
         mode: mode ?? this.mode,
         recordLocator: recordLocator ?? this.recordLocator,
+        documentIds: documentIds ?? this.documentIds,
       );
 
   @override
@@ -79,6 +84,7 @@ class TransferItem extends TravelItem {
         'currency': currency,
         'mode': mode?.name,
         'recordLocator': recordLocator,
+        'documentIds': documentIds,
       };
 
   factory TransferItem.fromMap(Map<String, dynamic> map) => TransferItem(
@@ -94,8 +100,9 @@ class TransferItem extends TravelItem {
             ? TransferMode.values.firstWhere((e) => e.name == map['mode'])
             : null,
         recordLocator: map['recordLocator'],
+        documentIds: TravelItem.readDocumentIds(map['documentIds']),
       );
 
   @override
-  List<Object?> get props => [id, kind, start, end, from, to, notes, price, currency, mode];
+  List<Object?> get props => [id, kind, start, end, from, to, notes, price, currency, mode, recordLocator, documentIds];
 }

@@ -1,4 +1,5 @@
 import 'route_item.dart';
+import '../documents/document_ids.dart';
 
 class PortCallItem extends RouteItem {
   @override
@@ -14,6 +15,7 @@ class PortCallItem extends RouteItem {
   /// Neue Zusatzzeit: Alle Mann an Bord
   final DateTime? allAboard;
   final String? notes;
+  final List<String> documentIds;
 
   PortCallItem({
     required this.id,
@@ -23,7 +25,8 @@ class PortCallItem extends RouteItem {
     this.departure,
     this.allAboard,
     this.notes,
-  });
+    List<String> documentIds = const [],
+  }) : documentIds = DocumentIds.fromJsonValue(documentIds);
 
   PortCallItem copyWith({
     String? id,
@@ -33,6 +36,7 @@ class PortCallItem extends RouteItem {
     DateTime? departure,
     DateTime? allAboard,
     String? notes,
+    List<String>? documentIds,
   }) =>
       PortCallItem(
         id: id ?? this.id,
@@ -42,6 +46,7 @@ class PortCallItem extends RouteItem {
         departure: departure ?? this.departure,
         allAboard: allAboard ?? this.allAboard,
         notes: notes ?? this.notes,
+        documentIds: documentIds ?? this.documentIds,
       );
 
   @override
@@ -54,6 +59,7 @@ class PortCallItem extends RouteItem {
         'departure': departure?.toIso8601String(),
         'allAboard': allAboard?.toIso8601String(),
         'notes': notes,
+        'documentIds': documentIds,
       };
 
   factory PortCallItem.fromMap(Map<String, dynamic> map) => PortCallItem(
@@ -64,8 +70,9 @@ class PortCallItem extends RouteItem {
         departure: map['departure'] != null ? DateTime.parse(map['departure']) : null,
         allAboard: map['allAboard'] != null ? DateTime.parse(map['allAboard']) : null,
         notes: map['notes'],
+        documentIds: DocumentIds.fromJsonValue(map['documentIds']),
       );
 
   @override
-  List<Object?> get props => [id, type, date, portName, arrival, departure, allAboard, notes];
+  List<Object?> get props => [id, type, date, portName, arrival, departure, allAboard, notes, documentIds];
 }
