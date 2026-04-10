@@ -12,6 +12,7 @@ import '../../models/travel/transfer_item.dart';
 import '../../models/travel/rental_car_item.dart';
 import '../../utils/format.dart';
 import '../../l10n/app_localizations.dart';
+import '../../widgets/documents/travel_documents_section.dart';
 
 class TravelEditScreen extends StatefulWidget {
   final String travelItemId;
@@ -148,11 +149,14 @@ _pickDateTime(bool start) async {
     if (!_formKey.currentState!.validate()) {
       return;
     }
+    final s = CruiseStore();
+    await s.load();
+    final latest = s.getById<TravelItem>(widget.travelItemId) ?? item;
     TravelItem next;
-    switch (item.kind) {
+    switch (latest.kind) {
       case TravelKind.flight:
-        next = (item as FlightItem).copyWith(
-          start: _start ?? item.start,
+        next = (latest as FlightItem).copyWith(
+          start: _start ?? latest.start,
           end: _end,
           from: _from.text,
           to: _to.text,
@@ -165,8 +169,8 @@ _pickDateTime(bool start) async {
         );
         break;
       case TravelKind.train:
-        next = (item as TrainItem).copyWith(
-          start: _start ?? item.start,
+        next = (latest as TrainItem).copyWith(
+          start: _start ?? latest.start,
           end: _end,
           from: _from.text,
           to: _to.text,
@@ -177,8 +181,8 @@ _pickDateTime(bool start) async {
         );
         break;
       case TravelKind.transfer:
-        next = (item as TransferItem).copyWith(
-          start: _start ?? item.start,
+        next = (latest as TransferItem).copyWith(
+          start: _start ?? latest.start,
           end: _end,
           from: _from.text,
           to: _to.text,
@@ -190,8 +194,8 @@ _pickDateTime(bool start) async {
         );
         break;
       case TravelKind.rentalCar:
-        next = (item as RentalCarItem).copyWith(
-          start: _start ?? item.start,
+        next = (latest as RentalCarItem).copyWith(
+          start: _start ?? latest.start,
           end: _end,
           from: _from.text,
           to: _to.text,
@@ -203,8 +207,8 @@ _pickDateTime(bool start) async {
         );
         break;
       case TravelKind.hotel:
-        next = (item as HotelItem).copyWith(
-          start: _start ?? item.start,
+        next = (latest as HotelItem).copyWith(
+          start: _start ?? latest.start,
           end: _end,
           notes: _notes.text.isEmpty ? null : _notes.text,
           price: _price.text.isEmpty ? null : parseLocalizedNumber(context, _price.text),
@@ -214,24 +218,24 @@ _pickDateTime(bool start) async {
           location: _location.text.isEmpty ? null : _location.text,
           recordLocator: _recordLocator.text.isEmpty ? null : _recordLocator.text,
         );
+        break;
       case TravelKind.cruiseCheckIn:
-        next = (item as CruiseCheckIn).copyWith(
-          start: _start ?? item.start,
+        next = (latest as CruiseCheckIn).copyWith(
+          start: _start ?? latest.start,
           end: _end,
           notes: _notes.text.isEmpty ? null : _notes.text,
           recordLocator: _recordLocator.text.isEmpty ? null : _recordLocator.text,
         );
+        break;
       case TravelKind.cruiseCheckOut:
-        next = (item as CruiseCheckOut).copyWith(
-          start: _start ?? item.start,
+        next = (latest as CruiseCheckOut).copyWith(
+          start: _start ?? latest.start,
           end: _end,
           notes: _notes.text.isEmpty ? null : _notes.text,
           recordLocator: _recordLocator.text.isEmpty ? null : _recordLocator.text,
         );
         break;
     }
-    final s = CruiseStore();
-    await s.load();
     await s.upsertTravelItem(cruiseId: cid, item: next);
     if (!mounted) {
       return;
@@ -325,8 +329,6 @@ _pickDateTime(bool start) async {
       if(location != ""){
         collection.add(TextFormField(controller: _location, decoration: InputDecoration(labelText: loc.location)));
       }
-      collection.add(const SizedBox(height: 24));
-      collection.add(FilledButton.icon(onPressed: _save, icon: const Icon(Icons.save), label: Text(loc.save)));
       return collection;
     }
 
@@ -393,6 +395,19 @@ _pickDateTime(bool start) async {
               start: loc.start,
               end: loc.end,
               notes: loc.notesOptional,
+            ),
+            const SizedBox(height: 16),
+            TravelDocumentsSection(
+              key: ValueKey(
+                'travel-docs-${item.id}-${item.documentIds.join('|')}',
+              ),
+              travelItemId: item.id,
+            ),
+            const SizedBox(height: 24),
+            FilledButton.icon(
+              onPressed: _save,
+              icon: const Icon(Icons.save),
+              label: Text(loc.save),
             ),
           ]
         ),
