@@ -299,6 +299,10 @@
   "@attachExistingDocument": {
     "description": "Action label to attach an existing document"
   },
+  "importDocument": "Import document",
+  "@importDocument": {
+    "description": "Action label to import a new document for the current cruise"
+  },
   "noLinkedDocuments": "No linked documents.",
   "@noLinkedDocuments": {
     "description": "Generic empty state when no documents are linked"
@@ -322,6 +326,14 @@
   "documentAttached": "Document attached.",
   "@documentAttached": {
     "description": "Snack bar shown after attaching a document"
+  },
+  "documentImported": "Document imported.",
+  "@documentImported": {
+    "description": "Snack bar shown after importing and attaching a document"
+  },
+  "documentImportFailed": "Document import failed.",
+  "@documentImportFailed": {
+    "description": "Snack bar shown when importing or attaching a document fails"
   },
   "documentKindPdf": "PDF",
   "@documentKindPdf": {

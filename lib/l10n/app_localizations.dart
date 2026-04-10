@@ -851,6 +851,12 @@ abstract class AppLocalizations {
   /// **'Attach existing document'**
   String get attachExistingDocument;
 
+  /// Action label to import a new document for the current cruise
+  ///
+  /// In en, this message translates to:
+  /// **'Import document'**
+  String get importDocument;
+
   /// Generic empty state when no documents are linked
   ///
   /// In en, this message translates to:
@@ -886,6 +892,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Document attached.'**
   String get documentAttached;
+
+  /// Snack bar shown after importing and attaching a document
+  ///
+  /// In en, this message translates to:
+  /// **'Document imported.'**
+  String get documentImported;
+
+  /// Snack bar shown when importing or attaching a document fails
+  ///
+  /// In en, this message translates to:
+  /// **'Document import failed.'**
+  String get documentImportFailed;
 
   /// Label for PDF documents
   ///

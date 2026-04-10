@@ -1,3 +1,4 @@
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 
 import '../../l10n/app_localizations.dart';
@@ -130,6 +131,63 @@ class _CruiseDocumentsSectionState extends State<CruiseDocumentsSection> {
     );
   }
 
+  Future<void> _importDocument() async {
+    final loc = AppLocalizations.of(context)!;
+    final result = await FilePicker.platform.pickFiles(
+      allowMultiple: false,
+      withData: false,
+    );
+
+    if (result == null || result.files.isEmpty || !mounted) {
+      return;
+    }
+
+    final selectedFile = result.files.single;
+    final sourcePath = selectedFile.path?.trim() ?? '';
+    if (sourcePath.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(loc.documentImportFailed)),
+      );
+      return;
+    }
+
+    setState(() => _isMutating = true);
+
+    try {
+      final importResult = await _service.importDocument(
+        cruiseId: widget.cruiseId,
+        sourcePath: sourcePath,
+      );
+      await _reload();
+      if (!mounted) {
+        return;
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            importResult.attached
+                ? loc.documentImported
+                : loc.documentImportFailed,
+          ),
+        ),
+      );
+    } catch (_) {
+      if (!mounted) {
+        return;
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(loc.documentImportFailed)),
+      );
+    } finally {
+      if (!mounted) {
+        return;
+      }
+      setState(() => _isMutating = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final loc = AppLocalizations.of(context)!;
@@ -149,10 +207,26 @@ class _CruiseDocumentsSectionState extends State<CruiseDocumentsSection> {
                     style: Theme.of(context).textTheme.titleMedium,
                   ),
                 ),
-                TextButton.icon(
-                  onPressed: (_isLoading || _isMutating) ? null : _showAttachSheet,
-                  icon: const Icon(Icons.attach_file),
-                  label: Text(loc.attachExistingDocument),
+                Flexible(
+                  child: Wrap(
+                    alignment: WrapAlignment.end,
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: [
+                      TextButton.icon(
+                        onPressed:
+                            (_isLoading || _isMutating) ? null : _importDocument,
+                        icon: const Icon(Icons.file_upload_outlined),
+                        label: Text(loc.importDocument),
+                      ),
+                      TextButton.icon(
+                        onPressed:
+                            (_isLoading || _isMutating) ? null : _showAttachSheet,
+                        icon: const Icon(Icons.attach_file),
+                        label: Text(loc.attachExistingDocument),
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),

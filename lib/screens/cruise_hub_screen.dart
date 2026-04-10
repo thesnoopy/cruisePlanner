@@ -14,7 +14,6 @@ import '../models/route/route_item.dart';
 import '../models/route/port_call_item.dart';
 import '../models/travel/base_travel.dart';
 import '../models/travel/flight_item.dart';
-import '../models/travel/train_item.dart';
 import '../models/travel/transfer_item.dart';
 import '../models/travel/rental_car_item.dart';
 import '../models/excursion.dart';

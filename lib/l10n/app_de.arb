@@ -582,6 +582,10 @@
   "@attachExistingDocument": {
     "description": "Aktion zum Verknüpfen eines bestehenden Dokuments"
   },
+  "importDocument": "Dokument importieren",
+  "@importDocument": {
+    "description": "Aktion zum Importieren eines neuen Dokuments für die aktuelle Kreuzfahrt"
+  },
   "noLinkedDocuments": "Keine verknüpften Dokumente.",
   "@noLinkedDocuments": {
     "description": "Allgemeiner Leerzustand, wenn keine Dokumente verknüpft sind"
@@ -605,6 +609,14 @@
   "documentAttached": "Dokument verknüpft.",
   "@documentAttached": {
     "description": "SnackBar nach dem Verknüpfen eines Dokuments"
+  },
+  "documentImported": "Dokument importiert.",
+  "@documentImported": {
+    "description": "SnackBar nach dem Importieren und Verknüpfen eines Dokuments"
+  },
+  "documentImportFailed": "Dokumentimport fehlgeschlagen.",
+  "@documentImportFailed": {
+    "description": "SnackBar, wenn Import oder Verknüpfen eines Dokuments fehlschlägt"
   },
   "documentKindPdf": "PDF",
   "@documentKindPdf": {

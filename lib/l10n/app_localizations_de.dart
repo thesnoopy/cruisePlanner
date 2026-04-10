@@ -389,6 +389,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get attachExistingDocument => 'Vorhandenes Dokument verknüpfen';
 
   @override
+  String get importDocument => 'Dokument importieren';
+
+  @override
   String get noLinkedDocuments => 'Keine verknüpften Dokumente.';
 
   @override
@@ -405,6 +408,12 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get documentAttached => 'Dokument verknüpft.';
+
+  @override
+  String get documentImported => 'Dokument importiert.';
+
+  @override
+  String get documentImportFailed => 'Dokumentimport fehlgeschlagen.';
 
   @override
   String get documentKindPdf => 'PDF';
