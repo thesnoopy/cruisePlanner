@@ -7,6 +7,7 @@ import '../../models/route/sea_day_item.dart';
 import '../../models/identifiable.dart';
 import '../../utils/format.dart';
 import 'route_edit_screen.dart';
+import 'port_call_detail_screen.dart';
 import '../../l10n/app_localizations.dart';
 import '../../widgets/confirmation_dialog.dart';
 
@@ -130,9 +131,8 @@ class _RouteListScreenState extends State<RouteListScreen> {
                       onTap: () async {
                         await Navigator.of(context).push(
                           MaterialPageRoute(
-                            builder: (_) => RouteEditScreen(
+                            builder: (_) => PortCallDetailScreen(
                               routeItemId: r.id,
-                              cruiseId: widget.cruiseId,
                             ),
                           ),
                         );
