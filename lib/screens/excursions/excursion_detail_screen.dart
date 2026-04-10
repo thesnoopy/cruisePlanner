@@ -13,6 +13,7 @@ import '../../models/excursions/excursion_payment_trigger.dart';
 import '../../models/excursions/excursion_stop.dart';
 import '../../store/cruise_store.dart';
 import '../../utils/format.dart';
+import '../../widgets/documents/excursion_documents_section.dart';
 import 'excursion_edit_screen.dart';
 
 class ExcursionDetailScreen extends StatefulWidget {
@@ -147,6 +148,14 @@ class _ExcursionDetailScreenState extends State<ExcursionDetailScreen> {
         padding: const EdgeInsets.all(16),
         children: [
           _InfoSection(excursion: excursion),
+          const SizedBox(height: 16),
+          ExcursionDocumentsSection(
+            key: ValueKey(
+              'excursion-documents-${excursion.id}-${excursion.documentIds.join('|')}',
+            ),
+            excursionId: excursion.id,
+            isReadOnly: true,
+          ),
           const SizedBox(height: 16),
           _PaymentSection(excursion: excursion),
           const SizedBox(height: 16),

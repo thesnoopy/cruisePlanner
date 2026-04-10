@@ -582,9 +582,17 @@
   "@attachExistingDocument": {
     "description": "Aktion zum Verknüpfen eines bestehenden Dokuments"
   },
+  "noLinkedDocuments": "Keine verknüpften Dokumente.",
+  "@noLinkedDocuments": {
+    "description": "Allgemeiner Leerzustand, wenn keine Dokumente verknüpft sind"
+  },
   "noLinkedDocumentsForCruise": "Dieser Kreuzfahrt sind noch keine Dokumente zugeordnet.",
   "@noLinkedDocumentsForCruise": {
     "description": "Leerzustand, wenn keine Dokumente mit der Kreuzfahrt verknüpft sind"
+  },
+  "noLinkedDocumentsForExcursion": "Diesem Ausflug sind noch keine Dokumente zugeordnet.",
+  "@noLinkedDocumentsForExcursion": {
+    "description": "Leerzustand, wenn keine Dokumente mit dem Ausflug verknüpft sind"
   },
   "noAvailableDocumentsToAttach": "Keine vorhandenen Dokumente zum Verknüpfen verfügbar.",
   "@noAvailableDocumentsToAttach": {

@@ -14,6 +14,7 @@ import '../../models/excursions/excursion_payment_method.dart';
 import '../../models/excursions/cash_currency_preference.dart';
 import '../../utils/format.dart';
 import '../../l10n/app_localizations.dart';
+import '../../widgets/documents/excursion_documents_section.dart';
 
 class ExcursionEditScreen extends StatefulWidget {
   final String excursionId;
@@ -416,10 +417,13 @@ class _ExcursionEditScreenState extends State<ExcursionEditScreen> {
             ))
         .toList(growable: false);
 
-    final updated = Excursion(
-      id: ex.id,
+    final store = CruiseStore();
+    await store.load();
+    final latestCruise = store.getCruise(cid);
+    final latestExcursion = latestCruise?.excursions.where((item) => item.id == ex.id).firstOrNull ?? ex;
+    final updated = latestExcursion.copyWith(
       title: _title.text.trim(),
-      date: _date ?? ex.date,
+      date: _date ?? latestExcursion.date,
       port: _port.text.trim().isEmpty ? null : _port.text.trim(),
       meetingPoint:
           _meeting.text.trim().isEmpty ? null : _meeting.text.trim(),
@@ -430,9 +434,6 @@ class _ExcursionEditScreenState extends State<ExcursionEditScreen> {
       stops: stops,
       paymentPlan: plan,
     );
-
-    final store = CruiseStore();
-    await store.load();
     await store.upsertExcursion(cruiseId: cid, excursion: updated);
 
     if (mounted) {
@@ -904,6 +905,8 @@ class _ExcursionEditScreenState extends State<ExcursionEditScreen> {
                       labelText: loc.currencyOptional,
                     ),
                   ),
+                  const SizedBox(height: 24),
+                  ExcursionDocumentsSection(excursionId: ex.id),
                   _buildStopsSection(context),
                   _buildPaymentSection(context),
                   const SizedBox(height: 24),
@@ -944,5 +947,14 @@ class _EditableExcursionStop {
   void dispose() {
     nameController.dispose();
     addressController.dispose();
+  }
+}
+
+extension _FirstWhereOrNull<E> on Iterable<E> {
+  E? get firstOrNull {
+    for (final value in this) {
+      return value;
+    }
+    return null;
   }
 }

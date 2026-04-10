@@ -851,11 +851,23 @@ abstract class AppLocalizations {
   /// **'Attach existing document'**
   String get attachExistingDocument;
 
+  /// Generic empty state when no documents are linked
+  ///
+  /// In en, this message translates to:
+  /// **'No linked documents.'**
+  String get noLinkedDocuments;
+
   /// Empty state when no documents are linked to the cruise
   ///
   /// In en, this message translates to:
   /// **'No documents linked to this cruise yet.'**
   String get noLinkedDocumentsForCruise;
+
+  /// Empty state when no documents are linked to the excursion in edit mode
+  ///
+  /// In en, this message translates to:
+  /// **'No documents linked to this excursion yet.'**
+  String get noLinkedDocumentsForExcursion;
 
   /// Empty state when there are no unattached documents available
   ///

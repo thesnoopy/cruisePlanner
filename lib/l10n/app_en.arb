@@ -299,9 +299,17 @@
   "@attachExistingDocument": {
     "description": "Action label to attach an existing document"
   },
+  "noLinkedDocuments": "No linked documents.",
+  "@noLinkedDocuments": {
+    "description": "Generic empty state when no documents are linked"
+  },
   "noLinkedDocumentsForCruise": "No documents linked to this cruise yet.",
   "@noLinkedDocumentsForCruise": {
     "description": "Empty state when no documents are linked to the cruise"
+  },
+  "noLinkedDocumentsForExcursion": "No documents linked to this excursion yet.",
+  "@noLinkedDocumentsForExcursion": {
+    "description": "Empty state when no documents are linked to the excursion in edit mode"
   },
   "noAvailableDocumentsToAttach": "No existing documents are available to attach.",
   "@noAvailableDocumentsToAttach": {

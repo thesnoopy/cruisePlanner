@@ -389,7 +389,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get attachExistingDocument => 'Attach existing document';
 
   @override
+  String get noLinkedDocuments => 'No linked documents.';
+
+  @override
   String get noLinkedDocumentsForCruise => 'No documents linked to this cruise yet.';
+
+  @override
+  String get noLinkedDocumentsForExcursion => 'No documents linked to this excursion yet.';
 
   @override
   String get noAvailableDocumentsToAttach => 'No existing documents are available to attach.';

@@ -6,6 +6,7 @@ import '../../models/route/port_call_item.dart';
 import '../../models/route/sea_day_item.dart';
 import '../../utils/format.dart';
 import '../../l10n/app_localizations.dart';
+import '../../widgets/documents/port_call_documents_section.dart';
 
 class RouteEditScreen extends StatefulWidget {
   final String routeItemId;
@@ -63,19 +64,20 @@ class _RouteEditScreenState extends State<RouteEditScreen> {
     }
     final s = CruiseStore();
     await s.load();
+    final latestItem = s.getById<RouteItem>(widget.routeItemId) ?? it;
     late RouteItem next;
-    if (it is PortCallItem) {
-      next = it.copyWith(
-        date: _date ?? it.date,
+    if (latestItem is PortCallItem) {
+      next = latestItem.copyWith(
+        date: _date ?? latestItem.date,
         portName: _portName.text.trim(),
         arrival: _arrival,
         departure: _departure,
         allAboard: _allAboard,
         notes: _notes.text.trim().isEmpty ? null : _notes.text.trim(),
       );
-    } else if (it is SeaDayItem) {
-      next = it.copyWith(
-        date: _date ?? it.date,
+    } else if (latestItem is SeaDayItem) {
+      next = latestItem.copyWith(
+        date: _date ?? latestItem.date,
         notes: _notes.text.trim().isEmpty ? null : _notes.text.trim(),
       );
     } else {
@@ -193,6 +195,10 @@ class _RouteEditScreenState extends State<RouteEditScreen> {
           ],
           const SizedBox(height: 12),
           TextField(controller: _notes, decoration: InputDecoration(labelText: loc.notesOptional), maxLines: 3),
+          if (it is PortCallItem) ...[
+            const SizedBox(height: 24),
+            PortCallDocumentsSection(portCallId: it.id),
+          ],
           const SizedBox(height: 24),
           FilledButton.icon(onPressed: _save, icon: const Icon(Icons.save), label: Text(loc.save)),
         ],
