@@ -6,6 +6,7 @@ import '../../models/cruise.dart';
 import '../../models/period.dart';
 import '../../utils/format.dart';
 import '../../l10n/app_localizations.dart';
+import '../../widgets/documents/cruise_documents_section.dart';
 
 class CruiseDetailsScreen extends StatefulWidget {
   final String cruiseId;
@@ -60,13 +61,17 @@ class _CruiseDetailsScreenState extends State<CruiseDetailsScreen> {
     }
     final s = CruiseStore();
     await s.load();
-    final next = c.copyWith(
+    final latestCruise = s.getCruise(widget.cruiseId) ?? c;
+    final next = latestCruise.copyWith(
       title: _title.text.trim(),
-      ship: c.ship.copyWith(
+      ship: latestCruise.ship.copyWith(
         name: _shipName.text.trim(),
         operatorName: _shipOperator.text.trim().isEmpty ? null : _shipOperator.text.trim(),
       ),
-      period: Period(start: _start ?? c.period.start, end: _end ?? c.period.end),
+      period: Period(
+        start: _start ?? latestCruise.period.start,
+        end: _end ?? latestCruise.period.end,
+      ),
       cabinNumber: _cabinNumber.text.trim(),
       deckNumber: _deckNumber.text.trim(),
       deckname: _deckname.text.trim(),
@@ -148,7 +153,13 @@ class _CruiseDetailsScreenState extends State<CruiseDetailsScreen> {
                     Expanded(child: _DateTile(label: loc.end, date: _end, onTap: () => _pickDate(false))),
                   ]),
                   const SizedBox(height: 24),
-                  FilledButton.icon(onPressed: _save, icon: const Icon(Icons.save), label: const Text('Speichern')),
+                  CruiseDocumentsSection(cruiseId: c.id),
+                  const SizedBox(height: 24),
+                  FilledButton.icon(
+                    onPressed: _save,
+                    icon: const Icon(Icons.save),
+                    label: Text(loc.save),
+                  ),
                 ],
               ),
             ),

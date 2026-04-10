@@ -381,4 +381,34 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get startNavigation => 'Navigation starten';
+
+  @override
+  String get documents => 'Dokumente';
+
+  @override
+  String get attachExistingDocument => 'Vorhandenes Dokument verknüpfen';
+
+  @override
+  String get noLinkedDocumentsForCruise => 'Dieser Kreuzfahrt sind noch keine Dokumente zugeordnet.';
+
+  @override
+  String get noAvailableDocumentsToAttach => 'Keine vorhandenen Dokumente zum Verknüpfen verfügbar.';
+
+  @override
+  String get detachDocument => 'Dokument lösen';
+
+  @override
+  String get documentAttached => 'Dokument verknüpft.';
+
+  @override
+  String get documentKindPdf => 'PDF';
+
+  @override
+  String get documentKindEmail => 'E-Mail';
+
+  @override
+  String get documentKindImage => 'Bild';
+
+  @override
+  String get documentKindUnknown => 'Dokument';
 }

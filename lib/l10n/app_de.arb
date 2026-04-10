@@ -573,5 +573,45 @@
   "deleteTravelItemTitle": "Lösche An- Abreise Teil",
   "deleteTravelItemQuestionmark": "An- Abreiseteil löschen?",
   "location": "Adresse",
-  "startNavigation": "Navigation starten"
+  "startNavigation": "Navigation starten",
+  "documents": "Dokumente",
+  "@documents": {
+    "description": "Abschnittstitel für verknüpfte Dokumente"
+  },
+  "attachExistingDocument": "Vorhandenes Dokument verknüpfen",
+  "@attachExistingDocument": {
+    "description": "Aktion zum Verknüpfen eines bestehenden Dokuments"
+  },
+  "noLinkedDocumentsForCruise": "Dieser Kreuzfahrt sind noch keine Dokumente zugeordnet.",
+  "@noLinkedDocumentsForCruise": {
+    "description": "Leerzustand, wenn keine Dokumente mit der Kreuzfahrt verknüpft sind"
+  },
+  "noAvailableDocumentsToAttach": "Keine vorhandenen Dokumente zum Verknüpfen verfügbar.",
+  "@noAvailableDocumentsToAttach": {
+    "description": "Leerzustand, wenn keine unverknüpften Dokumente verfügbar sind"
+  },
+  "detachDocument": "Dokument lösen",
+  "@detachDocument": {
+    "description": "Tooltip zum Lösen einer Dokumentverknüpfung"
+  },
+  "documentAttached": "Dokument verknüpft.",
+  "@documentAttached": {
+    "description": "SnackBar nach dem Verknüpfen eines Dokuments"
+  },
+  "documentKindPdf": "PDF",
+  "@documentKindPdf": {
+    "description": "Bezeichnung für PDF-Dokumente"
+  },
+  "documentKindEmail": "E-Mail",
+  "@documentKindEmail": {
+    "description": "Bezeichnung für E-Mail-Dokumente"
+  },
+  "documentKindImage": "Bild",
+  "@documentKindImage": {
+    "description": "Bezeichnung für Bilddokumente"
+  },
+  "documentKindUnknown": "Dokument",
+  "@documentKindUnknown": {
+    "description": "Fallback-Bezeichnung für unbekannte Dokumenttypen"
+  }
 }

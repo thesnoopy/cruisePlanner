@@ -838,6 +838,66 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Start Navigation'**
   String get startNavigation;
+
+  /// Section title for linked documents
+  ///
+  /// In en, this message translates to:
+  /// **'Documents'**
+  String get documents;
+
+  /// Action label to attach an existing document
+  ///
+  /// In en, this message translates to:
+  /// **'Attach existing document'**
+  String get attachExistingDocument;
+
+  /// Empty state when no documents are linked to the cruise
+  ///
+  /// In en, this message translates to:
+  /// **'No documents linked to this cruise yet.'**
+  String get noLinkedDocumentsForCruise;
+
+  /// Empty state when there are no unattached documents available
+  ///
+  /// In en, this message translates to:
+  /// **'No existing documents are available to attach.'**
+  String get noAvailableDocumentsToAttach;
+
+  /// Tooltip for detaching a linked document
+  ///
+  /// In en, this message translates to:
+  /// **'Detach document'**
+  String get detachDocument;
+
+  /// Snack bar shown after attaching a document
+  ///
+  /// In en, this message translates to:
+  /// **'Document attached.'**
+  String get documentAttached;
+
+  /// Label for PDF documents
+  ///
+  /// In en, this message translates to:
+  /// **'PDF'**
+  String get documentKindPdf;
+
+  /// Label for email documents
+  ///
+  /// In en, this message translates to:
+  /// **'Email'**
+  String get documentKindEmail;
+
+  /// Label for image documents
+  ///
+  /// In en, this message translates to:
+  /// **'Image'**
+  String get documentKindImage;
+
+  /// Fallback label for unknown document kinds
+  ///
+  /// In en, this message translates to:
+  /// **'Document'**
+  String get documentKindUnknown;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

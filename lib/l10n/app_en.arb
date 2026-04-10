@@ -290,5 +290,45 @@
   "deleteTravelItemTitle": "Delete travel item",
   "deleteTravelItemQuestionmark": "Really delete this travel item?",
   "location": "Address",
-  "startNavigation": "Start Navigation"
+  "startNavigation": "Start Navigation",
+  "documents": "Documents",
+  "@documents": {
+    "description": "Section title for linked documents"
+  },
+  "attachExistingDocument": "Attach existing document",
+  "@attachExistingDocument": {
+    "description": "Action label to attach an existing document"
+  },
+  "noLinkedDocumentsForCruise": "No documents linked to this cruise yet.",
+  "@noLinkedDocumentsForCruise": {
+    "description": "Empty state when no documents are linked to the cruise"
+  },
+  "noAvailableDocumentsToAttach": "No existing documents are available to attach.",
+  "@noAvailableDocumentsToAttach": {
+    "description": "Empty state when there are no unattached documents available"
+  },
+  "detachDocument": "Detach document",
+  "@detachDocument": {
+    "description": "Tooltip for detaching a linked document"
+  },
+  "documentAttached": "Document attached.",
+  "@documentAttached": {
+    "description": "Snack bar shown after attaching a document"
+  },
+  "documentKindPdf": "PDF",
+  "@documentKindPdf": {
+    "description": "Label for PDF documents"
+  },
+  "documentKindEmail": "Email",
+  "@documentKindEmail": {
+    "description": "Label for email documents"
+  },
+  "documentKindImage": "Image",
+  "@documentKindImage": {
+    "description": "Label for image documents"
+  },
+  "documentKindUnknown": "Document",
+  "@documentKindUnknown": {
+    "description": "Fallback label for unknown document kinds"
+  }
 }
