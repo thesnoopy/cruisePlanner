@@ -203,6 +203,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get editTravel => 'Reise bearbeiten';
 
   @override
+  String get editCruise => 'Kreuzfahrt bearbeiten';
+
+  @override
   String get airlineOptional => 'Fluggesellschaft (optional)';
 
   @override

@@ -323,6 +323,11 @@
     "description": "Reise bearbeiten"
   },
 
+  "editCruise": "Kreuzfahrt bearbeiten",
+  "@editCruise": {
+    "description": "Aktion zum Bearbeiten der Kreuzfahrt"
+  },
+
   "airlineOptional": "Fluggesellschaft (optional)",
   "@homeDeleteTooltip": {
     "description": "Fluggesellschaft (optional)"

@@ -11,10 +11,12 @@ class CruiseDocumentsSection extends StatefulWidget {
   const CruiseDocumentsSection({
     super.key,
     required this.cruiseId,
+    this.isReadOnly = false,
     this.service,
   });
 
   final String cruiseId;
+  final bool isReadOnly;
   final CruiseDocumentSectionService? service;
 
   @override
@@ -226,27 +228,28 @@ class _CruiseDocumentsSectionState extends State<CruiseDocumentsSection> {
                     style: Theme.of(context).textTheme.titleMedium,
                   ),
                 ),
-                Flexible(
-                  child: Wrap(
-                    alignment: WrapAlignment.end,
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: [
-                      TextButton.icon(
-                        onPressed:
-                            (_isLoading || _isMutating) ? null : _importDocument,
-                        icon: const Icon(Icons.file_upload_outlined),
-                        label: Text(loc.importDocument),
-                      ),
-                      TextButton.icon(
-                        onPressed:
-                            (_isLoading || _isMutating) ? null : _showAttachSheet,
-                        icon: const Icon(Icons.attach_file),
-                        label: Text(loc.attachExistingDocument),
-                      ),
-                    ],
+                if (!widget.isReadOnly)
+                  Flexible(
+                    child: Wrap(
+                      alignment: WrapAlignment.end,
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: [
+                        TextButton.icon(
+                          onPressed:
+                              (_isLoading || _isMutating) ? null : _importDocument,
+                          icon: const Icon(Icons.file_upload_outlined),
+                          label: Text(loc.importDocument),
+                        ),
+                        TextButton.icon(
+                          onPressed:
+                              (_isLoading || _isMutating) ? null : _showAttachSheet,
+                          icon: const Icon(Icons.attach_file),
+                          label: Text(loc.attachExistingDocument),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
               ],
             ),
             const SizedBox(height: 8),
@@ -276,15 +279,22 @@ class _CruiseDocumentsSectionState extends State<CruiseDocumentsSection> {
                       ),
                       subtitle: Text(_subtitleForDocument(loc, document)),
                       onTap: () => _openDocument(document),
-                      trailing: IconButton(
-                        tooltip: loc.detachDocument,
-                        onPressed: _isMutating ? null : () => _detachDocument(document),
-                        icon: const Icon(Icons.link_off_outlined),
-                      ),
+                      trailing: widget.isReadOnly
+                          ? null
+                          : IconButton(
+                              tooltip: loc.detachDocument,
+                              onPressed: _isMutating
+                                  ? null
+                                  : () => _detachDocument(document),
+                              icon: const Icon(Icons.link_off_outlined),
+                            ),
                     ),
                 ],
               ),
-            if (!_isLoading && data != null && !data.hasAvailableDocuments) ...[
+            if (!widget.isReadOnly &&
+                !_isLoading &&
+                data != null &&
+                !data.hasAvailableDocuments) ...[
               const SizedBox(height: 8),
               Text(
                 loc.noAvailableDocumentsToAttach,

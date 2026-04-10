@@ -203,6 +203,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get editTravel => 'Edit Travel';
 
   @override
+  String get editCruise => 'Edit Cruise';
+
+  @override
   String get airlineOptional => 'Airline (optional)';
 
   @override

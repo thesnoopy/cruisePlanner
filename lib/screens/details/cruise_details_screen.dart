@@ -1,16 +1,19 @@
-// Regenerated screens v2 – ID-only navigation, aligned with current models.
-
 import 'package:flutter/material.dart';
-import '../../store/cruise_store.dart';
-import '../../models/cruise.dart';
-import '../../models/period.dart';
-import '../../utils/format.dart';
+
 import '../../l10n/app_localizations.dart';
+import '../../models/cruise.dart';
+import '../../store/cruise_store.dart';
+import '../../utils/format.dart';
 import '../../widgets/documents/cruise_documents_section.dart';
+import 'cruise_edit_screen.dart';
 
 class CruiseDetailsScreen extends StatefulWidget {
+  const CruiseDetailsScreen({
+    super.key,
+    required this.cruiseId,
+  });
+
   final String cruiseId;
-  const CruiseDetailsScreen({super.key, required this.cruiseId});
 
   @override
   State<CruiseDetailsScreen> createState() => _CruiseDetailsScreenState();
@@ -18,15 +21,7 @@ class CruiseDetailsScreen extends StatefulWidget {
 
 class _CruiseDetailsScreenState extends State<CruiseDetailsScreen> {
   Cruise? _cruise;
-  final _formKey = GlobalKey<FormState>();
-  late TextEditingController _title;
-  late TextEditingController _shipName;
-  late TextEditingController _shipOperator;
-  late TextEditingController _cabinNumber;
-  late TextEditingController _deckNumber;
-  late TextEditingController _deckname;
-  DateTime? _start;
-  DateTime? _end;
+  bool _loading = true;
 
   @override
   void initState() {
@@ -35,152 +30,208 @@ class _CruiseDetailsScreenState extends State<CruiseDetailsScreen> {
   }
 
   Future<void> _load() async {
-    final s = CruiseStore();
-    await s.load();
-    final c = s.getCruise(widget.cruiseId);
-    setState(() {
-      _cruise = c;
-      _title = TextEditingController(text: c?.title ?? '');
-      _shipName = TextEditingController(text: c?.ship.name ?? '');
-      _shipOperator = TextEditingController(text: c?.ship.operatorName ?? '');
-      _start = c?.period.start;
-      _end = c?.period.end;
-      _cabinNumber = TextEditingController(text: c?.cabinNumber ?? '');
-      _deckNumber = TextEditingController(text: c?.deckNumber ?? '');
-      _deckname = TextEditingController(text: c?.deckname ?? '');
-    });
-  }
+    final store = CruiseStore();
+    await store.load();
 
-  Future<void> _save() async {
-    final c = _cruise;
-    if (c == null) {
-      return;
-    }
-    if (!_formKey.currentState!.validate()) {
-      return;
-    }
-    final s = CruiseStore();
-    await s.load();
-    final latestCruise = s.getCruise(widget.cruiseId) ?? c;
-    final next = latestCruise.copyWith(
-      title: _title.text.trim(),
-      ship: latestCruise.ship.copyWith(
-        name: _shipName.text.trim(),
-        operatorName: _shipOperator.text.trim().isEmpty ? null : _shipOperator.text.trim(),
-      ),
-      period: Period(
-        start: _start ?? latestCruise.period.start,
-        end: _end ?? latestCruise.period.end,
-      ),
-      cabinNumber: _cabinNumber.text.trim(),
-      deckNumber: _deckNumber.text.trim(),
-      deckname: _deckname.text.trim(),
-    );
-    await s.upsertCruise(next);
     if (!mounted) {
       return;
     }
-    Navigator.of(context).pop();
+
+    setState(() {
+      _cruise = store.getCruise(widget.cruiseId);
+      _loading = false;
+    });
   }
 
-  Future<void> _pickDate(bool isStart) async {
-    final initial = (isStart ? _start : _end) ?? DateTime.now();
-    final picked = await showDatePicker(
-      context: context,
-      firstDate: DateTime(2000),
-      lastDate: DateTime(2100),
-      initialDate: initial,
-    );
-    if (picked != null) {
-      setState(() {
-        if (isStart) {
-          _start = picked;
-        } else {
-          _end = picked;
-        }
-      });
+  Future<void> _openEdit() async {
+    final cruise = _cruise;
+    if (cruise == null) {
+      return;
     }
+
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => CruiseEditScreen(cruiseId: cruise.id),
+      ),
+    );
+
+    await _load();
   }
 
   @override
   Widget build(BuildContext context) {
     final loc = AppLocalizations.of(context)!;
-    final c = _cruise;
+
+    if (_loading) {
+      return Scaffold(
+        appBar: AppBar(title: Text(loc.cruiseDetails)),
+        body: const Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    final cruise = _cruise;
+    if (cruise == null) {
+      return Scaffold(
+        appBar: AppBar(title: Text(loc.cruiseDetails)),
+        body: Center(child: Text(loc.cruise)),
+      );
+    }
+
     return Scaffold(
-      appBar: AppBar(title: Text(loc.cruiseDetails)),
-      body: c == null
-          ? const Center(child: CircularProgressIndicator())
-          : Form(
-              key: _formKey,
-              child: ListView(
-                padding: const EdgeInsets.all(16),
-                children: [
-                  TextFormField(
-                    controller: _title,
-                    decoration: InputDecoration(labelText: loc.title),
-                    validator: (v) => (v == null || v.trim().isEmpty) ? loc.requiredField : null,
-                  ),
-                  const SizedBox(height: 12),
-                  TextFormField(
-                    controller: _shipName,
-                    decoration: InputDecoration(labelText: loc.ship),
-                    validator: (v) => (v == null || v.trim().isEmpty) ? loc.requiredField : null,
-                  ),
-                  const SizedBox(height: 12),
-                  TextFormField(
-                    controller: _shipOperator,
-                    decoration: InputDecoration(labelText: loc.chatterOptional),
-                  ),
-                  const SizedBox(height: 12),
-                  TextFormField(
-                    controller: _cabinNumber,
-                    decoration: InputDecoration(labelText: loc.cabinNumber),
-                  ),
-                  const SizedBox(height: 12),
-                  TextFormField(
-                    controller: _deckNumber,
-                    decoration: InputDecoration(labelText: loc.deckNumber),
-                  ),
-                  const SizedBox(height: 12),
-                  TextFormField(
-                    controller: _deckname,
-                    decoration: InputDecoration(labelText: loc.deckname),
-                  ),
-                  const SizedBox(height: 12),
-                  Row(children: [
-                    Expanded(child: _DateTile(label: loc.start, date: _start, onTap: () => _pickDate(true))),
-                    const SizedBox(width: 12),
-                    Expanded(child: _DateTile(label: loc.end, date: _end, onTap: () => _pickDate(false))),
-                  ]),
-                  const SizedBox(height: 24),
-                  CruiseDocumentsSection(cruiseId: c.id),
-                  const SizedBox(height: 24),
-                  FilledButton.icon(
-                    onPressed: _save,
-                    icon: const Icon(Icons.save),
-                    label: Text(loc.save),
-                  ),
-                ],
-              ),
+      appBar: AppBar(
+        title: Text(_screenTitle(context, cruise)),
+        actions: [
+          IconButton(
+            onPressed: _openEdit,
+            icon: const Icon(Icons.edit),
+            tooltip: loc.editCruise,
+          ),
+        ],
+      ),
+      body: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          _CruiseInfoSection(cruise: cruise),
+          const SizedBox(height: 16),
+          CruiseDocumentsSection(
+            key: ValueKey(
+              'cruise-documents-${cruise.id}-${cruise.documentIds.join('|')}',
             ),
+            cruiseId: cruise.id,
+            isReadOnly: true,
+          ),
+          const SizedBox(height: 24),
+          FilledButton.icon(
+            onPressed: _openEdit,
+            icon: const Icon(Icons.edit),
+            label: Text(loc.editCruise),
+          ),
+        ],
+      ),
     );
+  }
+
+  String _screenTitle(BuildContext context, Cruise cruise) {
+    final loc = AppLocalizations.of(context)!;
+    return cruise.title.trim().isEmpty ? loc.cruiseDetails : cruise.title.trim();
   }
 }
 
-class _DateTile extends StatelessWidget {
-  final String label;
-  final DateTime? date;
-  final VoidCallback onTap;
-  const _DateTile({required this.label, required this.date, required this.onTap});
+class _CruiseInfoSection extends StatelessWidget {
+  const _CruiseInfoSection({required this.cruise});
+
+  final Cruise cruise;
+
   @override
   Widget build(BuildContext context) {
-    final text = date == null ? '-' : fmtDate(context, date);
+    final theme = Theme.of(context);
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              _sectionTitle(context, cruise),
+              style: theme.textTheme.titleLarge,
+            ),
+            const SizedBox(height: 12),
+            ..._buildRows(context),
+          ],
+        ),
+      ),
+    );
+  }
+
+  String _sectionTitle(BuildContext context, Cruise cruise) {
+    final loc = AppLocalizations.of(context)!;
+    final title = cruise.title.trim();
+    if (title.isNotEmpty) {
+      return title;
+    }
+
+    final shipName = cruise.ship.name.trim();
+    if (shipName.isNotEmpty) {
+      return shipName;
+    }
+
+    return loc.cruiseDetails;
+  }
+
+  List<Widget> _buildRows(BuildContext context) {
+    final loc = AppLocalizations.of(context)!;
+    final rows = <Widget>[
+      if (cruise.title.trim().isNotEmpty)
+        _InfoTile(
+          icon: Icons.title,
+          label: loc.title,
+          value: cruise.title.trim(),
+        ),
+      if (cruise.ship.name.trim().isNotEmpty)
+        _InfoTile(
+          icon: Icons.directions_boat_outlined,
+          label: loc.ship,
+          value: cruise.ship.name.trim(),
+        ),
+      if ((cruise.ship.operatorName ?? '').trim().isNotEmpty)
+        _InfoTile(
+          icon: Icons.business_outlined,
+          label: loc.travelCompany,
+          value: cruise.ship.operatorName!.trim(),
+        ),
+      _InfoTile(
+        icon: Icons.event_outlined,
+        label: loc.start,
+        value: fmtDate(context, cruise.period.start),
+      ),
+      _InfoTile(
+        icon: Icons.event_available_outlined,
+        label: loc.end,
+        value: fmtDate(context, cruise.period.end),
+      ),
+      if ((cruise.cabinNumber ?? '').trim().isNotEmpty)
+        _InfoTile(
+          icon: Icons.door_front_door_outlined,
+          label: loc.cabinNumber,
+          value: cruise.cabinNumber!.trim(),
+        ),
+      if ((cruise.deckNumber ?? '').trim().isNotEmpty)
+        _InfoTile(
+          icon: Icons.layers_outlined,
+          label: loc.deckNumber,
+          value: cruise.deckNumber!.trim(),
+        ),
+      if ((cruise.deckname ?? '').trim().isNotEmpty)
+        _InfoTile(
+          icon: Icons.label_outline,
+          label: loc.deckname,
+          value: cruise.deckname!.trim(),
+        ),
+    ];
+
+    return rows;
+  }
+}
+
+class _InfoTile extends StatelessWidget {
+  const _InfoTile({
+    required this.icon,
+    required this.label,
+    required this.value,
+  });
+
+  final IconData icon;
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
     return ListTile(
       contentPadding: EdgeInsets.zero,
+      leading: Icon(icon),
       title: Text(label),
-      subtitle: Text(text),
-      trailing: const Icon(Icons.edit_calendar),
-      onTap: onTap,
+      subtitle: Text(value),
     );
   }
 }

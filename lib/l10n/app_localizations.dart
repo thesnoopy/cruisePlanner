@@ -479,6 +479,12 @@ abstract class AppLocalizations {
   /// **'Edit Travel'**
   String get editTravel;
 
+  /// No description provided for @editCruise.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Cruise'**
+  String get editCruise;
+
   /// No description provided for @airlineOptional.
   ///
   /// In en, this message translates to:
