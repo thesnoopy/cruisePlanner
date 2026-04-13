@@ -3,6 +3,7 @@ import 'document_sync_analysis_result.dart';
 enum DocumentSyncExecutionAction {
   upload,
   download,
+  localFileRecovery,
 }
 
 class DocumentSyncExecutionFailure {
@@ -23,6 +24,7 @@ class DocumentSyncExecutionResult {
     required this.analysisErrorMessage,
     required this.completedUploadDocumentIds,
     required this.completedDownloadDocumentIds,
+    required this.completedLocalFileRecoveryDocumentIds,
     required this.failures,
   });
 
@@ -30,6 +32,7 @@ class DocumentSyncExecutionResult {
   final String? analysisErrorMessage;
   final List<String> completedUploadDocumentIds;
   final List<String> completedDownloadDocumentIds;
+  final List<String> completedLocalFileRecoveryDocumentIds;
   final List<DocumentSyncExecutionFailure> failures;
 
   bool get hasAnalysisError => analysisErrorMessage != null;
@@ -38,5 +41,6 @@ class DocumentSyncExecutionResult {
 
   bool get hasSuccessfulActions =>
       completedUploadDocumentIds.isNotEmpty ||
-      completedDownloadDocumentIds.isNotEmpty;
+      completedDownloadDocumentIds.isNotEmpty ||
+      completedLocalFileRecoveryDocumentIds.isNotEmpty;
 }

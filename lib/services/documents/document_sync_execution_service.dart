@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import '../../models/documents/document_record.dart';
 import '../../models/documents/document_sync_analysis_result.dart';
 import '../../models/documents/document_sync_execution_result.dart';
@@ -54,6 +56,23 @@ class DocumentSyncExecutionService {
         analysisErrorMessage: error.toString(),
         completedUploadDocumentIds: const <String>[],
         completedDownloadDocumentIds: const <String>[],
+        completedLocalFileRecoveryDocumentIds: const <String>[],
+        failures: const <DocumentSyncExecutionFailure>[],
+      );
+    }
+  }
+
+  Future<DocumentSyncExecutionResult> executePhase4LocalFileRecoveries() async {
+    try {
+      final analysis = await _orchestrationService.analyze();
+      return _executeAnalyzedPhase4LocalFileRecoveries(analysis);
+    } catch (error) {
+      return DocumentSyncExecutionResult(
+        analysis: null,
+        analysisErrorMessage: error.toString(),
+        completedUploadDocumentIds: const <String>[],
+        completedDownloadDocumentIds: const <String>[],
+        completedLocalFileRecoveryDocumentIds: const <String>[],
         failures: const <DocumentSyncExecutionFailure>[],
       );
     }
@@ -84,6 +103,31 @@ class DocumentSyncExecutionService {
       ),
       completedDownloadDocumentIds: List<String>.unmodifiable(
         completedDownloadDocumentIds,
+      ),
+      completedLocalFileRecoveryDocumentIds: const <String>[],
+      failures: List<DocumentSyncExecutionFailure>.unmodifiable(failures),
+    );
+  }
+
+  Future<DocumentSyncExecutionResult> _executeAnalyzedPhase4LocalFileRecoveries(
+    DocumentSyncAnalysisResult analysis,
+  ) async {
+    final completedLocalFileRecoveryDocumentIds = <String>[];
+    final failures = <DocumentSyncExecutionFailure>[];
+    await _executeLocalFileRecoveries(
+      analysis: analysis,
+      completedLocalFileRecoveryDocumentIds:
+          completedLocalFileRecoveryDocumentIds,
+      failures: failures,
+    );
+
+    return DocumentSyncExecutionResult(
+      analysis: analysis,
+      analysisErrorMessage: null,
+      completedUploadDocumentIds: const <String>[],
+      completedDownloadDocumentIds: const <String>[],
+      completedLocalFileRecoveryDocumentIds: List<String>.unmodifiable(
+        completedLocalFileRecoveryDocumentIds,
       ),
       failures: List<DocumentSyncExecutionFailure>.unmodifiable(failures),
     );
@@ -200,6 +244,45 @@ class DocumentSyncExecutionService {
         errorMessage: error.toString(),
         failures: failures,
       );
+    }
+  }
+
+  Future<void> _executeLocalFileRecoveries({
+    required DocumentSyncAnalysisResult analysis,
+    required List<String> completedLocalFileRecoveryDocumentIds,
+    required List<DocumentSyncExecutionFailure> failures,
+  }) async {
+    if (analysis.localFileRecoveryPlan.recoveries.isEmpty) {
+      return;
+    }
+
+    for (final recovery in analysis.localFileRecoveryPlan.recoveries) {
+      try {
+        final destinationFile = await _documentFileStore.resolveAbsoluteFile(
+          recovery.localRecord.localRelativePath,
+        );
+        await _remoteStore.downloadDocumentFile(
+          document: recovery.remoteRecord,
+          destinationFile: destinationFile,
+        );
+
+        if (!await destinationFile.exists()) {
+          throw FileSystemException(
+            'Document file was not restored.',
+            destinationFile.path,
+          );
+        }
+
+        completedLocalFileRecoveryDocumentIds.add(recovery.documentId);
+      } catch (error) {
+        failures.add(
+          DocumentSyncExecutionFailure(
+            documentId: recovery.documentId,
+            action: DocumentSyncExecutionAction.localFileRecovery,
+            errorMessage: error.toString(),
+          ),
+        );
+      }
     }
   }
 
