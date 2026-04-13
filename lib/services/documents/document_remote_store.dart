@@ -133,6 +133,19 @@ class DocumentRemoteStore {
     await destinationFile.writeAsBytes(bytes, flush: true);
   }
 
+  Future<void> deleteDocumentFile(DocumentRecord document) async {
+    final client = _createClient();
+
+    try {
+      await client.remove(buildRemoteFilePath(document));
+    } catch (error) {
+      if (_isMissingRemoteResourceError(error)) {
+        return;
+      }
+      rethrow;
+    }
+  }
+
   String buildRemoteFilePath(DocumentRecord document) {
     _validateDocumentId(document.id);
     final extension = _normalizeFileExtension(document.fileExtension);

@@ -57,6 +57,7 @@ class DocumentSyncExecutionService {
       final phase5Result = await _executeAnalyzedPhase5SoftDeletePropagations(
         analysis,
       );
+      final phase6Result = await _executeAnalyzedPhase6Cleanup(analysis);
 
       return DocumentFullSyncExecutionResult(
         analysis: analysis,
@@ -65,10 +66,12 @@ class DocumentSyncExecutionService {
           DocumentSyncExecutionPhase.phase3UploadDownload,
           DocumentSyncExecutionPhase.phase4LocalFileRecovery,
           DocumentSyncExecutionPhase.phase5SoftDeletePropagation,
+          DocumentSyncExecutionPhase.phase6CleanupHardDelete,
         ]),
         phase3Result: phase3Result,
         phase4Result: phase4Result,
         phase5Result: phase5Result,
+        phase6Result: phase6Result,
       );
     } catch (error) {
       return DocumentFullSyncExecutionResult(
@@ -78,6 +81,7 @@ class DocumentSyncExecutionService {
         phase3Result: null,
         phase4Result: null,
         phase5Result: null,
+        phase6Result: null,
       );
     }
   }
@@ -95,6 +99,7 @@ class DocumentSyncExecutionService {
         completedLocalFileRecoveryDocumentIds: const <String>[],
         completedLocalSoftDeleteDocumentIds: const <String>[],
         completedRemoteSoftDeleteDocumentIds: const <String>[],
+        completedHardDeleteDocumentIds: const <String>[],
         failures: const <DocumentSyncExecutionFailure>[],
       );
     }
@@ -113,6 +118,26 @@ class DocumentSyncExecutionService {
         completedLocalFileRecoveryDocumentIds: const <String>[],
         completedLocalSoftDeleteDocumentIds: const <String>[],
         completedRemoteSoftDeleteDocumentIds: const <String>[],
+        completedHardDeleteDocumentIds: const <String>[],
+        failures: const <DocumentSyncExecutionFailure>[],
+      );
+    }
+  }
+
+  Future<DocumentSyncExecutionResult> executePhase6Cleanup() async {
+    try {
+      final analysis = await _orchestrationService.analyze();
+      return _executeAnalyzedPhase6Cleanup(analysis);
+    } catch (error) {
+      return DocumentSyncExecutionResult(
+        analysis: null,
+        analysisErrorMessage: error.toString(),
+        completedUploadDocumentIds: const <String>[],
+        completedDownloadDocumentIds: const <String>[],
+        completedLocalFileRecoveryDocumentIds: const <String>[],
+        completedLocalSoftDeleteDocumentIds: const <String>[],
+        completedRemoteSoftDeleteDocumentIds: const <String>[],
+        completedHardDeleteDocumentIds: const <String>[],
         failures: const <DocumentSyncExecutionFailure>[],
       );
     }
@@ -147,6 +172,7 @@ class DocumentSyncExecutionService {
       completedLocalFileRecoveryDocumentIds: const <String>[],
       completedLocalSoftDeleteDocumentIds: const <String>[],
       completedRemoteSoftDeleteDocumentIds: const <String>[],
+      completedHardDeleteDocumentIds: const <String>[],
       failures: List<DocumentSyncExecutionFailure>.unmodifiable(failures),
     );
   }
@@ -173,6 +199,7 @@ class DocumentSyncExecutionService {
       ),
       completedLocalSoftDeleteDocumentIds: const <String>[],
       completedRemoteSoftDeleteDocumentIds: const <String>[],
+      completedHardDeleteDocumentIds: const <String>[],
       failures: List<DocumentSyncExecutionFailure>.unmodifiable(failures),
     );
   }
@@ -207,6 +234,34 @@ class DocumentSyncExecutionService {
       ),
       completedRemoteSoftDeleteDocumentIds: List<String>.unmodifiable(
         completedRemoteSoftDeleteDocumentIds,
+      ),
+      completedHardDeleteDocumentIds: const <String>[],
+      failures: List<DocumentSyncExecutionFailure>.unmodifiable(failures),
+    );
+  }
+
+  Future<DocumentSyncExecutionResult> _executeAnalyzedPhase6Cleanup(
+    DocumentSyncAnalysisResult analysis,
+  ) async {
+    final completedHardDeleteDocumentIds = <String>[];
+    final failures = <DocumentSyncExecutionFailure>[];
+
+    await _executeHardDeletes(
+      analysis: analysis,
+      completedHardDeleteDocumentIds: completedHardDeleteDocumentIds,
+      failures: failures,
+    );
+
+    return DocumentSyncExecutionResult(
+      analysis: analysis,
+      analysisErrorMessage: null,
+      completedUploadDocumentIds: const <String>[],
+      completedDownloadDocumentIds: const <String>[],
+      completedLocalFileRecoveryDocumentIds: const <String>[],
+      completedLocalSoftDeleteDocumentIds: const <String>[],
+      completedRemoteSoftDeleteDocumentIds: const <String>[],
+      completedHardDeleteDocumentIds: List<String>.unmodifiable(
+        completedHardDeleteDocumentIds,
       ),
       failures: List<DocumentSyncExecutionFailure>.unmodifiable(failures),
     );
@@ -432,6 +487,59 @@ class DocumentSyncExecutionService {
     }
   }
 
+  Future<void> _executeHardDeletes({
+    required DocumentSyncAnalysisResult analysis,
+    required List<String> completedHardDeleteDocumentIds,
+    required List<DocumentSyncExecutionFailure> failures,
+  }) async {
+    if (analysis.cleanupPlan.plannedHardDeletes.isEmpty) {
+      return;
+    }
+
+    final remoteMetadataById = await _loadRemoteMetadataByIdForCleanup(
+      analysis: analysis,
+      failures: failures,
+    );
+    if (remoteMetadataById == null) {
+      return;
+    }
+
+    for (final hardDelete in analysis.cleanupPlan.plannedHardDeletes) {
+      try {
+        await _remoteStore.deleteDocumentFile(hardDelete.remoteRecord);
+
+        final removedRemoteRecord = remoteMetadataById.remove(
+          hardDelete.documentId,
+        );
+        try {
+          await _remoteStore.writeDocuments(
+            _sortDocuments(remoteMetadataById.values),
+          );
+        } catch (error) {
+          if (removedRemoteRecord != null) {
+            remoteMetadataById[hardDelete.documentId] = removedRemoteRecord;
+          }
+          rethrow;
+        }
+
+        await _documentFileStore.deleteFile(
+          hardDelete.localRecord.localRelativePath,
+        );
+        await _documentStore.removeDocumentMetadata(hardDelete.documentId);
+
+        completedHardDeleteDocumentIds.add(hardDelete.documentId);
+      } catch (error) {
+        failures.add(
+          DocumentSyncExecutionFailure(
+            documentId: hardDelete.documentId,
+            action: DocumentSyncExecutionAction.cleanupHardDelete,
+            errorMessage: error.toString(),
+          ),
+        );
+      }
+    }
+  }
+
   Future<Map<String, DocumentRecord>?> _loadRemoteMetadataById({
     required DocumentSyncAnalysisResult analysis,
     required List<DocumentSyncExecutionFailure> failures,
@@ -468,6 +576,28 @@ class DocumentSyncExecutionService {
           (softDelete) => softDelete.documentId,
         ),
         action: DocumentSyncExecutionAction.remoteSoftDeletePropagation,
+        errorMessage: error.toString(),
+        failures: failures,
+      );
+      return null;
+    }
+  }
+
+  Future<Map<String, DocumentRecord>?> _loadRemoteMetadataByIdForCleanup({
+    required DocumentSyncAnalysisResult analysis,
+    required List<DocumentSyncExecutionFailure> failures,
+  }) async {
+    try {
+      final remoteDocuments = await _remoteStore.readDocuments();
+      return {
+        for (final document in remoteDocuments) document.id: document,
+      };
+    } catch (error) {
+      _addCommitFailures(
+        documentIds: analysis.cleanupPlan.plannedHardDeletes.map(
+          (hardDelete) => hardDelete.documentId,
+        ),
+        action: DocumentSyncExecutionAction.cleanupHardDelete,
         errorMessage: error.toString(),
         failures: failures,
       );

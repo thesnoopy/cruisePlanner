@@ -6,6 +6,7 @@ enum DocumentSyncExecutionAction {
   localFileRecovery,
   localSoftDeletePropagation,
   remoteSoftDeletePropagation,
+  cleanupHardDelete,
 }
 
 class DocumentSyncExecutionFailure {
@@ -29,6 +30,7 @@ class DocumentSyncExecutionResult {
     required this.completedLocalFileRecoveryDocumentIds,
     required this.completedLocalSoftDeleteDocumentIds,
     required this.completedRemoteSoftDeleteDocumentIds,
+    required this.completedHardDeleteDocumentIds,
     required this.failures,
   });
 
@@ -39,6 +41,7 @@ class DocumentSyncExecutionResult {
   final List<String> completedLocalFileRecoveryDocumentIds;
   final List<String> completedLocalSoftDeleteDocumentIds;
   final List<String> completedRemoteSoftDeleteDocumentIds;
+  final List<String> completedHardDeleteDocumentIds;
   final List<DocumentSyncExecutionFailure> failures;
 
   bool get hasAnalysisError => analysisErrorMessage != null;
@@ -50,5 +53,6 @@ class DocumentSyncExecutionResult {
       completedDownloadDocumentIds.isNotEmpty ||
       completedLocalFileRecoveryDocumentIds.isNotEmpty ||
       completedLocalSoftDeleteDocumentIds.isNotEmpty ||
-      completedRemoteSoftDeleteDocumentIds.isNotEmpty;
+      completedRemoteSoftDeleteDocumentIds.isNotEmpty ||
+      completedHardDeleteDocumentIds.isNotEmpty;
 }

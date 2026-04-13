@@ -5,6 +5,7 @@ enum DocumentSyncExecutionPhase {
   phase3UploadDownload,
   phase4LocalFileRecovery,
   phase5SoftDeletePropagation,
+  phase6CleanupHardDelete,
 }
 
 class DocumentFullSyncExecutionResult {
@@ -15,6 +16,7 @@ class DocumentFullSyncExecutionResult {
     required this.phase3Result,
     required this.phase4Result,
     required this.phase5Result,
+    required this.phase6Result,
   });
 
   final DocumentSyncAnalysisResult? analysis;
@@ -23,6 +25,7 @@ class DocumentFullSyncExecutionResult {
   final DocumentSyncExecutionResult? phase3Result;
   final DocumentSyncExecutionResult? phase4Result;
   final DocumentSyncExecutionResult? phase5Result;
+  final DocumentSyncExecutionResult? phase6Result;
 
   bool get hasAnalysisError => analysisErrorMessage != null;
 
@@ -30,14 +33,16 @@ class DocumentFullSyncExecutionResult {
       hasAnalysisError ||
       (phase3Result?.hasFailures ?? false) ||
       (phase4Result?.hasFailures ?? false) ||
-      (phase5Result?.hasFailures ?? false);
+      (phase5Result?.hasFailures ?? false) ||
+      (phase6Result?.hasFailures ?? false);
 
   bool get hasSuccessfulActions =>
       completedUploadDocumentIds.isNotEmpty ||
       completedDownloadDocumentIds.isNotEmpty ||
       completedLocalFileRecoveryDocumentIds.isNotEmpty ||
       completedLocalSoftDeleteDocumentIds.isNotEmpty ||
-      completedRemoteSoftDeleteDocumentIds.isNotEmpty;
+      completedRemoteSoftDeleteDocumentIds.isNotEmpty ||
+      completedHardDeleteDocumentIds.isNotEmpty;
 
   List<String> get completedUploadDocumentIds =>
       phase3Result?.completedUploadDocumentIds ?? const <String>[];
@@ -54,12 +59,16 @@ class DocumentFullSyncExecutionResult {
   List<String> get completedRemoteSoftDeleteDocumentIds =>
       phase5Result?.completedRemoteSoftDeleteDocumentIds ?? const <String>[];
 
+  List<String> get completedHardDeleteDocumentIds =>
+      phase6Result?.completedHardDeleteDocumentIds ?? const <String>[];
+
   List<DocumentSyncExecutionFailure> get failures =>
       List<DocumentSyncExecutionFailure>.unmodifiable(
         <DocumentSyncExecutionFailure>[
           ...(phase3Result?.failures ?? const <DocumentSyncExecutionFailure>[]),
           ...(phase4Result?.failures ?? const <DocumentSyncExecutionFailure>[]),
           ...(phase5Result?.failures ?? const <DocumentSyncExecutionFailure>[]),
+          ...(phase6Result?.failures ?? const <DocumentSyncExecutionFailure>[]),
         ],
       );
 }
