@@ -507,21 +507,17 @@ class AppLocalizationsDe extends AppLocalizations {
   String get shareAssignTitle => 'Geteiltes Element zuweisen';
 
   @override
-  String get shareAssignSelectTarget =>
-      'Waehle aus, wohin dieses geteilte Element zugeordnet werden soll.';
+  String get shareAssignSelectTarget => 'Wähle aus, wohin dieses geteilte Element zugeordnet werden soll.';
 
   @override
-  String get shareAssignUnsupported =>
-      'Dieser Typ geteilter Inhalte kann in diesem Schritt noch nicht zugewiesen werden.';
+  String get shareAssignUnsupported => 'Dieser Typ geteilter Inhalte kann in diesem Schritt noch nicht zugewiesen werden.';
 
   @override
-  String get shareAssignUnsupportedShort => 'Noch nicht unterstuetzt';
+  String get shareAssignUnsupportedShort => 'Noch nicht unterstützt';
 
   @override
-  String get shareAssignItemUnavailable =>
-      'Dieses geteilte Element ist nicht mehr verfuegbar.';
+  String get shareAssignItemUnavailable => 'Dieses geteilte Element ist nicht mehr verfügbar.';
 
   @override
-  String get shareAssignNoTargets =>
-      'Es sind noch keine zuweisbaren Ziele verfuegbar.';
+  String get shareAssignNoTargets => 'Es sind noch keine zuweisbaren Ziele verfügbar.';
 }

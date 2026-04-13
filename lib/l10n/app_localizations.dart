@@ -1019,7 +1019,7 @@ abstract class AppLocalizations {
   /// **'Clear all'**
   String get sharePendingClearAllAction;
 
-  /// Summary for a batch that has additional items after the first preview label
+  /// Summary for a batch with more than one item
   ///
   /// In en, this message translates to:
   /// **'{label} and {count} more'**

@@ -507,21 +507,17 @@ class AppLocalizationsEn extends AppLocalizations {
   String get shareAssignTitle => 'Assign shared item';
 
   @override
-  String get shareAssignSelectTarget =>
-      'Choose where this shared item should go.';
+  String get shareAssignSelectTarget => 'Choose where this shared item should go.';
 
   @override
-  String get shareAssignUnsupported =>
-      'This shared item type cannot be assigned yet.';
+  String get shareAssignUnsupported => 'This shared item type cannot be assigned yet.';
 
   @override
   String get shareAssignUnsupportedShort => 'Not yet supported';
 
   @override
-  String get shareAssignItemUnavailable =>
-      'This shared item is no longer available.';
+  String get shareAssignItemUnavailable => 'This shared item is no longer available.';
 
   @override
-  String get shareAssignNoTargets =>
-      'No assignable targets are available yet.';
+  String get shareAssignNoTargets => 'No assignable targets are available yet.';
 }
