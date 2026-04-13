@@ -1,6 +1,9 @@
+import 'dart:io';
+
 import '../../models/documents/document_record.dart';
 import '../../store/document_store.dart';
 import 'document_attachment_service.dart';
+import 'document_import_service.dart';
 
 class ExcursionDocumentSectionData {
   const ExcursionDocumentSectionData({
@@ -14,15 +17,28 @@ class ExcursionDocumentSectionData {
   bool get hasAvailableDocuments => availableDocuments.isNotEmpty;
 }
 
+class ExcursionDocumentImportResult {
+  const ExcursionDocumentImportResult({
+    required this.document,
+    required this.attached,
+  });
+
+  final DocumentRecord document;
+  final bool attached;
+}
+
 class ExcursionDocumentSectionService {
   ExcursionDocumentSectionService({
     DocumentAttachmentService? attachmentService,
     DocumentStore? documentStore,
+    DocumentImportService? importService,
   })  : _attachmentService = attachmentService ?? DocumentAttachmentService(),
-        _documentStore = documentStore ?? DocumentStore();
+        _documentStore = documentStore ?? DocumentStore(),
+        _importService = importService ?? DocumentImportService();
 
   final DocumentAttachmentService _attachmentService;
   final DocumentStore _documentStore;
+  final DocumentImportService _importService;
 
   Future<ExcursionDocumentSectionData> loadForExcursion(
     String excursionId,
@@ -60,6 +76,31 @@ class ExcursionDocumentSectionService {
     return _attachmentService.detachDocumentFromExcursion(
       excursionId: excursionId,
       documentId: documentId,
+    );
+  }
+
+  Future<ExcursionDocumentImportResult> importDocument({
+    required String excursionId,
+    required String sourcePath,
+    String? title,
+  }) async {
+    final normalizedPath = sourcePath.trim();
+    if (normalizedPath.isEmpty) {
+      throw ArgumentError.value(sourcePath, 'sourcePath', 'Invalid path.');
+    }
+
+    final document = await _importService.importFile(
+      sourceFile: File(normalizedPath),
+      title: title,
+    );
+    final attached = await _attachmentService.attachDocumentToExcursion(
+      excursionId: excursionId,
+      documentId: document.id,
+    );
+
+    return ExcursionDocumentImportResult(
+      document: document,
+      attached: attached,
     );
   }
 }
