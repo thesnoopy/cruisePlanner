@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import '../../models/documents/document_full_sync_execution_result.dart';
 import '../../models/documents/document_record.dart';
 import '../../models/documents/document_sync_analysis_result.dart';
 import '../../models/documents/document_sync_execution_result.dart';
@@ -45,6 +46,35 @@ class DocumentSyncExecutionService {
   final DocumentFileStore _documentFileStore;
   final DocumentRemoteStore _remoteStore;
   final DocumentSyncOrchestrationService _orchestrationService;
+
+  Future<DocumentFullSyncExecutionResult> executeFullSync() async {
+    try {
+      final analysis = await _orchestrationService.analyze();
+      final phase3Result = await _executeAnalyzedPhase3Actions(analysis);
+      final phase4Result = await _executeAnalyzedPhase4LocalFileRecoveries(
+        analysis,
+      );
+
+      return DocumentFullSyncExecutionResult(
+        analysis: analysis,
+        analysisErrorMessage: null,
+        executedPhases: List<DocumentSyncExecutionPhase>.unmodifiable(const [
+          DocumentSyncExecutionPhase.phase3UploadDownload,
+          DocumentSyncExecutionPhase.phase4LocalFileRecovery,
+        ]),
+        phase3Result: phase3Result,
+        phase4Result: phase4Result,
+      );
+    } catch (error) {
+      return DocumentFullSyncExecutionResult(
+        analysis: null,
+        analysisErrorMessage: error.toString(),
+        executedPhases: const <DocumentSyncExecutionPhase>[],
+        phase3Result: null,
+        phase4Result: null,
+      );
+    }
+  }
 
   Future<DocumentSyncExecutionResult> executePhase3Actions() async {
     try {
