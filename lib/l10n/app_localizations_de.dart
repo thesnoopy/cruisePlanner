@@ -434,6 +434,12 @@ class AppLocalizationsDe extends AppLocalizations {
   String get documentImported => 'Dokument importiert.';
 
   @override
+  String get documentLinkedExisting => 'Vorhandenes Dokument verknüpft.';
+
+  @override
+  String get documentAlreadyLinked => 'Dokument bereits verknüpft.';
+
+  @override
   String get documentImportFailed => 'Dokumentimport fehlgeschlagen.';
 
   @override

@@ -200,11 +200,7 @@ class _PortCallDocumentsSectionState extends State<PortCallDocumentsSection> {
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(
-            importResult.attached
-                ? loc.documentImported
-                : loc.documentImportFailed,
-          ),
+          content: Text(_messageForImportOutcome(loc, importResult.outcome)),
         ),
       );
     } catch (_) {
@@ -355,6 +351,20 @@ class _PortCallDocumentsSectionState extends State<PortCallDocumentsSection> {
         return Icons.image_outlined;
       case DocumentKind.unknown:
         return Icons.insert_drive_file_outlined;
+    }
+  }
+
+  String _messageForImportOutcome(
+    AppLocalizations loc,
+    PortCallDocumentImportOutcome outcome,
+  ) {
+    switch (outcome) {
+      case PortCallDocumentImportOutcome.importedAndLinked:
+        return loc.documentImported;
+      case PortCallDocumentImportOutcome.existingLinked:
+        return loc.documentLinkedExisting;
+      case PortCallDocumentImportOutcome.alreadyLinked:
+        return loc.documentAlreadyLinked;
     }
   }
 }

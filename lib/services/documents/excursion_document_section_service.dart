@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import '../../models/documents/document_import_resolution.dart';
 import '../../models/documents/document_record.dart';
 import '../../store/document_store.dart';
 import 'document_attachment_service.dart';
@@ -20,11 +21,17 @@ class ExcursionDocumentSectionData {
 class ExcursionDocumentImportResult {
   const ExcursionDocumentImportResult({
     required this.document,
-    required this.attached,
+    required this.outcome,
   });
 
   final DocumentRecord document;
-  final bool attached;
+  final ExcursionDocumentImportOutcome outcome;
+}
+
+enum ExcursionDocumentImportOutcome {
+  importedAndLinked,
+  existingLinked,
+  alreadyLinked,
 }
 
 class ExcursionDocumentSectionService {
@@ -89,18 +96,36 @@ class ExcursionDocumentSectionService {
       throw ArgumentError.value(sourcePath, 'sourcePath', 'Invalid path.');
     }
 
-    final document = await _importService.importFile(
+    final importResolution = await _importService.importFileIfNeeded(
       sourceFile: File(normalizedPath),
       title: title,
     );
+    final linkedDocuments = await _attachmentService.getDocumentsForExcursion(
+      excursionId: excursionId,
+    );
+    final alreadyLinked = linkedDocuments.any(
+      (document) => document.id == importResolution.document.id,
+    );
+    if (alreadyLinked) {
+      return ExcursionDocumentImportResult(
+        document: importResolution.document,
+        outcome: ExcursionDocumentImportOutcome.alreadyLinked,
+      );
+    }
+
     final attached = await _attachmentService.attachDocumentToExcursion(
       excursionId: excursionId,
-      documentId: document.id,
+      documentId: importResolution.document.id,
     );
+    if (!attached) {
+      throw StateError('Failed to attach document to excursion.');
+    }
 
     return ExcursionDocumentImportResult(
-      document: document,
-      attached: attached,
+      document: importResolution.document,
+      outcome: importResolution.kind == DocumentImportResolutionKind.imported
+          ? ExcursionDocumentImportOutcome.importedAndLinked
+          : ExcursionDocumentImportOutcome.existingLinked,
     );
   }
 }

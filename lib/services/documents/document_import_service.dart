@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:path/path.dart' as p;
 import 'package:uuid/uuid.dart';
 
+import '../../models/documents/document_import_resolution.dart';
 import '../../models/documents/document_kind.dart';
 import '../../models/documents/document_record.dart';
 import '../../store/document_store.dart';
@@ -41,7 +42,28 @@ class DocumentImportService {
     );
   }
 
+  Future<DocumentImportResolution> importFileIfNeeded({
+    required File sourceFile,
+    String? title,
+  }) {
+    return _importDocumentIfNeeded(
+      sourceFile: sourceFile,
+      title: title,
+    );
+  }
+
   Future<DocumentRecord> _importDocument({
+    required File sourceFile,
+    String? title,
+  }) async {
+    final resolution = await _importDocumentIfNeeded(
+      sourceFile: sourceFile,
+      title: title,
+    );
+    return resolution.document;
+  }
+
+  Future<DocumentImportResolution> _importDocumentIfNeeded({
     required File sourceFile,
     String? title,
   }) async {
@@ -52,6 +74,14 @@ class DocumentImportService {
 
     if (!await sourceFile.exists()) {
       throw FileSystemException('Source file does not exist.', sourceFile.path);
+    }
+
+    final existingDocument = await _findExistingDocument(sourceFile);
+    if (existingDocument != null) {
+      return DocumentImportResolution(
+        document: existingDocument,
+        kind: DocumentImportResolutionKind.existing,
+      );
     }
 
     final documentId = _uuid.v4();
@@ -91,7 +121,15 @@ class DocumentImportService {
     );
 
     await _documentStore.saveDocument(record);
-    return record;
+    return DocumentImportResolution(
+      document: record,
+      kind: DocumentImportResolutionKind.imported,
+    );
+  }
+
+  Future<DocumentRecord?> _findExistingDocument(File sourceFile) async {
+    final contentHash = await _fileStore.calculateContentHash(sourceFile);
+    return _documentStore.findDocumentByContentHash(contentHash);
   }
 
   String _extractOriginalFileName(String filePath) {

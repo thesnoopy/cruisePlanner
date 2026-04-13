@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import '../../models/documents/document_import_resolution.dart';
 import '../../models/documents/document_record.dart';
 import '../../store/document_store.dart';
 import 'document_attachment_service.dart';
@@ -20,11 +21,17 @@ class CruiseDocumentSectionData {
 class CruiseDocumentImportResult {
   const CruiseDocumentImportResult({
     required this.document,
-    required this.attached,
+    required this.outcome,
   });
 
   final DocumentRecord document;
-  final bool attached;
+  final CruiseDocumentImportOutcome outcome;
+}
+
+enum CruiseDocumentImportOutcome {
+  importedAndLinked,
+  existingLinked,
+  alreadyLinked,
 }
 
 class CruiseDocumentSectionService {
@@ -87,18 +94,36 @@ class CruiseDocumentSectionService {
       throw ArgumentError.value(sourcePath, 'sourcePath', 'Invalid path.');
     }
 
-    final document = await _importService.importFile(
+    final importResolution = await _importService.importFileIfNeeded(
       sourceFile: File(normalizedPath),
       title: title,
     );
+    final linkedDocuments = await _attachmentService.getDocumentsForCruise(
+      cruiseId: cruiseId,
+    );
+    final alreadyLinked = linkedDocuments.any(
+      (document) => document.id == importResolution.document.id,
+    );
+    if (alreadyLinked) {
+      return CruiseDocumentImportResult(
+        document: importResolution.document,
+        outcome: CruiseDocumentImportOutcome.alreadyLinked,
+      );
+    }
+
     final attached = await _attachmentService.attachDocumentToCruise(
       cruiseId: cruiseId,
-      documentId: document.id,
+      documentId: importResolution.document.id,
     );
+    if (!attached) {
+      throw StateError('Failed to attach document to cruise.');
+    }
 
     return CruiseDocumentImportResult(
-      document: document,
-      attached: attached,
+      document: importResolution.document,
+      outcome: importResolution.kind == DocumentImportResolutionKind.imported
+          ? CruiseDocumentImportOutcome.importedAndLinked
+          : CruiseDocumentImportOutcome.existingLinked,
     );
   }
 }

@@ -30,6 +30,29 @@ class DocumentStore {
     return records[id];
   }
 
+  Future<DocumentRecord?> findDocumentByContentHash(
+    String contentHash, {
+    bool includeDeleted = false,
+  }) async {
+    final normalizedHash = contentHash.trim();
+    if (normalizedHash.isEmpty) {
+      return null;
+    }
+
+    final records = await _loadRecordMap();
+    final candidates = records.values.where(
+      (record) => includeDeleted || !record.deleted,
+    );
+
+    for (final record in candidates) {
+      if (record.contentHash == normalizedHash) {
+        return record;
+      }
+    }
+
+    return null;
+  }
+
   Future<void> saveDocument(DocumentRecord record) async {
     final records = await _loadRecordMap();
     records[record.id] = record;

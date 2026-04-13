@@ -643,6 +643,14 @@
   "@documentImported": {
     "description": "SnackBar nach dem Importieren und Verknüpfen eines Dokuments"
   },
+  "documentLinkedExisting": "Vorhandenes Dokument verknüpft.",
+  "@documentLinkedExisting": {
+    "description": "SnackBar nach dem Verknüpfen eines bereits vorhandenen passenden Dokuments statt erneutem Import"
+  },
+  "documentAlreadyLinked": "Dokument bereits verknüpft.",
+  "@documentAlreadyLinked": {
+    "description": "SnackBar, wenn das passende Dokument bereits mit dem aktuellen Ziel verknüpft ist"
+  },
   "documentImportFailed": "Dokumentimport fehlgeschlagen.",
   "@documentImportFailed": {
     "description": "SnackBar, wenn Import oder Verknüpfen eines Dokuments fehlschlägt"

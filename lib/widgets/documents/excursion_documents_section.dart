@@ -200,11 +200,7 @@ class _ExcursionDocumentsSectionState extends State<ExcursionDocumentsSection> {
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(
-            importResult.attached
-                ? loc.documentImported
-                : loc.documentImportFailed,
-          ),
+          content: Text(_messageForImportOutcome(loc, importResult.outcome)),
         ),
       );
     } catch (_) {
@@ -359,6 +355,20 @@ class _ExcursionDocumentsSectionState extends State<ExcursionDocumentsSection> {
         return Icons.image_outlined;
       case DocumentKind.unknown:
         return Icons.insert_drive_file_outlined;
+    }
+  }
+
+  String _messageForImportOutcome(
+    AppLocalizations loc,
+    ExcursionDocumentImportOutcome outcome,
+  ) {
+    switch (outcome) {
+      case ExcursionDocumentImportOutcome.importedAndLinked:
+        return loc.documentImported;
+      case ExcursionDocumentImportOutcome.existingLinked:
+        return loc.documentLinkedExisting;
+      case ExcursionDocumentImportOutcome.alreadyLinked:
+        return loc.documentAlreadyLinked;
     }
   }
 }

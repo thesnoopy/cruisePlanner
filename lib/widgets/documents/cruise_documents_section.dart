@@ -196,11 +196,7 @@ class _CruiseDocumentsSectionState extends State<CruiseDocumentsSection> {
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(
-            importResult.attached
-                ? loc.documentImported
-                : loc.documentImportFailed,
-          ),
+          content: Text(_messageForImportOutcome(loc, importResult.outcome)),
         ),
       );
     } catch (_) {
@@ -351,6 +347,20 @@ class _CruiseDocumentsSectionState extends State<CruiseDocumentsSection> {
         return Icons.image_outlined;
       case DocumentKind.unknown:
         return Icons.insert_drive_file_outlined;
+    }
+  }
+
+  String _messageForImportOutcome(
+    AppLocalizations loc,
+    CruiseDocumentImportOutcome outcome,
+  ) {
+    switch (outcome) {
+      case CruiseDocumentImportOutcome.importedAndLinked:
+        return loc.documentImported;
+      case CruiseDocumentImportOutcome.existingLinked:
+        return loc.documentLinkedExisting;
+      case CruiseDocumentImportOutcome.alreadyLinked:
+        return loc.documentAlreadyLinked;
     }
   }
 }

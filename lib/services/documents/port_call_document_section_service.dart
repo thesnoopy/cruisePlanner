@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import '../../models/documents/document_import_resolution.dart';
 import '../../models/documents/document_record.dart';
 import '../../store/document_store.dart';
 import 'document_attachment_service.dart';
@@ -20,11 +21,17 @@ class PortCallDocumentSectionData {
 class PortCallDocumentImportResult {
   const PortCallDocumentImportResult({
     required this.document,
-    required this.attached,
+    required this.outcome,
   });
 
   final DocumentRecord document;
-  final bool attached;
+  final PortCallDocumentImportOutcome outcome;
+}
+
+enum PortCallDocumentImportOutcome {
+  importedAndLinked,
+  existingLinked,
+  alreadyLinked,
 }
 
 class PortCallDocumentSectionService {
@@ -87,18 +94,36 @@ class PortCallDocumentSectionService {
       throw ArgumentError.value(sourcePath, 'sourcePath', 'Invalid path.');
     }
 
-    final document = await _importService.importFile(
+    final importResolution = await _importService.importFileIfNeeded(
       sourceFile: File(normalizedPath),
       title: title,
     );
+    final linkedDocuments = await _attachmentService.getDocumentsForPortCall(
+      portCallId: portCallId,
+    );
+    final alreadyLinked = linkedDocuments.any(
+      (document) => document.id == importResolution.document.id,
+    );
+    if (alreadyLinked) {
+      return PortCallDocumentImportResult(
+        document: importResolution.document,
+        outcome: PortCallDocumentImportOutcome.alreadyLinked,
+      );
+    }
+
     final attached = await _attachmentService.attachDocumentToPortCall(
       portCallId: portCallId,
-      documentId: document.id,
+      documentId: importResolution.document.id,
     );
+    if (!attached) {
+      throw StateError('Failed to attach document to port call.');
+    }
 
     return PortCallDocumentImportResult(
-      document: document,
-      attached: attached,
+      document: importResolution.document,
+      outcome: importResolution.kind == DocumentImportResolutionKind.imported
+          ? PortCallDocumentImportOutcome.importedAndLinked
+          : PortCallDocumentImportOutcome.existingLinked,
     );
   }
 }

@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import '../../models/documents/document_import_resolution.dart';
 import '../../models/documents/document_record.dart';
 import '../../store/document_store.dart';
 import 'document_attachment_service.dart';
@@ -20,11 +21,17 @@ class TravelDocumentSectionData {
 class TravelDocumentImportResult {
   const TravelDocumentImportResult({
     required this.document,
-    required this.attached,
+    required this.outcome,
   });
 
   final DocumentRecord document;
-  final bool attached;
+  final TravelDocumentImportOutcome outcome;
+}
+
+enum TravelDocumentImportOutcome {
+  importedAndLinked,
+  existingLinked,
+  alreadyLinked,
 }
 
 class TravelDocumentSectionService {
@@ -87,18 +94,36 @@ class TravelDocumentSectionService {
       throw ArgumentError.value(sourcePath, 'sourcePath', 'Invalid path.');
     }
 
-    final document = await _importService.importFile(
+    final importResolution = await _importService.importFileIfNeeded(
       sourceFile: File(normalizedPath),
       title: title,
     );
+    final linkedDocuments = await _attachmentService.getDocumentsForTravelItem(
+      travelItemId: travelItemId,
+    );
+    final alreadyLinked = linkedDocuments.any(
+      (document) => document.id == importResolution.document.id,
+    );
+    if (alreadyLinked) {
+      return TravelDocumentImportResult(
+        document: importResolution.document,
+        outcome: TravelDocumentImportOutcome.alreadyLinked,
+      );
+    }
+
     final attached = await _attachmentService.attachDocumentToTravelItem(
       travelItemId: travelItemId,
-      documentId: document.id,
+      documentId: importResolution.document.id,
     );
+    if (!attached) {
+      throw StateError('Failed to attach document to travel item.');
+    }
 
     return TravelDocumentImportResult(
-      document: document,
-      attached: attached,
+      document: importResolution.document,
+      outcome: importResolution.kind == DocumentImportResolutionKind.imported
+          ? TravelDocumentImportOutcome.importedAndLinked
+          : TravelDocumentImportOutcome.existingLinked,
     );
   }
 }

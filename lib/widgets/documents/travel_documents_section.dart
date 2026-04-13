@@ -199,11 +199,7 @@ class _TravelDocumentsSectionState extends State<TravelDocumentsSection> {
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(
-            importResult.attached
-                ? loc.documentImported
-                : loc.documentImportFailed,
-          ),
+          content: Text(_messageForImportOutcome(loc, importResult.outcome)),
         ),
       );
     } catch (_) {
@@ -354,6 +350,20 @@ class _TravelDocumentsSectionState extends State<TravelDocumentsSection> {
         return Icons.image_outlined;
       case DocumentKind.unknown:
         return Icons.insert_drive_file_outlined;
+    }
+  }
+
+  String _messageForImportOutcome(
+    AppLocalizations loc,
+    TravelDocumentImportOutcome outcome,
+  ) {
+    switch (outcome) {
+      case TravelDocumentImportOutcome.importedAndLinked:
+        return loc.documentImported;
+      case TravelDocumentImportOutcome.existingLinked:
+        return loc.documentLinkedExisting;
+      case TravelDocumentImportOutcome.alreadyLinked:
+        return loc.documentAlreadyLinked;
     }
   }
 }

@@ -356,6 +356,14 @@
   "@documentImported": {
     "description": "Snack bar shown after importing and attaching a document"
   },
+  "documentLinkedExisting": "Existing document linked.",
+  "@documentLinkedExisting": {
+    "description": "Snack bar shown after linking an existing matching document instead of importing again"
+  },
+  "documentAlreadyLinked": "Document already linked.",
+  "@documentAlreadyLinked": {
+    "description": "Snack bar shown when the matching document is already linked to the current target"
+  },
   "documentImportFailed": "Document import failed.",
   "@documentImportFailed": {
     "description": "Snack bar shown when importing or attaching a document fails"

@@ -941,6 +941,18 @@ abstract class AppLocalizations {
   /// **'Document imported.'**
   String get documentImported;
 
+  /// Snack bar shown after linking an existing matching document instead of importing again
+  ///
+  /// In en, this message translates to:
+  /// **'Existing document linked.'**
+  String get documentLinkedExisting;
+
+  /// Snack bar shown when the matching document is already linked to the current target
+  ///
+  /// In en, this message translates to:
+  /// **'Document already linked.'**
+  String get documentAlreadyLinked;
+
   /// Snack bar shown when importing or attaching a document fails
   ///
   /// In en, this message translates to:
