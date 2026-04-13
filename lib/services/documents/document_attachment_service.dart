@@ -13,16 +13,26 @@ import '../../models/travel/train_item.dart';
 import '../../models/travel/transfer_item.dart';
 import '../../store/cruise_store.dart';
 import '../../store/document_store.dart';
+import 'document_reference_cleanup_service.dart';
 
 class DocumentAttachmentService {
   DocumentAttachmentService({
     CruiseStore? cruiseStore,
     DocumentStore? documentStore,
+    DocumentReferenceCleanupService? referenceCleanupService,
   })  : _cruiseStore = cruiseStore ?? CruiseStore(),
-        _documentStore = documentStore ?? DocumentStore();
+        _documentStore = documentStore ?? DocumentStore() {
+    _referenceCleanupService =
+        referenceCleanupService ??
+        DocumentReferenceCleanupService(
+          cruiseStore: _cruiseStore,
+          documentStore: _documentStore,
+        );
+  }
 
   final CruiseStore _cruiseStore;
   final DocumentStore _documentStore;
+  late final DocumentReferenceCleanupService _referenceCleanupService;
 
   Future<bool> attachDocumentToCruise({
     required String cruiseId,
@@ -305,45 +315,17 @@ class DocumentAttachmentService {
   }
 
   Future<int> countDocumentReferences(String documentId) async {
-    await _ensureCruisesLoaded();
-
-    final normalizedDocumentIds = DocumentIds.fromJsonValue(<Object?>[documentId]);
-    if (normalizedDocumentIds.isEmpty) {
-      return 0;
-    }
-
-    final normalizedDocumentId = normalizedDocumentIds.first;
-    var references = 0;
-
-    for (final cruise in _cruiseStore.cruises) {
-      references += _countDocumentId(cruise.documentIds, normalizedDocumentId);
-
-      for (final excursion in cruise.excursions) {
-        references += _countDocumentId(excursion.documentIds, normalizedDocumentId);
-      }
-
-      for (final travelItem in cruise.travel) {
-        references += _countDocumentId(travelItem.documentIds, normalizedDocumentId);
-      }
-
-      for (final portCall in cruise.route.whereType<PortCallItem>()) {
-        references += _countDocumentId(portCall.documentIds, normalizedDocumentId);
-      }
-    }
-
-    return references;
+    return _referenceCleanupService.countDocumentReferences(documentId);
   }
 
   Future<bool> isDocumentReferenced(String documentId) async {
-    return (await countDocumentReferences(documentId)) > 0;
+    return _referenceCleanupService.isDocumentReferenced(documentId);
   }
 
   Future<void> _softDeleteDocumentIfUnreferenced(String documentId) async {
-    if (await isDocumentReferenced(documentId)) {
-      return;
-    }
-
-    await _documentStore.deleteDocumentSoft(documentId);
+    await _referenceCleanupService.softDeleteDocumentsIfUnreferenced(
+      <String>[documentId],
+    );
   }
 
   Future<void> _ensureCruisesLoaded() async {
@@ -435,17 +417,6 @@ class DocumentAttachmentService {
 
     throw ArgumentError.value(item, 'item', 'Unsupported travel item type.');
   }
-
-  int _countDocumentId(List<String> documentIds, String documentId) {
-    var count = 0;
-    for (final currentId in documentIds) {
-      if (currentId == documentId) {
-        count++;
-      }
-    }
-    return count;
-  }
-
   bool _sameDocumentIds(List<String> left, List<String> right) {
     if (identical(left, right)) {
       return true;

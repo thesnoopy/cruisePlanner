@@ -18,6 +18,7 @@ import '../models/travel/flight_item.dart';
 import '../models/travel/rental_car_item.dart';
 import '../models/travel/train_item.dart';
 import '../models/travel/transfer_item.dart';
+import '../services/documents/document_reference_cleanup_service.dart';
 import '../sync/app_sync_service.dart';
 
 class _IndexRef {
@@ -38,13 +39,20 @@ class _StoredCruisesData {
 }
 
 class CruiseStore extends ChangeNotifier {
-  CruiseStore({AppSyncService? appSyncService})
-      : _appSyncService = appSyncService ?? const AppSyncService();
+  CruiseStore({
+    AppSyncService? appSyncService,
+    DocumentReferenceCleanupService? documentReferenceCleanupService,
+  }) : _appSyncService = appSyncService ?? const AppSyncService() {
+    _documentReferenceCleanupService =
+        documentReferenceCleanupService ??
+        DocumentReferenceCleanupService(cruiseStore: this);
+  }
 
   static const String _spKey = 'cruises_json_v1';
   static const int _currentSchemaVersion = 2;
 
   final AppSyncService _appSyncService;
+  late final DocumentReferenceCleanupService _documentReferenceCleanupService;
   final Map<String, _IndexRef> _index = {};
 
   List<Cruise> _cruises = const [];
@@ -222,18 +230,14 @@ class CruiseStore extends ChangeNotifier {
   Future<void> upsertCruise(Cruise cruise) async {
     final i = _cruises.indexWhere((c) => c.id == cruise.id);
     if (i >= 0) {
-      _cruises = List<Cruise>.unmodifiable([
+      await _replaceCruises([
         ..._cruises.sublist(0, i),
         cruise,
         ..._cruises.sublist(i + 1),
       ]);
     } else {
-      _cruises = List<Cruise>.unmodifiable([..._cruises, cruise]);
+      await _replaceCruises([..._cruises, cruise]);
     }
-    _rebuildIndex();
-    await _persist();
-    notifyListeners();
-    _scheduleAutoSync();
   }
 
   Future<void> upsertExcursion({
@@ -340,11 +344,19 @@ class CruiseStore extends ChangeNotifier {
   }
 
   Future<void> deleteCruise(String cruiseId) async {
-    _cruises = List<Cruise>.unmodifiable(
+    final cruise = getCruise(cruiseId);
+    final affectedDocumentIds = cruise == null
+        ? const <String>[]
+        : _documentReferenceCleanupService.collectCruiseDocumentIds(cruise);
+
+    await _replaceCruises(
       _cruises.where((c) => c.id != cruiseId),
+      notifyListeners: false,
+      scheduleAutoSync: false,
     );
-    _rebuildIndex();
-    await _persist();
+    await _documentReferenceCleanupService.softDeleteDocumentsIfUnreferenced(
+      affectedDocumentIds,
+    );
     notifyListeners();
     _scheduleAutoSync();
   }
@@ -359,12 +371,19 @@ class CruiseStore extends ChangeNotifier {
       return;
     }
     final cruise = _cruises[idx];
+    final excursion = cruise.excursions.firstWhereOrNull((e) => e.id == excursionId);
+    final affectedDocumentIds = excursion?.documentIds ?? const <String>[];
     final next = cruise.copyWith(
       excursions: List.unmodifiable(
         cruise.excursions.where((e) => e.id != excursionId),
       ),
     );
-    await upsertCruise(next);
+    await _upsertCruise(next, notifyListeners: false, scheduleAutoSync: false);
+    await _documentReferenceCleanupService.softDeleteDocumentsIfUnreferenced(
+      affectedDocumentIds,
+    );
+    notifyListeners();
+    _scheduleAutoSync();
   }
 
   Future<void> deleteTravelItem(String travelItemId) async {
@@ -377,12 +396,19 @@ class CruiseStore extends ChangeNotifier {
       return;
     }
     final cruise = _cruises[idx];
+    final travelItem = cruise.travel.firstWhereOrNull((t) => t.id == travelItemId);
+    final affectedDocumentIds = travelItem?.documentIds ?? const <String>[];
     final next = cruise.copyWith(
       travel: List.unmodifiable(
         cruise.travel.where((t) => t.id != travelItemId),
       ),
     );
-    await upsertCruise(next);
+    await _upsertCruise(next, notifyListeners: false, scheduleAutoSync: false);
+    await _documentReferenceCleanupService.softDeleteDocumentsIfUnreferenced(
+      affectedDocumentIds,
+    );
+    notifyListeners();
+    _scheduleAutoSync();
   }
 
   Future<void> deleteRouteItem(String routeItemId) async {
@@ -395,10 +421,58 @@ class CruiseStore extends ChangeNotifier {
       return;
     }
     final cruise = _cruises[idx];
+    final routeItem = cruise.route.firstWhereOrNull((r) => r.id == routeItemId);
+    final affectedDocumentIds = routeItem is PortCallItem
+        ? routeItem.documentIds
+        : const <String>[];
     final next = cruise.copyWith(
       route: List.unmodifiable(cruise.route.where((r) => r.id != routeItemId)),
     );
-    await upsertCruise(next);
+    await _upsertCruise(next, notifyListeners: false, scheduleAutoSync: false);
+    await _documentReferenceCleanupService.softDeleteDocumentsIfUnreferenced(
+      affectedDocumentIds,
+    );
+    notifyListeners();
+    _scheduleAutoSync();
+  }
+
+  Future<void> _upsertCruise(
+    Cruise cruise, {
+    bool notifyListeners = true,
+    bool scheduleAutoSync = true,
+  }) async {
+    final i = _cruises.indexWhere((c) => c.id == cruise.id);
+    if (i >= 0) {
+      await _replaceCruises([
+        ..._cruises.sublist(0, i),
+        cruise,
+        ..._cruises.sublist(i + 1),
+      ], notifyListeners: notifyListeners, scheduleAutoSync: scheduleAutoSync);
+      return;
+    }
+
+    await _replaceCruises(
+      [..._cruises, cruise],
+      notifyListeners: notifyListeners,
+      scheduleAutoSync: scheduleAutoSync,
+    );
+  }
+
+  Future<void> _replaceCruises(
+    Iterable<Cruise> cruises, {
+    bool notifyListeners = true,
+    bool scheduleAutoSync = true,
+  }) async {
+    _cruises = List<Cruise>.unmodifiable(cruises);
+    _rebuildIndex();
+    await _persist();
+
+    if (notifyListeners) {
+      notifyListeners();
+    }
+    if (scheduleAutoSync) {
+      _scheduleAutoSync();
+    }
   }
 
   void _rebuildIndex() {
