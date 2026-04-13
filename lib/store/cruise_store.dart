@@ -351,8 +351,8 @@ class CruiseStore extends ChangeNotifier {
 
     await _replaceCruises(
       _cruises.where((c) => c.id != cruiseId),
-      notifyListeners: false,
-      scheduleAutoSync: false,
+      shouldNotifyListeners: false,
+      shouldScheduleAutoSync: false,
     );
     await _documentReferenceCleanupService.softDeleteDocumentsIfUnreferenced(
       affectedDocumentIds,
@@ -378,7 +378,11 @@ class CruiseStore extends ChangeNotifier {
         cruise.excursions.where((e) => e.id != excursionId),
       ),
     );
-    await _upsertCruise(next, notifyListeners: false, scheduleAutoSync: false);
+    await _upsertCruise(
+      next,
+      shouldNotifyListeners: false,
+      shouldScheduleAutoSync: false,
+    );
     await _documentReferenceCleanupService.softDeleteDocumentsIfUnreferenced(
       affectedDocumentIds,
     );
@@ -403,7 +407,11 @@ class CruiseStore extends ChangeNotifier {
         cruise.travel.where((t) => t.id != travelItemId),
       ),
     );
-    await _upsertCruise(next, notifyListeners: false, scheduleAutoSync: false);
+    await _upsertCruise(
+      next,
+      shouldNotifyListeners: false,
+      shouldScheduleAutoSync: false,
+    );
     await _documentReferenceCleanupService.softDeleteDocumentsIfUnreferenced(
       affectedDocumentIds,
     );
@@ -428,7 +436,11 @@ class CruiseStore extends ChangeNotifier {
     final next = cruise.copyWith(
       route: List.unmodifiable(cruise.route.where((r) => r.id != routeItemId)),
     );
-    await _upsertCruise(next, notifyListeners: false, scheduleAutoSync: false);
+    await _upsertCruise(
+      next,
+      shouldNotifyListeners: false,
+      shouldScheduleAutoSync: false,
+    );
     await _documentReferenceCleanupService.softDeleteDocumentsIfUnreferenced(
       affectedDocumentIds,
     );
@@ -438,8 +450,8 @@ class CruiseStore extends ChangeNotifier {
 
   Future<void> _upsertCruise(
     Cruise cruise, {
-    bool notifyListeners = true,
-    bool scheduleAutoSync = true,
+    bool shouldNotifyListeners = true,
+    bool shouldScheduleAutoSync = true,
   }) async {
     final i = _cruises.indexWhere((c) => c.id == cruise.id);
     if (i >= 0) {
@@ -447,30 +459,33 @@ class CruiseStore extends ChangeNotifier {
         ..._cruises.sublist(0, i),
         cruise,
         ..._cruises.sublist(i + 1),
-      ], notifyListeners: notifyListeners, scheduleAutoSync: scheduleAutoSync);
+      ],
+        shouldNotifyListeners: shouldNotifyListeners,
+        shouldScheduleAutoSync: shouldScheduleAutoSync,
+      );
       return;
     }
 
     await _replaceCruises(
       [..._cruises, cruise],
-      notifyListeners: notifyListeners,
-      scheduleAutoSync: scheduleAutoSync,
+      shouldNotifyListeners: shouldNotifyListeners,
+      shouldScheduleAutoSync: shouldScheduleAutoSync,
     );
   }
 
   Future<void> _replaceCruises(
     Iterable<Cruise> cruises, {
-    bool notifyListeners = true,
-    bool scheduleAutoSync = true,
+    bool shouldNotifyListeners = true,
+    bool shouldScheduleAutoSync = true,
   }) async {
     _cruises = List<Cruise>.unmodifiable(cruises);
     _rebuildIndex();
     await _persist();
 
-    if (notifyListeners) {
+    if (shouldNotifyListeners) {
       notifyListeners();
     }
-    if (scheduleAutoSync) {
+    if (shouldScheduleAutoSync) {
       _scheduleAutoSync();
     }
   }
