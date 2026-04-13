@@ -6,6 +6,7 @@ import '../../models/documents/document_kind.dart';
 import '../../models/documents/document_record.dart';
 import '../../services/documents/document_open_service.dart';
 import '../../services/documents/travel_document_section_service.dart';
+import 'document_title_prompt_dialog.dart';
 
 class TravelDocumentsSection extends StatefulWidget {
   const TravelDocumentsSection({
@@ -175,12 +176,21 @@ class _TravelDocumentsSectionState extends State<TravelDocumentsSection> {
       return;
     }
 
+    final title = await showDocumentTitlePromptDialog(
+      context: context,
+      initialTitle: suggestedDocumentTitleFromFileName(selectedFile.name),
+    );
+    if (title == null || !mounted) {
+      return;
+    }
+
     setState(() => _isMutating = true);
 
     try {
       final importResult = await _service.importDocument(
         travelItemId: widget.travelItemId,
         sourcePath: sourcePath,
+        title: title,
       );
       await _reload();
       if (!mounted) {

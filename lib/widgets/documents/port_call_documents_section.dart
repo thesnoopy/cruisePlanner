@@ -6,6 +6,7 @@ import '../../models/documents/document_kind.dart';
 import '../../models/documents/document_record.dart';
 import '../../services/documents/document_open_service.dart';
 import '../../services/documents/port_call_document_section_service.dart';
+import 'document_title_prompt_dialog.dart';
 
 class PortCallDocumentsSection extends StatefulWidget {
   const PortCallDocumentsSection({
@@ -176,12 +177,21 @@ class _PortCallDocumentsSectionState extends State<PortCallDocumentsSection> {
       return;
     }
 
+    final title = await showDocumentTitlePromptDialog(
+      context: context,
+      initialTitle: suggestedDocumentTitleFromFileName(selectedFile.name),
+    );
+    if (title == null || !mounted) {
+      return;
+    }
+
     setState(() => _isMutating = true);
 
     try {
       final importResult = await _service.importDocument(
         portCallId: widget.portCallId,
         sourcePath: sourcePath,
+        title: title,
       );
       await _reload();
       if (!mounted) {
