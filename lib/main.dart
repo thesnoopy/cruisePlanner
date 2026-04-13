@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 //import 'package:intl/date_symbol_data_local.dart' as intl;
 
+import 'services/share/share_intake_service.dart';
 import 'screens/home_screen.dart';
 import 'l10n/app_localizations.dart';
 
@@ -12,6 +13,7 @@ Future<void> main() async {
   //await intl.initializeDateFormatting('en');
   //await intl.initializeDateFormatting('de');
 
+  await ShareIntakeService().initialize();
   runApp(const CruiseApp());
 }
 
