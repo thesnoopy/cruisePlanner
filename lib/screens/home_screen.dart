@@ -1,20 +1,16 @@
-// HomeScreen with Masonry grid (flutter_staggered_grid_view)
+import 'package:cruiseplanner/l10n/app_localizations.dart';
 import 'package:cruiseplanner/utils/format.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
-import '../store/cruise_store.dart';
+
 import '../models/cruise.dart';
+import '../models/identifiable.dart';
 import '../models/period.dart';
 import '../models/ship.dart';
-import '../models/identifiable.dart';
+import '../store/cruise_store.dart';
+import '../widgets/confirmation_dialog.dart';
 import 'cruise_hub_screen.dart';
 import 'settings/webdav_settings_screen.dart';
-import '../settings/webdav_settings_store.dart';
-import '../sync/webdav_sync.dart';
-import '../sync/cruise_sync_service.dart';
-import 'package:cruiseplanner/l10n/app_localizations.dart';
-import '../../widgets/confirmation_dialog.dart';
-
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -23,7 +19,7 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver  {
+class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   CruiseStore? _store;
   bool _loading = true;
 
@@ -46,7 +42,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver  {
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
-      // App kommt aus dem Hintergrund in den Vordergrund
       _triggerAutoSyncOnAppOpen();
     }
   }
@@ -70,70 +65,51 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver  {
   }
 
   Future<void> _runCloudSync() async {
-  // Hier den Namen verwenden, den du aktuell benutzt:
-  // z.B. cruiseStore, _store, widget.store, ...
-  final store = _store;
+    final store = _store;
 
-  if (store == null) {
-    if (mounted) {
-      final loc = AppLocalizations.of(context)!;            
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(loc.homeCloudSyncNoStore),
-        ),
-      );
+    if (store == null) {
+      if (mounted) {
+        final loc = AppLocalizations.of(context)!;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(loc.homeCloudSyncNoStore)),
+        );
+      }
+      return;
     }
-    return;
-  }
 
-  final settingsStore = const WebDavSettingsStore();
-  final settings = await settingsStore.load();
+    final result = await store.runAppSync();
+    if (!mounted) {
+      return;
+    }
 
-  if (settings == null || !settings.isValid) {
-    if (mounted) {
-      final loc = AppLocalizations.of(context)!;   
+    final loc = AppLocalizations.of(context)!;
+    if (result.wasSkipped) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(loc.homeCloudSyncNoWebdav)),
       );
+      return;
     }
-    return;
-  }
 
-  try {
-    final webDav = WebDavSync(settings);
-    final syncService = CruiseSyncService(webDav);
-
-    // jetzt ist store **non-null**
-    final local = store.cruises;
-
-    final merged = await syncService.sync(local);
-
-    await store.replaceAll(merged);
-    await store.load();
     setState(() {
       _store = store;
     });
 
-    if (mounted) {
-      final loc = AppLocalizations.of(context)!;
+    if (result.hasFailures) {
+      final errorMessage =
+          result.failureMessage ?? 'App sync failed.';
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(loc.homeCloudSyncDone)),
+        SnackBar(content: Text(loc.homeCloudSyncFailed(errorMessage))),
       );
+      return;
     }
-  } catch (e) {
-    if (mounted) {
-      final loc = AppLocalizations.of(context)!;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('${loc.homeCloudSyncFailed} $e')),
-      );
-    }
-  }
-}
 
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(loc.homeCloudSyncDone)),
+    );
+  }
 
   int _columnsForWidth(BuildContext context) {
     final w = MediaQuery.of(context).size.width;
-    // min tile width ~ 300
     final cols = (w / 300).floor();
     return cols.clamp(1, 6);
   }
@@ -157,9 +133,11 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver  {
     if (!mounted) {
       return;
     }
-    await Navigator.of(context).push(MaterialPageRoute(
-      builder: (_) => CruiseHubScreen(cruiseId: id),
-    ));
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => CruiseHubScreen(cruiseId: id),
+      ),
+    );
     await _reload();
   }
 
@@ -189,7 +167,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver  {
           IconButton(
             tooltip: loc.homeCloudSyncTooltip,
             icon: const Icon(Icons.sync),
-            onPressed: _runCloudSync
+            onPressed: _runCloudSync,
           ),
         ],
       ),
@@ -207,21 +185,22 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver  {
                 return _CruiseTile(
                   cruise: c,
                   onTap: () async {
-                    await Navigator.of(context).push(MaterialPageRoute(
-                      builder: (_) => CruiseHubScreen(cruiseId: c.id),
-                    ));
+                    await Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => CruiseHubScreen(cruiseId: c.id),
+                      ),
+                    );
                     await _reload();
                   },
                   onDelete: () async {
-                    final loc = AppLocalizations.of(context)!;
                     final confirmed = await showConfirmationDialog(
                       context: context,
-                      title: loc.deleteCruiseTitle,              // optional
-                      message: loc.deleteCruiseQuestionmark, // optional
-                      okText: loc.delete,                     // optional
-                      cancelText: loc.confirmCancel,               // optional
-                      icon: Icons.warning_amber_rounded,     // optional
-                      destructive: true,                     // optional (OK Button rot)
+                      title: loc.deleteCruiseTitle,
+                      message: loc.deleteCruiseQuestionmark,
+                      okText: loc.delete,
+                      cancelText: loc.confirmCancel,
+                      icon: Icons.warning_amber_rounded,
+                      destructive: true,
                     );
 
                     if (!confirmed) {
@@ -245,15 +224,15 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver  {
 }
 
 class _CruiseTile extends StatelessWidget {
-  final Cruise cruise;
-  final VoidCallback onTap;
-  final VoidCallback onDelete;
-
   const _CruiseTile({
     required this.cruise,
     required this.onTap,
     required this.onDelete,
   });
+
+  final Cruise cruise;
+  final VoidCallback onTap;
+  final VoidCallback onDelete;
 
   @override
   Widget build(BuildContext context) {
@@ -268,7 +247,7 @@ class _CruiseTile extends StatelessWidget {
         child: Padding(
           padding: const EdgeInsets.all(12),
           child: Column(
-            mainAxisSize: MainAxisSize.min, // grow with content
+            mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
@@ -278,7 +257,7 @@ class _CruiseTile extends StatelessWidget {
               const SizedBox(height: 6),
               if ((cruise.ship.operatorName ?? '').isNotEmpty)
                 Text(
-                  '${cruise.ship.operatorName} — ${cruise.ship.name}',
+                  '${cruise.ship.operatorName} \u2014 ${cruise.ship.name}',
                   style: Theme.of(context).textTheme.bodyMedium,
                 )
               else
@@ -291,7 +270,7 @@ class _CruiseTile extends StatelessWidget {
                 children: [
                   const Icon(Icons.calendar_today, size: 16),
                   const SizedBox(width: 6),
-                  Expanded(child: Text('$start – $end')),
+                  Expanded(child: Text('$start \u2013 $end')),
                   IconButton(
                     icon: const Icon(Icons.delete_outline),
                     onPressed: onDelete,

@@ -1,5 +1,6 @@
-
+import 'dart:async';
 import 'dart:convert';
+
 import 'package:cruiseplanner/models/travel/cruise_check_in_item.dart';
 import 'package:cruiseplanner/models/travel/cruise_check_out_item.dart';
 import 'package:cruiseplanner/models/travel/hotel_item.dart';
@@ -8,24 +9,21 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/cruise.dart';
 import '../models/excursion.dart';
-import '../models/travel/base_travel.dart';
-import '../models/travel/flight_item.dart';
-import '../models/travel/train_item.dart';
-import '../models/travel/transfer_item.dart';
-import '../models/travel/rental_car_item.dart';
+import '../models/identifiable.dart';
+import '../models/route/port_call_item.dart';
 import '../models/route/route_item.dart';
 import '../models/route/sea_day_item.dart';
-import '../models/route/port_call_item.dart';
-import '../models/identifiable.dart';
-
-import '../settings/webdav_settings_store.dart';
-import '../sync/webdav_sync.dart';
-import '../sync/cruise_sync_service.dart';
-import 'dart:async';
+import '../models/travel/base_travel.dart';
+import '../models/travel/flight_item.dart';
+import '../models/travel/rental_car_item.dart';
+import '../models/travel/train_item.dart';
+import '../models/travel/transfer_item.dart';
+import '../sync/app_sync_service.dart';
 
 class _IndexRef {
   final String cruiseId;
   final Type type;
+
   const _IndexRef(this.cruiseId, this.type);
 }
 
@@ -40,22 +38,24 @@ class _StoredCruisesData {
 }
 
 class CruiseStore extends ChangeNotifier {
+  CruiseStore({AppSyncService? appSyncService})
+      : _appSyncService = appSyncService ?? const AppSyncService();
+
   static const String _spKey = 'cruises_json_v1';
   static const int _currentSchemaVersion = 2;
 
-  List<Cruise> _cruises = const [];
+  final AppSyncService _appSyncService;
   final Map<String, _IndexRef> _index = {};
+
+  List<Cruise> _cruises = const [];
   bool _loaded = false;
+  Timer? _autoSyncTimer;
+  Future<AppSyncResult>? _inFlightAppSync;
 
   bool get isLoaded => _loaded;
   List<Cruise> get cruises => _cruises;
 
-  // NEU: Auto-Sync-Status
-  Timer? _autoSyncTimer;
-  bool _isAutoSyncRunning = false;
-
   void _scheduleAutoSync() {
-    // kleine Entprellung, damit nicht bei jeder kleinen Änderung sofort gesynct wird
     _autoSyncTimer?.cancel();
     _autoSyncTimer = Timer(const Duration(seconds: 1), () {
       _runAutoSync();
@@ -63,47 +63,40 @@ class CruiseStore extends ChangeNotifier {
   }
 
   Future<void> _runAutoSync() async {
-    debugPrint("Sync triggered");
-    if (_isAutoSyncRunning) {
-      return;
-    }
-    _isAutoSyncRunning = true;
+    debugPrint('Sync triggered');
 
     try {
-      // WebDAV Settings laden – wenn nichts konfiguriert ist, einfach leise abbrechen
-      final settingsStore = const WebDavSettingsStore();
-      final settings = await settingsStore.load();
-      if (settings == null || !settings.isValid) {
+      final result = await _runAppSync();
+      if (result.wasSkipped) {
         return;
       }
 
-      final webDav = WebDavSync(settings);
-      final syncService = CruiseSyncService(webDav);
+      if (result.hasFailures) {
+        debugPrint(
+          'Auto sync completed with document sync failures: '
+          '${result.failureMessage}',
+        );
+        return;
+      }
 
-      // aktueller lokaler Stand als Input
-      final merged = await syncService.sync(_cruises);
-
-      // nur wenn erfolgreich: lokalen Store aktualisieren
-      _cruises = List<Cruise>.unmodifiable(merged);
-      _rebuildIndex();
-      await _persist();
-      notifyListeners();
       debugPrint('Auto sync complete');
     } catch (e) {
-      // Automatischer Sync: KEINE UI-Meldung, nur optionales Logging
       if (kDebugMode) {
-        // ignore: avoid_print
         debugPrint('Auto sync failed: $e');
       }
-    } finally {
-      _isAutoSyncRunning = false;
     }
   }
 
-  /// NEU: Öffentlicher Trigger für "App geöffnet / App im Vordergrund".
-  /// Kann direkt ohne Delay syncen oder (wenn du magst) über _scheduleAutoSync gehen.
   Future<void> triggerAutoSyncOnAppOpen() async {
     await _runAutoSync();
+  }
+
+  Future<AppSyncResult> runAppSync() async {
+    if (!_loaded) {
+      await load();
+    }
+
+    return _runAppSync();
   }
 
   Future<void> load() async {
@@ -185,7 +178,6 @@ class CruiseStore extends ChangeNotifier {
     };
   }
 
-  // Safe nullable lookup without returning null from a non-nullable closure
   Cruise? getCruise(String id) {
     for (final c in _cruises) {
       if (c.id == id) {
@@ -227,8 +219,6 @@ class CruiseStore extends ChangeNotifier {
     return null;
   }
 
-  // ---------------- Upserts ----------------
-
   Future<void> upsertCruise(Cruise cruise) async {
     final i = _cruises.indexWhere((c) => c.id == cruise.id);
     if (i >= 0) {
@@ -243,12 +233,13 @@ class CruiseStore extends ChangeNotifier {
     _rebuildIndex();
     await _persist();
     notifyListeners();
-
-    // NEU: automatische Synchronisation anstoßen (leise)
     _scheduleAutoSync();
   }
 
-  Future<void> upsertExcursion({required String cruiseId, required Excursion excursion}) async {
+  Future<void> upsertExcursion({
+    required String cruiseId,
+    required Excursion excursion,
+  }) async {
     final idx = _cruises.indexWhere((c) => c.id == cruiseId);
     if (idx < 0) {
       return;
@@ -264,7 +255,10 @@ class CruiseStore extends ChangeNotifier {
     await upsertCruise(cruise.copyWith(excursions: List.unmodifiable(list)));
   }
 
-  Future<void> upsertTravelItem({required String cruiseId, required TravelItem item}) async {
+  Future<void> upsertTravelItem({
+    required String cruiseId,
+    required TravelItem item,
+  }) async {
     final idx = _cruises.indexWhere((c) => c.id == cruiseId);
     if (idx < 0) {
       return;
@@ -280,7 +274,10 @@ class CruiseStore extends ChangeNotifier {
     await upsertCruise(cruise.copyWith(travel: List.unmodifiable(list)));
   }
 
-  Future<void> upsertRouteItem({required String cruiseId, required RouteItem item}) async {
+  Future<void> upsertRouteItem({
+    required String cruiseId,
+    required RouteItem item,
+  }) async {
     final idx = _cruises.indexWhere((c) => c.id == cruiseId);
     if (idx < 0) {
       return;
@@ -311,7 +308,9 @@ class CruiseStore extends ChangeNotifier {
       return;
     }
 
-    final excursionIndex = cruise.excursions.indexWhere((e) => e.id == excursionId);
+    final excursionIndex = cruise.excursions.indexWhere(
+      (e) => e.id == excursionId,
+    );
     if (excursionIndex < 0) {
       return;
     }
@@ -340,15 +339,13 @@ class CruiseStore extends ChangeNotifier {
     );
   }
 
-  // ---------------- Deletes ----------------
-
   Future<void> deleteCruise(String cruiseId) async {
-    _cruises = List<Cruise>.unmodifiable(_cruises.where((c) => c.id != cruiseId));
+    _cruises = List<Cruise>.unmodifiable(
+      _cruises.where((c) => c.id != cruiseId),
+    );
     _rebuildIndex();
     await _persist();
     notifyListeners();
-
-    // NEU:
     _scheduleAutoSync();
   }
 
@@ -363,7 +360,9 @@ class CruiseStore extends ChangeNotifier {
     }
     final cruise = _cruises[idx];
     final next = cruise.copyWith(
-      excursions: List.unmodifiable(cruise.excursions.where((e) => e.id != excursionId)),
+      excursions: List.unmodifiable(
+        cruise.excursions.where((e) => e.id != excursionId),
+      ),
     );
     await upsertCruise(next);
   }
@@ -379,7 +378,9 @@ class CruiseStore extends ChangeNotifier {
     }
     final cruise = _cruises[idx];
     final next = cruise.copyWith(
-      travel: List.unmodifiable(cruise.travel.where((t) => t.id != travelItemId)),
+      travel: List.unmodifiable(
+        cruise.travel.where((t) => t.id != travelItemId),
+      ),
     );
     await upsertCruise(next);
   }
@@ -400,8 +401,6 @@ class CruiseStore extends ChangeNotifier {
     await upsertCruise(next);
   }
 
-  // ---------------- Utilities ----------------
-
   void _rebuildIndex() {
     _index.clear();
     for (final c in _cruises) {
@@ -420,17 +419,45 @@ class CruiseStore extends ChangeNotifier {
 
   Future<void> replaceAll(List<Cruise> cruises) async {
     _cruises = List.unmodifiable(cruises);
-    _rebuildIndex();    // falls vorhanden
-    await _persist();   // damit SharedPreferences aktualisiert werden
+    _rebuildIndex();
+    await _persist();
     notifyListeners();
-
-    // NEU:
     _scheduleAutoSync();
   }
 
+  Future<AppSyncResult> _runAppSync() async {
+    final inFlightSync = _inFlightAppSync;
+    if (inFlightSync != null) {
+      return inFlightSync;
+    }
+
+    final syncFuture = _performAppSync();
+    _inFlightAppSync = syncFuture;
+
+    try {
+      return await syncFuture;
+    } finally {
+      if (identical(_inFlightAppSync, syncFuture)) {
+        _inFlightAppSync = null;
+      }
+    }
+  }
+
+  Future<AppSyncResult> _performAppSync() async {
+    final result = await _appSyncService.sync(localCruises: _cruises);
+    final mergedCruises = result.mergedCruises;
+    if (mergedCruises == null) {
+      return result;
+    }
+
+    _cruises = List<Cruise>.unmodifiable(mergedCruises);
+    _rebuildIndex();
+    await _persist();
+    notifyListeners();
+    return result;
+  }
 }
 
-// Small local helper to avoid package:collection dependency
 extension _FirstWhereOrNull<E> on Iterable<E> {
   E? firstWhereOrNull(bool Function(E e) test) {
     for (final e in this) {
