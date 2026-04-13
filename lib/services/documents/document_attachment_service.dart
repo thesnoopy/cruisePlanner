@@ -71,6 +71,7 @@ class DocumentAttachmentService {
     await _cruiseStore.upsertCruise(
       cruise.copyWith(documentIds: nextDocumentIds),
     );
+    await _softDeleteDocumentIfUnreferenced(documentId);
     return true;
   }
 
@@ -113,6 +114,7 @@ class DocumentAttachmentService {
       cruiseId: cruise.id,
       excursion: excursion.copyWith(documentIds: nextDocumentIds),
     );
+    await _softDeleteDocumentIfUnreferenced(documentId);
     return true;
   }
 
@@ -184,6 +186,7 @@ class DocumentAttachmentService {
       cruiseId: cruise.id,
       item: nextTravelItem,
     );
+    await _softDeleteDocumentIfUnreferenced(documentId);
     return true;
   }
 
@@ -255,6 +258,7 @@ class DocumentAttachmentService {
       cruiseId: cruise.id,
       item: portCall.copyWith(documentIds: nextDocumentIds),
     );
+    await _softDeleteDocumentIfUnreferenced(documentId);
     return true;
   }
 
@@ -332,6 +336,14 @@ class DocumentAttachmentService {
 
   Future<bool> isDocumentReferenced(String documentId) async {
     return (await countDocumentReferences(documentId)) > 0;
+  }
+
+  Future<void> _softDeleteDocumentIfUnreferenced(String documentId) async {
+    if (await isDocumentReferenced(documentId)) {
+      return;
+    }
+
+    await _documentStore.deleteDocumentSoft(documentId);
   }
 
   Future<void> _ensureCruisesLoaded() async {

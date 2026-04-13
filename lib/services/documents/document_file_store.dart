@@ -105,7 +105,49 @@ class DocumentFileStore {
     }
 
     await file.delete();
+    await _deleteDocumentDirectoryIfEmpty(relativePath);
     return true;
+  }
+
+  Future<void> _deleteDocumentDirectoryIfEmpty(String relativePath) async {
+    final normalizedRelativePath = relativePath.trim();
+    if (normalizedRelativePath.isEmpty) {
+      return;
+    }
+
+    final normalizedPath = p.normalize(
+      normalizedRelativePath.replaceAll('\\', '/'),
+    );
+    final segments = p.split(normalizedPath);
+    if (segments.length != 3 ||
+        segments.first != _documentsFolderName ||
+        segments[2].isEmpty) {
+      return;
+    }
+
+    final documentDirectory = await resolveAbsoluteDocumentDirectory(segments[1]);
+    if (!await documentDirectory.exists()) {
+      return;
+    }
+
+    final remainingEntries = await documentDirectory.list(followLinks: false).take(1).toList();
+    if (remainingEntries.isNotEmpty) {
+      return;
+    }
+
+    await documentDirectory.delete();
+  }
+
+  Future<Directory> resolveAbsoluteDocumentDirectory(String documentId) async {
+    final normalizedDocumentId = documentId.trim();
+    if (normalizedDocumentId.isEmpty) {
+      throw ArgumentError.value(documentId, 'documentId', 'Must not be empty.');
+    }
+
+    final rootDirectory = await getRootDirectory();
+    return Directory(
+      p.join(rootDirectory.path, normalizedDocumentId),
+    );
   }
 
   String _normalizeExtension(String fileExtension) {

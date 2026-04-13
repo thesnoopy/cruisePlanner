@@ -144,6 +144,8 @@ class DocumentRemoteStore {
       }
       rethrow;
     }
+
+    await _deleteDocumentDirectoryIfEmpty(client, document.id);
   }
 
   String buildRemoteFilePath(DocumentRecord document) {
@@ -227,11 +229,47 @@ class DocumentRemoteStore {
     }
   }
 
+  Future<void> _deleteDocumentDirectoryIfEmpty(
+    webdav.Client client,
+    String documentId,
+  ) async {
+    final remoteDirectoryPath = buildRemoteDocumentDirectoryPath(documentId);
+
+    try {
+      final entries = await client.readDir(remoteDirectoryPath);
+      if (entries.isNotEmpty) {
+        return;
+      }
+    } catch (error) {
+      if (_isMissingRemoteResourceError(error)) {
+        return;
+      }
+      rethrow;
+    }
+
+    try {
+      await client.remove(remoteDirectoryPath);
+    } catch (error) {
+      if (_isMissingRemoteResourceError(error) ||
+          _isSafeToIgnoreNonEmptyDirectoryError(error)) {
+        return;
+      }
+      rethrow;
+    }
+  }
+
   bool _isMissingRemoteResourceError(Object error) {
     final message = error.toString().toLowerCase();
     return message.contains('404') ||
         message.contains('not found') ||
         message.contains('does not exist');
+  }
+
+  bool _isSafeToIgnoreNonEmptyDirectoryError(Object error) {
+    final message = error.toString().toLowerCase();
+    return message.contains('directory not empty') ||
+        message.contains('not empty') ||
+        message.contains('409');
   }
 
   String get _remoteBaseDirectoryPath => _normalizePath(_settings.remotePath);
