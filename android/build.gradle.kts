@@ -1,7 +1,3 @@
-import org.gradle.api.tasks.compile.JavaCompile
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-import org.jetbrains.kotlin.gradle.tasks.KotlinJvmCompile
-
 allprojects {
     repositories {
         google()
@@ -21,26 +17,6 @@ subprojects {
 }
 subprojects {
     project.evaluationDependsOn(":app")
-
-    pluginManager.withPlugin("com.android.application") {
-        tasks.withType<JavaCompile>().configureEach {
-            sourceCompatibility = JavaVersion.VERSION_17.toString()
-            targetCompatibility = JavaVersion.VERSION_17.toString()
-        }
-        tasks.withType<KotlinJvmCompile>().configureEach {
-            compilerOptions.jvmTarget.set(JvmTarget.JVM_17)
-        }
-    }
-
-    pluginManager.withPlugin("com.android.library") {
-        tasks.withType<JavaCompile>().configureEach {
-            sourceCompatibility = JavaVersion.VERSION_17.toString()
-            targetCompatibility = JavaVersion.VERSION_17.toString()
-        }
-        tasks.withType<KotlinJvmCompile>().configureEach {
-            compilerOptions.jvmTarget.set(JvmTarget.JVM_17)
-        }
-    }
 }
 
 tasks.register<Delete>("clean") {
