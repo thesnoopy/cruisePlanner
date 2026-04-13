@@ -674,5 +674,112 @@
   "documentKindUnknown": "Dokument",
   "@documentKindUnknown": {
     "description": "Fallback-Bezeichnung für unbekannte Dokumenttypen"
+  },
+  "sharePendingTitle": "Geteilte Inhalte warten",
+  "@sharePendingTitle": {
+    "description": "Titel der kompakten Karte für ausstehende geteilte Inhalte"
+  },
+  "sharePendingSummary": "{batchCount} Stapel mit {itemCount} Elementen warten.",
+  "@sharePendingSummary": {
+    "description": "Zusammenfassung ausstehender Share-Stapel und Elemente",
+    "placeholders": {
+      "batchCount": {
+        "type": "int"
+      },
+      "itemCount": {
+        "type": "int"
+      }
+    }
+  },
+  "sharePendingLatest": "Zuletzt: {summary}",
+  "@sharePendingLatest": {
+    "description": "Kurzinfo zum zuletzt empfangenen ausstehenden Share-Inhalt",
+    "placeholders": {
+      "summary": {
+        "type": "String"
+      }
+    }
+  },
+  "sharePendingReviewAction": "Ansehen",
+  "@sharePendingReviewAction": {
+    "description": "Aktion zum Öffnen des Pending-Share-Review-Screens"
+  },
+  "sharePendingClearAllAction": "Alle entfernen",
+  "@sharePendingClearAllAction": {
+    "description": "Aktion zum Entfernen aller ausstehenden Share-Inhalte"
+  },
+  "sharePendingAdditionalItems": "{label} und {count} weitere",
+  "@sharePendingAdditionalItems": {
+    "description": "Kurzinfo für einen Share-Stapel mit mehr als einem Element",
+    "placeholders": {
+      "label": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "shareReviewTitle": "Geteilte Inhalte",
+  "@shareReviewTitle": {
+    "description": "Titel des Pending-Share-Review-Screens"
+  },
+  "shareReviewEmpty": "Aktuell gibt es keine ausstehenden geteilten Inhalte.",
+  "@shareReviewEmpty": {
+    "description": "Leerzustand für den Pending-Share-Review-Screen"
+  },
+  "shareReviewBatchTitle": "{itemCount} geteilte Elemente",
+  "@shareReviewBatchTitle": {
+    "description": "Titel für einen einzelnen Share-Stapel im Review-Screen",
+    "placeholders": {
+      "itemCount": {
+        "type": "int"
+      }
+    }
+  },
+  "shareReviewReceivedAt": "Empfangen {receivedAt}",
+  "@shareReviewReceivedAt": {
+    "description": "Zeitstempel für einen empfangenen Share-Stapel",
+    "placeholders": {
+      "receivedAt": {
+        "type": "String"
+      }
+    }
+  },
+  "shareReviewClearBatchAction": "Entfernen",
+  "@shareReviewClearBatchAction": {
+    "description": "Aktion zum Entfernen eines einzelnen ausstehenden Share-Stapels"
+  },
+  "shareAssignAction": "Zuweisen",
+  "@shareAssignAction": {
+    "description": "Aktion zum Starten der Zuweisung eines geteilten Elements zu einem bestehenden Ziel"
+  },
+  "shareAssignTitle": "Geteiltes Element zuweisen",
+  "@shareAssignTitle": {
+    "description": "Titel des Screens für die Zuweisung geteilter Elemente"
+  },
+  "shareAssignSelectTarget": "Wähle aus, wohin dieses geteilte Element zugeordnet werden soll.",
+  "@shareAssignSelectTarget": {
+    "description": "Hilfstext über der Liste der Zuweisungsziele"
+  },
+  "shareAssignUnsupported": "Dieser Typ geteilter Inhalte kann in diesem Schritt noch nicht zugewiesen werden.",
+  "@shareAssignUnsupported": {
+    "description": "Hinweis für noch nicht unterstützte Typen geteilter Inhalte"
+  },
+  "shareAssignUnsupportedShort": "Noch nicht unterstützt",
+  "@shareAssignUnsupportedShort": {
+    "description": "Kurze deaktivierte Aktionsbeschriftung für noch nicht unterstützte Share-Typen"
+  },
+  "shareAssignItemUnavailable": "Dieses geteilte Element ist nicht mehr verfügbar.",
+  "@shareAssignItemUnavailable": {
+    "description": "Hinweis, wenn ein geteiltes Element während der Zuweisung nicht mehr gefunden wird"
+  },
+  "shareAssignNoTargets": "Es sind noch keine zuweisbaren Ziele verfügbar.",
+  "@shareAssignNoTargets": {
+    "description": "Hinweis, wenn noch keine bestehenden Ziele für eine Zuweisung vorhanden sind"
   }
 }
+
+
+
+

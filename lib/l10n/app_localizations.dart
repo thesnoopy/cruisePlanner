@@ -988,6 +988,114 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Document'**
   String get documentKindUnknown;
+
+  /// Title for the lightweight pending share handoff card
+  ///
+  /// In en, this message translates to:
+  /// **'Pending shared items'**
+  String get sharePendingTitle;
+
+  /// Summary of pending share batches and items
+  ///
+  /// In en, this message translates to:
+  /// **'{batchCount} batches waiting with {itemCount} items.'**
+  String sharePendingSummary(int batchCount, int itemCount);
+
+  /// Summary of the latest pending shared content
+  ///
+  /// In en, this message translates to:
+  /// **'Latest: {summary}'**
+  String sharePendingLatest(String summary);
+
+  /// Action to open the pending share review screen
+  ///
+  /// In en, this message translates to:
+  /// **'Review'**
+  String get sharePendingReviewAction;
+
+  /// Action to clear all pending shared items
+  ///
+  /// In en, this message translates to:
+  /// **'Clear all'**
+  String get sharePendingClearAllAction;
+
+  /// Summary for a batch that has additional items after the first preview label
+  ///
+  /// In en, this message translates to:
+  /// **'{label} and {count} more'**
+  String sharePendingAdditionalItems(String label, int count);
+
+  /// Title of the pending share review screen
+  ///
+  /// In en, this message translates to:
+  /// **'Shared items'**
+  String get shareReviewTitle;
+
+  /// Empty state for the pending share review screen
+  ///
+  /// In en, this message translates to:
+  /// **'No pending shared items right now.'**
+  String get shareReviewEmpty;
+
+  /// Title for a single batch in the pending share review screen
+  ///
+  /// In en, this message translates to:
+  /// **'{itemCount} shared items'**
+  String shareReviewBatchTitle(int itemCount);
+
+  /// Timestamp label for a received shared batch
+  ///
+  /// In en, this message translates to:
+  /// **'Received {receivedAt}'**
+  String shareReviewReceivedAt(String receivedAt);
+
+  /// Action to clear a single pending share batch
+  ///
+  /// In en, this message translates to:
+  /// **'Clear'**
+  String get shareReviewClearBatchAction;
+
+  /// Action to start assigning a pending shared item to an existing target
+  ///
+  /// In en, this message translates to:
+  /// **'Assign'**
+  String get shareAssignAction;
+
+  /// Title of the pending share assignment screen
+  ///
+  /// In en, this message translates to:
+  /// **'Assign shared item'**
+  String get shareAssignTitle;
+
+  /// Helper text above the list of assignment targets
+  ///
+  /// In en, this message translates to:
+  /// **'Choose where this shared item should go.'**
+  String get shareAssignSelectTarget;
+
+  /// Message shown when a pending shared item is not yet supported by the assignment flow
+  ///
+  /// In en, this message translates to:
+  /// **'This shared item type cannot be assigned yet.'**
+  String get shareAssignUnsupported;
+
+  /// Short disabled action label for unsupported pending shared item types
+  ///
+  /// In en, this message translates to:
+  /// **'Not yet supported'**
+  String get shareAssignUnsupportedShort;
+
+  /// Message shown when a pending shared item cannot be found anymore during assignment
+  ///
+  /// In en, this message translates to:
+  /// **'This shared item is no longer available.'**
+  String get shareAssignItemUnavailable;
+
+  /// Message shown when there are no existing cruise targets to assign a shared item to
+  ///
+  /// In en, this message translates to:
+  /// **'No assignable targets are available yet.'**
+  String get shareAssignNoTargets;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

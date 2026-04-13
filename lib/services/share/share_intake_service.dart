@@ -45,6 +45,33 @@ class ShareIntakeService extends ChangeNotifier {
   ShareIntakeBatch? get latestPendingBatch =>
       _pendingBatches.isEmpty ? null : _pendingBatches.last;
 
+  ShareIntakeBatch? getPendingBatch(String batchId) {
+    final normalizedId = batchId.trim();
+    if (normalizedId.isEmpty) {
+      return null;
+    }
+
+    for (final batch in _pendingBatches) {
+      if (batch.id == normalizedId) {
+        return batch;
+      }
+    }
+
+    return null;
+  }
+
+  ShareIntakeItem? getPendingItem({
+    required String batchId,
+    required int itemIndex,
+  }) {
+    final batch = getPendingBatch(batchId);
+    if (batch == null || itemIndex < 0 || itemIndex >= batch.items.length) {
+      return null;
+    }
+
+    return batch.items[itemIndex];
+  }
+
   bool get hasPendingBatches => _pendingBatches.isNotEmpty;
 
   int get pendingItemCount => _pendingBatches.fold<int>(
@@ -75,6 +102,48 @@ class ShareIntakeService extends ChangeNotifier {
     }
 
     _pendingBatches = const <ShareIntakeBatch>[];
+    await _persist();
+    notifyListeners();
+  }
+
+  Future<void> removePendingItem({
+    required String batchId,
+    required int itemIndex,
+  }) async {
+    final normalizedId = batchId.trim();
+    if (normalizedId.isEmpty) {
+      return;
+    }
+
+    final batchIndex = _pendingBatches.indexWhere(
+      (batch) => batch.id == normalizedId,
+    );
+    if (batchIndex < 0) {
+      return;
+    }
+
+    final batch = _pendingBatches[batchIndex];
+    if (itemIndex < 0 || itemIndex >= batch.items.length) {
+      return;
+    }
+
+    final nextItems = <ShareIntakeItem>[
+      ...batch.items.take(itemIndex),
+      ...batch.items.skip(itemIndex + 1),
+    ];
+    final nextBatches = <ShareIntakeBatch>[
+      ..._pendingBatches.take(batchIndex),
+      if (nextItems.isNotEmpty)
+        ShareIntakeBatch(
+          id: batch.id,
+          source: batch.source,
+          receivedAt: batch.receivedAt,
+          items: List<ShareIntakeItem>.unmodifiable(nextItems),
+        ),
+      ..._pendingBatches.skip(batchIndex + 1),
+    ];
+
+    _pendingBatches = List<ShareIntakeBatch>.unmodifiable(nextBatches);
     await _persist();
     notifyListeners();
   }

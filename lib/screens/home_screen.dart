@@ -6,10 +6,13 @@ import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import '../models/cruise.dart';
 import '../models/identifiable.dart';
 import '../models/period.dart';
+import '../models/share/share_intake_payload.dart';
 import '../models/ship.dart';
+import '../services/share/share_intake_service.dart';
 import '../store/cruise_store.dart';
 import '../widgets/confirmation_dialog.dart';
 import 'cruise_hub_screen.dart';
+import 'share/pending_share_review_screen.dart';
 import 'settings/webdav_settings_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -20,6 +23,7 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
+  final ShareIntakeService _shareIntakeService = ShareIntakeService();
   CruiseStore? _store;
   bool _loading = true;
 
@@ -171,53 +175,149 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           ),
         ],
       ),
-      body: cruises.isEmpty
-          ? Center(child: Text(loc.homeNoCruises))
-          : MasonryGridView.count(
-              key: const PageStorageKey('home_masonry'),
-              padding: const EdgeInsets.all(12),
-              crossAxisCount: _columnsForWidth(context),
-              mainAxisSpacing: 12,
-              crossAxisSpacing: 12,
-              itemCount: cruises.length,
-              itemBuilder: (context, index) {
-                final c = cruises[index];
-                return _CruiseTile(
-                  cruise: c,
-                  onTap: () async {
-                    await Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) => CruiseHubScreen(cruiseId: c.id),
-                      ),
-                    );
-                    await _reload();
-                  },
-                  onDelete: () async {
-                    final confirmed = await showConfirmationDialog(
-                      context: context,
-                      title: loc.deleteCruiseTitle,
-                      message: loc.deleteCruiseQuestionmark,
-                      okText: loc.delete,
-                      cancelText: loc.confirmCancel,
-                      icon: Icons.warning_amber_rounded,
-                      destructive: true,
-                    );
+      body: AnimatedBuilder(
+        animation: _shareIntakeService,
+        builder: (context, _) {
+          final hasPendingShares = _shareIntakeService.hasPendingBatches;
 
-                    if (!confirmed) {
-                      return;
-                    }
-                    final s = CruiseStore();
-                    await s.load();
-                    await s.deleteCruise(c.id);
-                    await _reload();
-                  },
-                );
-              },
-            ),
+          return Column(
+            children: [
+              if (hasPendingShares)
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(12, 12, 12, 0),
+                  child: _PendingShareSummaryCard(
+                    service: _shareIntakeService,
+                    onReview: () async {
+                      await Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => const PendingShareReviewScreen(),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              Expanded(
+                child: cruises.isEmpty
+                    ? Center(child: Text(loc.homeNoCruises))
+                    : MasonryGridView.count(
+                        key: const PageStorageKey('home_masonry'),
+                        padding: const EdgeInsets.all(12),
+                        crossAxisCount: _columnsForWidth(context),
+                        mainAxisSpacing: 12,
+                        crossAxisSpacing: 12,
+                        itemCount: cruises.length,
+                        itemBuilder: (context, index) {
+                          final c = cruises[index];
+                          return _CruiseTile(
+                            cruise: c,
+                            onTap: () async {
+                              await Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (_) => CruiseHubScreen(cruiseId: c.id),
+                                ),
+                              );
+                              await _reload();
+                            },
+                            onDelete: () async {
+                              final confirmed = await showConfirmationDialog(
+                                context: context,
+                                title: loc.deleteCruiseTitle,
+                                message: loc.deleteCruiseQuestionmark,
+                                okText: loc.delete,
+                                cancelText: loc.confirmCancel,
+                                icon: Icons.warning_amber_rounded,
+                                destructive: true,
+                              );
+
+                              if (!confirmed) {
+                                return;
+                              }
+                              final s = CruiseStore();
+                              await s.load();
+                              await s.deleteCruise(c.id);
+                              await _reload();
+                            },
+                          );
+                        },
+                      ),
+              ),
+            ],
+          );
+        },
+      ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _createCruise,
         label: Text(loc.homeNewCruiseLabel),
         icon: const Icon(Icons.add),
+      ),
+    );
+  }
+}
+
+class _PendingShareSummaryCard extends StatelessWidget {
+  const _PendingShareSummaryCard({
+    required this.service,
+    required this.onReview,
+  });
+
+  final ShareIntakeService service;
+  final Future<void> Function() onReview;
+
+  @override
+  Widget build(BuildContext context) {
+    final loc = AppLocalizations.of(context)!;
+    final latestBatch = service.latestPendingBatch;
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(
+                  Icons.share_outlined,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    loc.sharePendingTitle,
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Text(
+              loc.sharePendingSummary(
+                service.pendingBatches.length,
+                service.pendingItemCount,
+              ),
+            ),
+            if (latestBatch != null) ...[
+              const SizedBox(height: 8),
+              Text(loc.sharePendingLatest(_describeBatch(context, latestBatch))),
+            ],
+            const SizedBox(height: 16),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                FilledButton.icon(
+                  onPressed: onReview,
+                  icon: const Icon(Icons.visibility_outlined),
+                  label: Text(loc.sharePendingReviewAction),
+                ),
+                TextButton(
+                  onPressed: service.clearAllPending,
+                  child: Text(loc.sharePendingClearAllAction),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -284,4 +384,31 @@ class _CruiseTile extends StatelessWidget {
       ),
     );
   }
+}
+
+String _describeBatch(BuildContext context, ShareIntakeBatch batch) {
+  final firstItem = batch.items.first;
+  final primaryLabel = _describeItem(firstItem);
+  final additionalCount = batch.items.length - 1;
+
+  if (additionalCount <= 0) {
+    return primaryLabel;
+  }
+
+  final loc = AppLocalizations.of(context)!;
+  return loc.sharePendingAdditionalItems(primaryLabel, additionalCount);
+}
+
+String _describeItem(ShareIntakeItem item) {
+  final preferredLabel = switch (item.kind) {
+    ShareIntakeItemKind.file || ShareIntakeItemKind.image =>
+      item.fileName?.trim(),
+    ShareIntakeItemKind.text || ShareIntakeItemKind.url => item.value.trim(),
+  };
+
+  if (preferredLabel != null && preferredLabel.isNotEmpty) {
+    return preferredLabel;
+  }
+
+  return item.value.trim();
 }

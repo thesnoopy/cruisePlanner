@@ -456,4 +456,72 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get documentKindUnknown => 'Document';
+
+  @override
+  String get sharePendingTitle => 'Pending shared items';
+
+  @override
+  String sharePendingSummary(int batchCount, int itemCount) {
+    return '$batchCount batches waiting with $itemCount items.';
+  }
+
+  @override
+  String sharePendingLatest(String summary) {
+    return 'Latest: $summary';
+  }
+
+  @override
+  String get sharePendingReviewAction => 'Review';
+
+  @override
+  String get sharePendingClearAllAction => 'Clear all';
+
+  @override
+  String sharePendingAdditionalItems(String label, int count) {
+    return '$label and $count more';
+  }
+
+  @override
+  String get shareReviewTitle => 'Shared items';
+
+  @override
+  String get shareReviewEmpty => 'No pending shared items right now.';
+
+  @override
+  String shareReviewBatchTitle(int itemCount) {
+    return '$itemCount shared items';
+  }
+
+  @override
+  String shareReviewReceivedAt(String receivedAt) {
+    return 'Received $receivedAt';
+  }
+
+  @override
+  String get shareReviewClearBatchAction => 'Clear';
+
+  @override
+  String get shareAssignAction => 'Assign';
+
+  @override
+  String get shareAssignTitle => 'Assign shared item';
+
+  @override
+  String get shareAssignSelectTarget =>
+      'Choose where this shared item should go.';
+
+  @override
+  String get shareAssignUnsupported =>
+      'This shared item type cannot be assigned yet.';
+
+  @override
+  String get shareAssignUnsupportedShort => 'Not yet supported';
+
+  @override
+  String get shareAssignItemUnavailable =>
+      'This shared item is no longer available.';
+
+  @override
+  String get shareAssignNoTargets =>
+      'No assignable targets are available yet.';
 }

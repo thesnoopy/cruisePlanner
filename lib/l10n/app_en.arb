@@ -387,5 +387,108 @@
   "documentKindUnknown": "Document",
   "@documentKindUnknown": {
     "description": "Fallback label for unknown document kinds"
+  },
+  "sharePendingTitle": "Pending shared items",
+  "@sharePendingTitle": {
+    "description": "Title for the lightweight pending share handoff card"
+  },
+  "sharePendingSummary": "{batchCount} batches waiting with {itemCount} items.",
+  "@sharePendingSummary": {
+    "description": "Summary of pending share batches and items",
+    "placeholders": {
+      "batchCount": {
+        "type": "int"
+      },
+      "itemCount": {
+        "type": "int"
+      }
+    }
+  },
+  "sharePendingLatest": "Latest: {summary}",
+  "@sharePendingLatest": {
+    "description": "Summary of the latest pending shared content",
+    "placeholders": {
+      "summary": {
+        "type": "String"
+      }
+    }
+  },
+  "sharePendingReviewAction": "Review",
+  "@sharePendingReviewAction": {
+    "description": "Action to open the pending share review screen"
+  },
+  "sharePendingClearAllAction": "Clear all",
+  "@sharePendingClearAllAction": {
+    "description": "Action to clear all pending shared items"
+  },
+  "sharePendingAdditionalItems": "{label} and {count} more",
+  "@sharePendingAdditionalItems": {
+    "description": "Summary for a batch with more than one item",
+    "placeholders": {
+      "label": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "shareReviewTitle": "Shared items",
+  "@shareReviewTitle": {
+    "description": "Title of the pending share review screen"
+  },
+  "shareReviewEmpty": "No pending shared items right now.",
+  "@shareReviewEmpty": {
+    "description": "Empty state for the pending share review screen"
+  },
+  "shareReviewBatchTitle": "{itemCount} shared items",
+  "@shareReviewBatchTitle": {
+    "description": "Title for a single batch in the pending share review screen",
+    "placeholders": {
+      "itemCount": {
+        "type": "int"
+      }
+    }
+  },
+  "shareReviewReceivedAt": "Received {receivedAt}",
+  "@shareReviewReceivedAt": {
+    "description": "Timestamp label for a received shared batch",
+    "placeholders": {
+      "receivedAt": {
+        "type": "String"
+      }
+    }
+  },
+  "shareReviewClearBatchAction": "Clear",
+  "@shareReviewClearBatchAction": {
+    "description": "Action to clear a single pending share batch"
+  },
+  "shareAssignAction": "Assign",
+  "@shareAssignAction": {
+    "description": "Action to start assigning a pending shared item to an existing target"
+  },
+  "shareAssignTitle": "Assign shared item",
+  "@shareAssignTitle": {
+    "description": "Title of the pending share assignment screen"
+  },
+  "shareAssignSelectTarget": "Choose where this shared item should go.",
+  "@shareAssignSelectTarget": {
+    "description": "Helper text above the list of assignment targets"
+  },
+  "shareAssignUnsupported": "This shared item type cannot be assigned yet.",
+  "@shareAssignUnsupported": {
+    "description": "Message shown when a pending shared item is not yet supported by the assignment flow"
+  },
+  "shareAssignUnsupportedShort": "Not yet supported",
+  "@shareAssignUnsupportedShort": {
+    "description": "Short disabled action label for unsupported pending shared item types"
+  },
+  "shareAssignItemUnavailable": "This shared item is no longer available.",
+  "@shareAssignItemUnavailable": {
+    "description": "Message shown when a pending shared item cannot be found anymore during assignment"
+  },
+  "shareAssignNoTargets": "No assignable targets are available yet.",
+  "@shareAssignNoTargets": {
+    "description": "Message shown when there are no existing cruise targets to assign a shared item to"
   }
 }

@@ -456,4 +456,72 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get documentKindUnknown => 'Dokument';
+
+  @override
+  String get sharePendingTitle => 'Geteilte Inhalte warten';
+
+  @override
+  String sharePendingSummary(int batchCount, int itemCount) {
+    return '$batchCount Stapel mit $itemCount Elementen warten.';
+  }
+
+  @override
+  String sharePendingLatest(String summary) {
+    return 'Zuletzt: $summary';
+  }
+
+  @override
+  String get sharePendingReviewAction => 'Ansehen';
+
+  @override
+  String get sharePendingClearAllAction => 'Alle entfernen';
+
+  @override
+  String sharePendingAdditionalItems(String label, int count) {
+    return '$label und $count weitere';
+  }
+
+  @override
+  String get shareReviewTitle => 'Geteilte Inhalte';
+
+  @override
+  String get shareReviewEmpty => 'Aktuell gibt es keine ausstehenden geteilten Inhalte.';
+
+  @override
+  String shareReviewBatchTitle(int itemCount) {
+    return '$itemCount geteilte Elemente';
+  }
+
+  @override
+  String shareReviewReceivedAt(String receivedAt) {
+    return 'Empfangen $receivedAt';
+  }
+
+  @override
+  String get shareReviewClearBatchAction => 'Entfernen';
+
+  @override
+  String get shareAssignAction => 'Zuweisen';
+
+  @override
+  String get shareAssignTitle => 'Geteiltes Element zuweisen';
+
+  @override
+  String get shareAssignSelectTarget =>
+      'Waehle aus, wohin dieses geteilte Element zugeordnet werden soll.';
+
+  @override
+  String get shareAssignUnsupported =>
+      'Dieser Typ geteilter Inhalte kann in diesem Schritt noch nicht zugewiesen werden.';
+
+  @override
+  String get shareAssignUnsupportedShort => 'Noch nicht unterstuetzt';
+
+  @override
+  String get shareAssignItemUnavailable =>
+      'Dieses geteilte Element ist nicht mehr verfuegbar.';
+
+  @override
+  String get shareAssignNoTargets =>
+      'Es sind noch keine zuweisbaren Ziele verfuegbar.';
 }
