@@ -4,6 +4,8 @@ enum DocumentSyncExecutionAction {
   upload,
   download,
   localFileRecovery,
+  localSoftDeletePropagation,
+  remoteSoftDeletePropagation,
 }
 
 class DocumentSyncExecutionFailure {
@@ -25,6 +27,8 @@ class DocumentSyncExecutionResult {
     required this.completedUploadDocumentIds,
     required this.completedDownloadDocumentIds,
     required this.completedLocalFileRecoveryDocumentIds,
+    required this.completedLocalSoftDeleteDocumentIds,
+    required this.completedRemoteSoftDeleteDocumentIds,
     required this.failures,
   });
 
@@ -33,6 +37,8 @@ class DocumentSyncExecutionResult {
   final List<String> completedUploadDocumentIds;
   final List<String> completedDownloadDocumentIds;
   final List<String> completedLocalFileRecoveryDocumentIds;
+  final List<String> completedLocalSoftDeleteDocumentIds;
+  final List<String> completedRemoteSoftDeleteDocumentIds;
   final List<DocumentSyncExecutionFailure> failures;
 
   bool get hasAnalysisError => analysisErrorMessage != null;
@@ -42,5 +48,7 @@ class DocumentSyncExecutionResult {
   bool get hasSuccessfulActions =>
       completedUploadDocumentIds.isNotEmpty ||
       completedDownloadDocumentIds.isNotEmpty ||
-      completedLocalFileRecoveryDocumentIds.isNotEmpty;
+      completedLocalFileRecoveryDocumentIds.isNotEmpty ||
+      completedLocalSoftDeleteDocumentIds.isNotEmpty ||
+      completedRemoteSoftDeleteDocumentIds.isNotEmpty;
 }

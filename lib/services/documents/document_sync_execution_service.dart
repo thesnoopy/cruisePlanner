@@ -54,6 +54,9 @@ class DocumentSyncExecutionService {
       final phase4Result = await _executeAnalyzedPhase4LocalFileRecoveries(
         analysis,
       );
+      final phase5Result = await _executeAnalyzedPhase5SoftDeletePropagations(
+        analysis,
+      );
 
       return DocumentFullSyncExecutionResult(
         analysis: analysis,
@@ -61,9 +64,11 @@ class DocumentSyncExecutionService {
         executedPhases: List<DocumentSyncExecutionPhase>.unmodifiable(const [
           DocumentSyncExecutionPhase.phase3UploadDownload,
           DocumentSyncExecutionPhase.phase4LocalFileRecovery,
+          DocumentSyncExecutionPhase.phase5SoftDeletePropagation,
         ]),
         phase3Result: phase3Result,
         phase4Result: phase4Result,
+        phase5Result: phase5Result,
       );
     } catch (error) {
       return DocumentFullSyncExecutionResult(
@@ -72,6 +77,7 @@ class DocumentSyncExecutionService {
         executedPhases: const <DocumentSyncExecutionPhase>[],
         phase3Result: null,
         phase4Result: null,
+        phase5Result: null,
       );
     }
   }
@@ -87,6 +93,8 @@ class DocumentSyncExecutionService {
         completedUploadDocumentIds: const <String>[],
         completedDownloadDocumentIds: const <String>[],
         completedLocalFileRecoveryDocumentIds: const <String>[],
+        completedLocalSoftDeleteDocumentIds: const <String>[],
+        completedRemoteSoftDeleteDocumentIds: const <String>[],
         failures: const <DocumentSyncExecutionFailure>[],
       );
     }
@@ -103,6 +111,8 @@ class DocumentSyncExecutionService {
         completedUploadDocumentIds: const <String>[],
         completedDownloadDocumentIds: const <String>[],
         completedLocalFileRecoveryDocumentIds: const <String>[],
+        completedLocalSoftDeleteDocumentIds: const <String>[],
+        completedRemoteSoftDeleteDocumentIds: const <String>[],
         failures: const <DocumentSyncExecutionFailure>[],
       );
     }
@@ -135,6 +145,8 @@ class DocumentSyncExecutionService {
         completedDownloadDocumentIds,
       ),
       completedLocalFileRecoveryDocumentIds: const <String>[],
+      completedLocalSoftDeleteDocumentIds: const <String>[],
+      completedRemoteSoftDeleteDocumentIds: const <String>[],
       failures: List<DocumentSyncExecutionFailure>.unmodifiable(failures),
     );
   }
@@ -158,6 +170,43 @@ class DocumentSyncExecutionService {
       completedDownloadDocumentIds: const <String>[],
       completedLocalFileRecoveryDocumentIds: List<String>.unmodifiable(
         completedLocalFileRecoveryDocumentIds,
+      ),
+      completedLocalSoftDeleteDocumentIds: const <String>[],
+      completedRemoteSoftDeleteDocumentIds: const <String>[],
+      failures: List<DocumentSyncExecutionFailure>.unmodifiable(failures),
+    );
+  }
+
+  Future<DocumentSyncExecutionResult>
+  _executeAnalyzedPhase5SoftDeletePropagations(
+    DocumentSyncAnalysisResult analysis,
+  ) async {
+    final completedLocalSoftDeleteDocumentIds = <String>[];
+    final completedRemoteSoftDeleteDocumentIds = <String>[];
+    final failures = <DocumentSyncExecutionFailure>[];
+
+    await _executeLocalSoftDeletePropagations(
+      analysis: analysis,
+      completedLocalSoftDeleteDocumentIds: completedLocalSoftDeleteDocumentIds,
+      failures: failures,
+    );
+    await _executeRemoteSoftDeletePropagations(
+      analysis: analysis,
+      completedRemoteSoftDeleteDocumentIds: completedRemoteSoftDeleteDocumentIds,
+      failures: failures,
+    );
+
+    return DocumentSyncExecutionResult(
+      analysis: analysis,
+      analysisErrorMessage: null,
+      completedUploadDocumentIds: const <String>[],
+      completedDownloadDocumentIds: const <String>[],
+      completedLocalFileRecoveryDocumentIds: const <String>[],
+      completedLocalSoftDeleteDocumentIds: List<String>.unmodifiable(
+        completedLocalSoftDeleteDocumentIds,
+      ),
+      completedRemoteSoftDeleteDocumentIds: List<String>.unmodifiable(
+        completedRemoteSoftDeleteDocumentIds,
       ),
       failures: List<DocumentSyncExecutionFailure>.unmodifiable(failures),
     );
@@ -316,6 +365,73 @@ class DocumentSyncExecutionService {
     }
   }
 
+  Future<void> _executeLocalSoftDeletePropagations({
+    required DocumentSyncAnalysisResult analysis,
+    required List<String> completedLocalSoftDeleteDocumentIds,
+    required List<DocumentSyncExecutionFailure> failures,
+  }) async {
+    if (analysis.deletePropagationPlan.plannedLocalSoftDeletes.isEmpty) {
+      return;
+    }
+
+    for (final localSoftDelete
+        in analysis.deletePropagationPlan.plannedLocalSoftDeletes) {
+      try {
+        await _documentStore.saveDocument(localSoftDelete.remoteRecord);
+        completedLocalSoftDeleteDocumentIds.add(localSoftDelete.documentId);
+      } catch (error) {
+        failures.add(
+          DocumentSyncExecutionFailure(
+            documentId: localSoftDelete.documentId,
+            action: DocumentSyncExecutionAction.localSoftDeletePropagation,
+            errorMessage: error.toString(),
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _executeRemoteSoftDeletePropagations({
+    required DocumentSyncAnalysisResult analysis,
+    required List<String> completedRemoteSoftDeleteDocumentIds,
+    required List<DocumentSyncExecutionFailure> failures,
+  }) async {
+    if (analysis.deletePropagationPlan.plannedRemoteSoftDeletes.isEmpty) {
+      return;
+    }
+
+    final remoteMetadataById = await _loadRemoteMetadataByIdForDeletePropagation(
+      analysis: analysis,
+      failures: failures,
+    );
+    if (remoteMetadataById == null) {
+      return;
+    }
+
+    for (final remoteSoftDelete
+        in analysis.deletePropagationPlan.plannedRemoteSoftDeletes) {
+      remoteMetadataById[remoteSoftDelete.documentId] =
+          remoteSoftDelete.localRecord;
+
+      try {
+        await _remoteStore.writeDocuments(
+          _sortDocuments(remoteMetadataById.values),
+        );
+        completedRemoteSoftDeleteDocumentIds.add(remoteSoftDelete.documentId);
+      } catch (error) {
+        remoteMetadataById[remoteSoftDelete.documentId] =
+            remoteSoftDelete.remoteRecord;
+        failures.add(
+          DocumentSyncExecutionFailure(
+            documentId: remoteSoftDelete.documentId,
+            action: DocumentSyncExecutionAction.remoteSoftDeletePropagation,
+            errorMessage: error.toString(),
+          ),
+        );
+      }
+    }
+  }
+
   Future<Map<String, DocumentRecord>?> _loadRemoteMetadataById({
     required DocumentSyncAnalysisResult analysis,
     required List<DocumentSyncExecutionFailure> failures,
@@ -329,6 +445,29 @@ class DocumentSyncExecutionService {
       _addCommitFailures(
         documentIds: analysis.syncPlan.uploads.map((upload) => upload.documentId),
         action: DocumentSyncExecutionAction.upload,
+        errorMessage: error.toString(),
+        failures: failures,
+      );
+      return null;
+    }
+  }
+
+  Future<Map<String, DocumentRecord>?>
+  _loadRemoteMetadataByIdForDeletePropagation({
+    required DocumentSyncAnalysisResult analysis,
+    required List<DocumentSyncExecutionFailure> failures,
+  }) async {
+    try {
+      final remoteDocuments = await _remoteStore.readDocuments();
+      return {
+        for (final document in remoteDocuments) document.id: document,
+      };
+    } catch (error) {
+      _addCommitFailures(
+        documentIds: analysis.deletePropagationPlan.plannedRemoteSoftDeletes.map(
+          (softDelete) => softDelete.documentId,
+        ),
+        action: DocumentSyncExecutionAction.remoteSoftDeletePropagation,
         errorMessage: error.toString(),
         failures: failures,
       );
