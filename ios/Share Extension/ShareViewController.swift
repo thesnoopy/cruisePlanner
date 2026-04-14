@@ -2,9 +2,9 @@ import MobileCoreServices
 import UIKit
 
 final class ShareViewController: UIViewController {
-  private var hostAppBundleIdentifier = ""
   private var appGroupId = ""
   private let sharedKey = "ShareKey"
+  private let sharedTypeKey = "ShareTypeKey"
   private let imageContentType = kUTTypeImage as String
   private let pdfContentType = kUTTypePDF as String
   private let dataContentType = kUTTypeData as String
@@ -101,16 +101,10 @@ final class ShareViewController: UIViewController {
       return
     }
 
-    if let lastDotIndex = shareExtensionBundleIdentifier.lastIndex(of: ".") {
-      hostAppBundleIdentifier = String(shareExtensionBundleIdentifier[..<lastDotIndex])
-    } else {
-      hostAppBundleIdentifier = shareExtensionBundleIdentifier
-    }
-
     appGroupId =
       (Bundle.main.object(forInfoDictionaryKey: "AppGroupId") as? String)?
       .trimmingCharacters(in: .whitespacesAndNewlines)
-      ?? "group.\(hostAppBundleIdentifier)"
+      ?? "group.\(shareExtensionBundleIdentifier)"
   }
 
   private func startProcessingShareIfNeeded() {
@@ -347,65 +341,36 @@ final class ShareViewController: UIViewController {
       }
 
       userDefaults.set(encodedMedia, forKey: sharedKey)
+      userDefaults.set(RedirectType.media.rawValue, forKey: sharedTypeKey)
       userDefaults.synchronize()
       updateStatus(
-        title: "Payload saved",
-        detail: "Saved \(sharedMedia.count) shared item(s).",
-        debug: "key=\(sharedKey) group=\(appGroupId)"
+        title: "Imported",
+        detail: "Open Cruise Planner to continue.",
+        debug: "saved \(sharedMedia.count) item(s) to \(appGroupId)"
       )
-      redirectToHostApp(type: .media)
+      finishAfterSuccess()
       return
     }
 
     if !sharedText.isEmpty {
       userDefaults.set(sharedText, forKey: sharedKey)
+      userDefaults.set(RedirectType.text.rawValue, forKey: sharedTypeKey)
       userDefaults.synchronize()
       updateStatus(
-        title: "Payload saved",
-        detail: "Saved \(sharedText.count) shared item(s).",
-        debug: "key=\(sharedKey) group=\(appGroupId)"
+        title: "Imported",
+        detail: "Open Cruise Planner to continue.",
+        debug: "saved \(sharedText.count) item(s) to \(appGroupId)"
       )
-      redirectToHostApp(type: .text)
+      finishAfterSuccess()
       return
     }
 
     dismissWithError()
   }
 
-  private func redirectToHostApp(type: RedirectType) {
-    loadIds()
-    guard let url = handoffURL(for: type) else {
-      dismissWithError()
-      return
-    }
-
-    let handoffDescription = url.absoluteString
-    updateStatus(
-      title: "Opening Cruise Planner...",
-      detail: "Attempting final handoff to the app.",
-      debug: handoffDescription
-    )
-
-    extensionContext?.open(url) { [weak self] success in
-      guard let self else {
-        return
-      }
-
-      if success {
-        self.updateStatus(
-          title: "Open succeeded",
-          detail: "Cruise Planner accepted the handoff.",
-          debug: handoffDescription
-        )
-        self.extensionContext?.completeRequest(returningItems: nil, completionHandler: nil)
-      } else {
-        self.updateStatus(
-          title: "Open failed",
-          detail: "The extension could not open Cruise Planner.",
-          debug: handoffDescription,
-          isFailure: true
-        )
-      }
+  private func finishAfterSuccess() {
+    DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) { [weak self] in
+      self?.extensionContext?.completeRequest(returningItems: nil, completionHandler: nil)
     }
   }
 
@@ -424,10 +389,6 @@ final class ShareViewController: UIViewController {
     DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) { [weak self] in
       self?.extensionContext?.cancelRequest(withError: error)
     }
-  }
-
-  private func handoffURL(for type: RedirectType) -> URL? {
-    URL(string: "ShareMedia-\(hostAppBundleIdentifier)://dataUrl=\(sharedKey)#\(type.rawValue)")
   }
 
   private func copyItemToSharedContainer(from sourceURL: URL, type: SharedMediaType) -> URL? {

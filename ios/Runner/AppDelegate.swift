@@ -6,6 +6,7 @@ import UIKit
   private let shareMethodChannelName = "de.mailsmart.cruiseplanner/share_intake"
   private let shareEventChannelName = "de.mailsmart.cruiseplanner/share_intake/events"
   private let shareKey = "ShareKey"
+  private let shareTypeKey = "ShareTypeKey"
 
   private var pendingInitialShareItems: [[String: Any]]?
   private var shareEventSink: FlutterEventSink?
@@ -17,6 +18,8 @@ import UIKit
   ) -> Bool {
     if let url = launchOptions?[.url] as? URL {
       pendingInitialShareItems = readSharedItems(from: url)
+    } else {
+      pendingInitialShareItems = readPendingSharedItems()
     }
 
     GeneratedPluginRegistrant.register(with: self)
@@ -37,6 +40,11 @@ import UIKit
     let handledShare = handleShareURL(url)
     let handledByFlutter = super.application(app, open: url, options: options)
     return handledShare || handledByFlutter
+  }
+
+  override func applicationDidBecomeActive(_ application: UIApplication) {
+    super.applicationDidBecomeActive(application)
+    publishPendingSharedItemsIfNeeded()
   }
 
   func onListen(withArguments arguments: Any?, eventSink events: @escaping FlutterEventSink) -> FlutterError? {
@@ -68,7 +76,8 @@ import UIKit
 
       switch call.method {
       case "getInitialSharedItems":
-        result(self.pendingInitialShareItems ?? [])
+        let currentItems = self.pendingInitialShareItems ?? self.readPendingSharedItems() ?? []
+        result(currentItems)
         self.pendingInitialShareItems = nil
       default:
         result(FlutterMethodNotImplemented)
@@ -87,13 +96,24 @@ import UIKit
       return false
     }
 
+    dispatchSharedItems(sharedItems)
+    return true
+  }
+
+  private func publishPendingSharedItemsIfNeeded() {
+    guard let sharedItems = readPendingSharedItems(), !sharedItems.isEmpty else {
+      return
+    }
+
+    dispatchSharedItems(sharedItems)
+  }
+
+  private func dispatchSharedItems(_ sharedItems: [[String: Any]]) {
     if let shareEventSink, !sharedItems.isEmpty {
       shareEventSink(sharedItems)
     } else {
       pendingInitialShareItems = sharedItems
     }
-
-    return true
   }
 
   private func readSharedItems(from url: URL) -> [[String: Any]]? {
@@ -101,6 +121,10 @@ import UIKit
       return nil
     }
 
+    return readPendingSharedItems(typeOverride: url.fragment?.lowercased())
+  }
+
+  private func readPendingSharedItems(typeOverride: String? = nil) -> [[String: Any]]? {
     guard
       let appGroupId = Bundle.main.object(forInfoDictionaryKey: "AppGroupId") as? String,
       let userDefaults = UserDefaults(
@@ -110,12 +134,20 @@ import UIKit
       return []
     }
 
+    guard
+      let shareType = (typeOverride ?? userDefaults.string(forKey: shareTypeKey))?.lowercased(),
+      !shareType.isEmpty
+    else {
+      return []
+    }
+
     defer {
       userDefaults.removeObject(forKey: shareKey)
+      userDefaults.removeObject(forKey: shareTypeKey)
       userDefaults.synchronize()
     }
 
-    switch url.fragment?.lowercased() {
+    switch shareType {
     case "media":
       guard let data = userDefaults.data(forKey: shareKey) else {
         return []
