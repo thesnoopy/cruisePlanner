@@ -19,6 +19,7 @@ final class ShareViewController: UIViewController {
   private let activityIndicator = UIActivityIndicatorView(style: .large)
   private let titleLabel = UILabel()
   private let detailLabel = UILabel()
+  private let debugLabel = UILabel()
 
   override func viewDidLoad() {
     super.viewDidLoad()
@@ -52,9 +53,17 @@ final class ShareViewController: UIViewController {
     detailLabel.numberOfLines = 0
     detailLabel.text = "Preparing your shared item for Cruise Planner."
 
+    debugLabel.translatesAutoresizingMaskIntoConstraints = false
+    debugLabel.font = .preferredFont(forTextStyle: .caption1)
+    debugLabel.textAlignment = .center
+    debugLabel.textColor = .tertiaryLabel
+    debugLabel.numberOfLines = 0
+    debugLabel.text = ""
+
     view.addSubview(activityIndicator)
     view.addSubview(titleLabel)
     view.addSubview(detailLabel)
+    view.addSubview(debugLabel)
 
     NSLayoutConstraint.activate([
       activityIndicator.centerXAnchor.constraint(equalTo: view.safeAreaLayoutGuide.centerXAnchor),
@@ -67,13 +76,23 @@ final class ShareViewController: UIViewController {
       detailLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 8),
       detailLabel.leadingAnchor.constraint(equalTo: view.layoutMarginsGuide.leadingAnchor),
       detailLabel.trailingAnchor.constraint(equalTo: view.layoutMarginsGuide.trailingAnchor),
+
+      debugLabel.topAnchor.constraint(equalTo: detailLabel.bottomAnchor, constant: 12),
+      debugLabel.leadingAnchor.constraint(equalTo: view.layoutMarginsGuide.leadingAnchor),
+      debugLabel.trailingAnchor.constraint(equalTo: view.layoutMarginsGuide.trailingAnchor),
     ])
   }
 
-  private func updateStatus(title: String, detail: String) {
+  private func updateStatus(title: String, detail: String, debug: String? = nil, isFailure: Bool = false) {
     DispatchQueue.main.async { [weak self] in
       self?.titleLabel.text = title
       self?.detailLabel.text = detail
+      if let debug {
+        self?.debugLabel.text = debug
+      }
+      if isFailure {
+        self?.activityIndicator.stopAnimating()
+      }
     }
   }
 
@@ -329,6 +348,11 @@ final class ShareViewController: UIViewController {
 
       userDefaults.set(encodedMedia, forKey: sharedKey)
       userDefaults.synchronize()
+      updateStatus(
+        title: "Payload saved",
+        detail: "Saved \(sharedMedia.count) shared item(s).",
+        debug: "key=\(sharedKey) group=\(appGroupId)"
+      )
       redirectToHostApp(type: .media)
       return
     }
@@ -336,6 +360,11 @@ final class ShareViewController: UIViewController {
     if !sharedText.isEmpty {
       userDefaults.set(sharedText, forKey: sharedKey)
       userDefaults.synchronize()
+      updateStatus(
+        title: "Payload saved",
+        detail: "Saved \(sharedText.count) shared item(s).",
+        debug: "key=\(sharedKey) group=\(appGroupId)"
+      )
       redirectToHostApp(type: .text)
       return
     }
@@ -345,15 +374,17 @@ final class ShareViewController: UIViewController {
 
   private func redirectToHostApp(type: RedirectType) {
     loadIds()
-    updateStatus(
-      title: "Opening Cruise Planner...",
-      detail: "Returning you to the app."
-    )
-
-    guard let url = URL(string: "ShareMedia-\(hostAppBundleIdentifier)://dataUrl=\(sharedKey)#\(type.rawValue)") else {
+    guard let url = handoffURL(for: type) else {
       dismissWithError()
       return
     }
+
+    let handoffDescription = url.absoluteString
+    updateStatus(
+      title: "Opening Cruise Planner...",
+      detail: "Attempting final handoff to the app.",
+      debug: handoffDescription
+    )
 
     extensionContext?.open(url) { [weak self] success in
       guard let self else {
@@ -361,20 +392,42 @@ final class ShareViewController: UIViewController {
       }
 
       if success {
+        self.updateStatus(
+          title: "Open succeeded",
+          detail: "Cruise Planner accepted the handoff.",
+          debug: handoffDescription
+        )
         self.extensionContext?.completeRequest(returningItems: nil, completionHandler: nil)
       } else {
-        self.dismissWithError(message: "Unable to open Cruise Planner.")
+        self.updateStatus(
+          title: "Open failed",
+          detail: "The extension could not open Cruise Planner.",
+          debug: handoffDescription,
+          isFailure: true
+        )
       }
     }
   }
 
   private func dismissWithError(message: String = "Unable to process shared content.") {
+    updateStatus(
+      title: "Import failed",
+      detail: message,
+      debug: "key=\(sharedKey) group=\(appGroupId)",
+      isFailure: true
+    )
     let error = NSError(
       domain: "de.mailsmart.cruiseplanner.share-extension",
       code: 1,
       userInfo: [NSLocalizedDescriptionKey: message]
     )
-    extensionContext?.cancelRequest(withError: error)
+    DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) { [weak self] in
+      self?.extensionContext?.cancelRequest(withError: error)
+    }
+  }
+
+  private func handoffURL(for type: RedirectType) -> URL? {
+    URL(string: "ShareMedia-\(hostAppBundleIdentifier)://dataUrl=\(sharedKey)#\(type.rawValue)")
   }
 
   private func copyItemToSharedContainer(from sourceURL: URL, type: SharedMediaType) -> URL? {
