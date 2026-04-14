@@ -1,12 +1,13 @@
 import MobileCoreServices
-import Social
 import UIKit
 
-final class ShareViewController: SLComposeServiceViewController {
+final class ShareViewController: UIViewController {
   private var hostAppBundleIdentifier = ""
   private var appGroupId = ""
   private let sharedKey = "ShareKey"
   private let imageContentType = kUTTypeImage as String
+  private let pdfContentType = kUTTypePDF as String
+  private let dataContentType = kUTTypeData as String
   private let textContentType = kUTTypeText as String
   private let urlContentType = kUTTypeURL as String
   private let fileURLType = kUTTypeFileURL as String
@@ -15,14 +16,14 @@ final class ShareViewController: SLComposeServiceViewController {
   private var sharedText: [String] = []
   private var hasProcessedShare = false
   private let resultQueue = DispatchQueue(label: "de.mailsmart.cruiseplanner.share-extension")
-
-  override func isContentValid() -> Bool {
-    true
-  }
+  private let activityIndicator = UIActivityIndicatorView(style: .large)
+  private let titleLabel = UILabel()
+  private let detailLabel = UILabel()
 
   override func viewDidLoad() {
     super.viewDidLoad()
     loadIds()
+    configureUI()
   }
 
   override func viewDidAppear(_ animated: Bool) {
@@ -30,12 +31,50 @@ final class ShareViewController: SLComposeServiceViewController {
     startProcessingShareIfNeeded()
   }
 
-  override func didSelectPost() {
-    startProcessingShareIfNeeded()
+  private func configureUI() {
+    view.backgroundColor = .systemBackground
+
+    activityIndicator.translatesAutoresizingMaskIntoConstraints = false
+    activityIndicator.hidesWhenStopped = false
+    activityIndicator.startAnimating()
+
+    titleLabel.translatesAutoresizingMaskIntoConstraints = false
+    titleLabel.font = .preferredFont(forTextStyle: .headline)
+    titleLabel.textAlignment = .center
+    titleLabel.textColor = .label
+    titleLabel.numberOfLines = 0
+    titleLabel.text = "Importing..."
+
+    detailLabel.translatesAutoresizingMaskIntoConstraints = false
+    detailLabel.font = .preferredFont(forTextStyle: .subheadline)
+    detailLabel.textAlignment = .center
+    detailLabel.textColor = .secondaryLabel
+    detailLabel.numberOfLines = 0
+    detailLabel.text = "Preparing your shared item for Cruise Planner."
+
+    view.addSubview(activityIndicator)
+    view.addSubview(titleLabel)
+    view.addSubview(detailLabel)
+
+    NSLayoutConstraint.activate([
+      activityIndicator.centerXAnchor.constraint(equalTo: view.safeAreaLayoutGuide.centerXAnchor),
+      activityIndicator.centerYAnchor.constraint(equalTo: view.safeAreaLayoutGuide.centerYAnchor, constant: -30),
+
+      titleLabel.topAnchor.constraint(equalTo: activityIndicator.bottomAnchor, constant: 20),
+      titleLabel.leadingAnchor.constraint(equalTo: view.layoutMarginsGuide.leadingAnchor),
+      titleLabel.trailingAnchor.constraint(equalTo: view.layoutMarginsGuide.trailingAnchor),
+
+      detailLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 8),
+      detailLabel.leadingAnchor.constraint(equalTo: view.layoutMarginsGuide.leadingAnchor),
+      detailLabel.trailingAnchor.constraint(equalTo: view.layoutMarginsGuide.trailingAnchor),
+    ])
   }
 
-  override func configurationItems() -> [Any]! {
-    []
+  private func updateStatus(title: String, detail: String) {
+    DispatchQueue.main.async { [weak self] in
+      self?.titleLabel.text = title
+      self?.detailLabel.text = detail
+    }
   }
 
   private func loadIds() {
@@ -61,6 +100,10 @@ final class ShareViewController: SLComposeServiceViewController {
     }
 
     hasProcessedShare = true
+    updateStatus(
+      title: "Importing...",
+      detail: "Preparing your shared item for Cruise Planner."
+    )
     processAttachments()
   }
 
@@ -85,10 +128,10 @@ final class ShareViewController: SLComposeServiceViewController {
         continue
       }
 
-      if attachment.hasItemConformingToTypeIdentifier(fileURLType) {
+      if let fileTypeIdentifier = preferredFileTypeIdentifier(for: attachment) {
         handledAttachment = true
         dispatchGroup.enter()
-        handleFile(attachment) { dispatchGroup.leave() }
+        handleFile(attachment, typeIdentifier: fileTypeIdentifier) { dispatchGroup.leave() }
         continue
       }
 
@@ -116,6 +159,22 @@ final class ShareViewController: SLComposeServiceViewController {
     }
   }
 
+  private func preferredFileTypeIdentifier(for attachment: NSItemProvider) -> String? {
+    if attachment.hasItemConformingToTypeIdentifier(fileURLType) {
+      return fileURLType
+    }
+
+    if attachment.hasItemConformingToTypeIdentifier(pdfContentType) {
+      return pdfContentType
+    }
+
+    if attachment.hasItemConformingToTypeIdentifier(dataContentType) {
+      return dataContentType
+    }
+
+    return nil
+  }
+
   private func handleImage(_ attachment: NSItemProvider, completion: @escaping () -> Void) {
     attachment.loadItem(forTypeIdentifier: imageContentType, options: nil) { [weak self] item, error in
       defer { completion() }
@@ -140,27 +199,88 @@ final class ShareViewController: SLComposeServiceViewController {
     }
   }
 
-  private func handleFile(_ attachment: NSItemProvider, completion: @escaping () -> Void) {
-    attachment.loadItem(forTypeIdentifier: fileURLType, options: nil) { [weak self] item, error in
-      defer { completion() }
-      guard error == nil, let self, let sourceURL = item as? URL else {
+  private func handleFile(
+    _ attachment: NSItemProvider,
+    typeIdentifier: String,
+    completion: @escaping () -> Void
+  ) {
+    if typeIdentifier == fileURLType {
+      attachment.loadItem(forTypeIdentifier: typeIdentifier, options: nil) { [weak self] item, error in
+        defer { completion() }
+        guard error == nil, let self else {
+          return
+        }
+
+        self.persistLoadedFile(from: item, attachment: attachment, typeIdentifier: typeIdentifier)
+      }
+      return
+    }
+
+    attachment.loadFileRepresentation(forTypeIdentifier: typeIdentifier) { [weak self] url, error in
+      guard error == nil, let self, let sourceURL = url else {
+        self?.loadFileAsItem(attachment, typeIdentifier: typeIdentifier, completion: completion)
         return
       }
 
+      defer { completion() }
       guard let copiedURL = self.copyItemToSharedContainer(from: sourceURL, type: .file) else {
         return
       }
 
-      self.resultQueue.sync {
-        self.sharedMedia.append(
-          SharedMediaFile(
-            path: copiedURL.absoluteString,
-            thumbnail: nil,
-            duration: nil,
-            type: .file
-          )
-        )
+      self.persistSharedMediaFile(from: copiedURL)
+    }
+  }
+
+  private func loadFileAsItem(
+    _ attachment: NSItemProvider,
+    typeIdentifier: String,
+    completion: @escaping () -> Void
+  ) {
+    attachment.loadItem(forTypeIdentifier: typeIdentifier, options: nil) { [weak self] item, error in
+      defer { completion() }
+      guard error == nil, let self else {
+        return
       }
+
+      self.persistLoadedFile(from: item, attachment: attachment, typeIdentifier: typeIdentifier)
+    }
+  }
+
+  private func persistLoadedFile(
+    from item: NSSecureCoding?,
+    attachment: NSItemProvider,
+    typeIdentifier: String
+  ) {
+    let copiedURL: URL?
+    if let sourceURL = item as? URL {
+      copiedURL = copyItemToSharedContainer(from: sourceURL, type: .file)
+    } else if let data = item as? Data {
+      copiedURL = copyDataToSharedContainer(
+        data,
+        suggestedName: attachment.suggestedName,
+        typeIdentifier: typeIdentifier
+      )
+    } else {
+      copiedURL = nil
+    }
+
+    guard let copiedURL else {
+      return
+    }
+
+    persistSharedMediaFile(from: copiedURL)
+  }
+
+  private func persistSharedMediaFile(from copiedURL: URL) {
+    resultQueue.sync {
+      sharedMedia.append(
+        SharedMediaFile(
+          path: copiedURL.absoluteString,
+          thumbnail: nil,
+          duration: nil,
+          type: .file
+        )
+      )
     }
   }
 
@@ -225,30 +345,34 @@ final class ShareViewController: SLComposeServiceViewController {
 
   private func redirectToHostApp(type: RedirectType) {
     loadIds()
+    updateStatus(
+      title: "Opening Cruise Planner...",
+      detail: "Returning you to the app."
+    )
 
     guard let url = URL(string: "ShareMedia-\(hostAppBundleIdentifier)://dataUrl=\(sharedKey)#\(type.rawValue)") else {
       dismissWithError()
       return
     }
 
-    var responder: UIResponder? = self
-    let selector = sel_registerName("openURL:")
-
-    while let currentResponder = responder {
-      if currentResponder.responds(to: selector) {
-        _ = currentResponder.perform(selector, with: url)
+    extensionContext?.open(url) { [weak self] success in
+      guard let self else {
+        return
       }
-      responder = currentResponder.next
-    }
 
-    extensionContext?.completeRequest(returningItems: [], completionHandler: nil)
+      if success {
+        self.extensionContext?.completeRequest(returningItems: nil, completionHandler: nil)
+      } else {
+        self.dismissWithError(message: "Unable to open Cruise Planner.")
+      }
+    }
   }
 
-  private func dismissWithError() {
+  private func dismissWithError(message: String = "Unable to process shared content.") {
     let error = NSError(
       domain: "de.mailsmart.cruiseplanner.share-extension",
       code: 1,
-      userInfo: [NSLocalizedDescriptionKey: "Unable to process shared content."]
+      userInfo: [NSLocalizedDescriptionKey: message]
     )
     extensionContext?.cancelRequest(withError: error)
   }
@@ -275,6 +399,34 @@ final class ShareViewController: SLComposeServiceViewController {
     }
   }
 
+  private func copyDataToSharedContainer(
+    _ data: Data,
+    suggestedName: String?,
+    typeIdentifier: String
+  ) -> URL? {
+    guard
+      let containerURL = FileManager.default.containerURL(
+        forSecurityApplicationGroupIdentifier: appGroupId
+      )
+    else {
+      return nil
+    }
+
+    let destinationURL = containerURL.appendingPathComponent(
+      fileName(forSuggestedName: suggestedName, typeIdentifier: typeIdentifier)
+    )
+
+    do {
+      if FileManager.default.fileExists(atPath: destinationURL.path) {
+        try FileManager.default.removeItem(at: destinationURL)
+      }
+      try data.write(to: destinationURL, options: .atomic)
+      return destinationURL
+    } catch {
+      return nil
+    }
+  }
+
   private func fileName(for url: URL, type: SharedMediaType) -> String {
     let lastPathComponent = url.lastPathComponent.trimmingCharacters(in: .whitespacesAndNewlines)
     if !lastPathComponent.isEmpty {
@@ -284,11 +436,36 @@ final class ShareViewController: SLComposeServiceViewController {
     return "\(UUID().uuidString).\(defaultExtension(for: type))"
   }
 
+  private func fileName(forSuggestedName suggestedName: String?, typeIdentifier: String) -> String {
+    let normalizedName = suggestedName?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+    if !normalizedName.isEmpty {
+      let fileExtension = URL(fileURLWithPath: normalizedName).pathExtension
+      if !fileExtension.isEmpty {
+        return normalizedName
+      }
+
+      return "\(normalizedName).\(defaultExtension(for: typeIdentifier))"
+    }
+
+    return "\(UUID().uuidString).\(defaultExtension(for: typeIdentifier))"
+  }
+
   private func defaultExtension(for type: SharedMediaType) -> String {
     switch type {
     case .image:
       return "png"
     case .file:
+      return "dat"
+    }
+  }
+
+  private func defaultExtension(for typeIdentifier: String) -> String {
+    switch typeIdentifier {
+    case pdfContentType:
+      return "pdf"
+    case imageContentType:
+      return "png"
+    default:
       return "dat"
     }
   }
