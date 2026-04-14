@@ -122,8 +122,17 @@ final class ShareViewController: UIViewController {
 
   private func processAttachments() {
     guard
-      let extensionItem = extensionContext?.inputItems.first as? NSExtensionItem,
-      let attachments = extensionItem.attachments,
+      let extensionItems = extensionContext?.inputItems as? [NSExtensionItem]
+    else {
+      dismissWithError()
+      return
+    }
+
+    let attachments = extensionItems
+      .compactMap(\.attachments)
+      .flatMap { $0 }
+
+    guard
       !attachments.isEmpty
     else {
       dismissWithError()
@@ -141,10 +150,17 @@ final class ShareViewController: UIViewController {
         continue
       }
 
-      if let fileTypeIdentifier = preferredFileTypeIdentifier(for: attachment) {
+      if attachment.hasItemConformingToTypeIdentifier(fileURLType) {
         handledAttachment = true
         dispatchGroup.enter()
-        handleFile(attachment, typeIdentifier: fileTypeIdentifier) { dispatchGroup.leave() }
+        handleFile(attachment, typeIdentifier: fileURLType) { dispatchGroup.leave() }
+        continue
+      }
+
+      if attachment.hasItemConformingToTypeIdentifier(pdfContentType) {
+        handledAttachment = true
+        dispatchGroup.enter()
+        handleFile(attachment, typeIdentifier: pdfContentType) { dispatchGroup.leave() }
         continue
       }
 
@@ -159,6 +175,13 @@ final class ShareViewController: UIViewController {
         handledAttachment = true
         dispatchGroup.enter()
         handleTextLike(attachment, typeIdentifier: textContentType, asURL: false) { dispatchGroup.leave() }
+        continue
+      }
+
+      if attachment.hasItemConformingToTypeIdentifier(dataContentType) {
+        handledAttachment = true
+        dispatchGroup.enter()
+        handleFile(attachment, typeIdentifier: dataContentType) { dispatchGroup.leave() }
       }
     }
 
@@ -170,22 +193,6 @@ final class ShareViewController: UIViewController {
     dispatchGroup.notify(queue: .main) { [weak self] in
       self?.persistAndRedirect()
     }
-  }
-
-  private func preferredFileTypeIdentifier(for attachment: NSItemProvider) -> String? {
-    if attachment.hasItemConformingToTypeIdentifier(fileURLType) {
-      return fileURLType
-    }
-
-    if attachment.hasItemConformingToTypeIdentifier(pdfContentType) {
-      return pdfContentType
-    }
-
-    if attachment.hasItemConformingToTypeIdentifier(dataContentType) {
-      return dataContentType
-    }
-
-    return nil
   }
 
   private func handleImage(_ attachment: NSItemProvider, completion: @escaping () -> Void) {
@@ -311,9 +318,9 @@ final class ShareViewController: UIViewController {
 
       let value: String?
       if asURL {
-        value = (item as? URL)?.absoluteString
+        value = self.extractURLString(from: item)
       } else {
-        value = item as? String
+        value = self.extractTextString(from: item)
       }
 
       guard let normalizedValue = value?.trimmingCharacters(in: .whitespacesAndNewlines),
@@ -482,6 +489,42 @@ final class ShareViewController: UIViewController {
     default:
       return "dat"
     }
+  }
+
+  private func extractURLString(from item: NSSecureCoding?) -> String? {
+    if let url = item as? URL {
+      return url.absoluteString
+    }
+
+    if let text = extractTextString(from: item), looksLikeWebURL(text) {
+      return text
+    }
+
+    return nil
+  }
+
+  private func extractTextString(from item: NSSecureCoding?) -> String? {
+    if let text = item as? String {
+      return text
+    }
+
+    if let attributedText = item as? NSAttributedString {
+      return attributedText.string
+    }
+
+    if let url = item as? URL {
+      return url.absoluteString
+    }
+
+    return nil
+  }
+
+  private func looksLikeWebURL(_ value: String) -> Bool {
+    guard let url = URL(string: value), let scheme = url.scheme?.lowercased() else {
+      return false
+    }
+
+    return scheme == "http" || scheme == "https"
   }
 }
 
