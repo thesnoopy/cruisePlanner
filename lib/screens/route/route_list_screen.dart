@@ -10,6 +10,7 @@ import 'route_edit_screen.dart';
 import 'port_call_detail_screen.dart';
 import '../../l10n/app_localizations.dart';
 import '../../widgets/confirmation_dialog.dart';
+import '../../models/route/route_item.dart';
 
 class RouteListScreen extends StatefulWidget {
   final String cruiseId;
@@ -108,16 +109,18 @@ class _RouteListScreenState extends State<RouteListScreen> {
   Widget build(BuildContext context) {
     final loc = AppLocalizations.of(context)!;
     final cruise = _cruise;
-    cruise?.route.sort((a, b) => a.date.compareTo(b.date));
+    final routeItems = cruise == null
+        ? <RouteItem>[]
+        : [...cruise.route]..sort((a, b) => a.date.compareTo(b.date));
 
     return Scaffold(
       appBar: AppBar(title: Text(loc.route)),
-      body: cruise == null || cruise.route.isEmpty
+      body: routeItems.isEmpty
           ? Center(child: Text(loc.noHarbour))
           : ListView.builder(
-              itemCount: cruise.route.length,
+              itemCount: routeItems.length,
               itemBuilder: (context, idx) {
-                final r = cruise.route[idx];
+                final r = routeItems[idx];
 
                 if (r is PortCallItem) {
                   return Card(

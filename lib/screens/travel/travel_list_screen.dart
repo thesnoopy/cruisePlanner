@@ -108,16 +108,18 @@ class _TravelListScreenState extends State<TravelListScreen> {
   Widget build(BuildContext context) {
     final c = _cruise;
     final loc = AppLocalizations.of(context)!;
-    c?.travel.sort((a, b) => a.start.compareTo(b.start));
+    final travelItems = c == null
+        ? <TravelItem>[]
+        : [...c.travel]..sort((a, b) => a.start.compareTo(b.start));
 
     return Scaffold(
       appBar: AppBar(title: Text(loc.travel)),
-      body: c == null || c.travel.isEmpty
+      body: travelItems.isEmpty
           ? Center(child: Text(loc.noTravelItem))
           : ListView.builder(
-              itemCount: c.travel.length,
+              itemCount: travelItems.length,
               itemBuilder: (_, i) {
-                final t = c.travel[i];
+                final t = travelItems[i];
                 String address = "";
                 if (t.kind == TravelKind.hotel) {
                   final hotel = t as HotelItem;
@@ -153,7 +155,7 @@ class _TravelListScreenState extends State<TravelListScreen> {
                           ),
                           const SizedBox(width: 12),
                           Expanded(
-                            child: _subtitleTravelitemPerKind(context, t, c.id),
+                            child: _subtitleTravelitemPerKind(context, t, widget.cruiseId),
                           ),
                           if (address != '')   
                             IconButton(
