@@ -62,6 +62,9 @@ class CruiseStore extends ChangeNotifier {
 
   bool get isLoaded => _loaded;
   List<Cruise> get cruises => _cruises;
+  List<Cruise> get activeCruises => List<Cruise>.unmodifiable(
+        _cruises.where((cruise) => !_isDeletedCruise(cruise)).map(_visibleCruise),
+      );
 
   void _scheduleAutoSync() {
     _autoSyncTimer?.cancel();
@@ -189,7 +192,16 @@ class CruiseStore extends ChangeNotifier {
   Cruise? getCruise(String id) {
     for (final c in _cruises) {
       if (c.id == id) {
-        return c;
+        return _isDeletedCruise(c) ? null : _visibleCruise(c);
+      }
+    }
+    return null;
+  }
+
+  Cruise? _getStoredCruise(String id) {
+    for (final cruise in _cruises) {
+      if (cruise.id == id) {
+        return cruise;
       }
     }
     return null;
@@ -228,16 +240,13 @@ class CruiseStore extends ChangeNotifier {
   }
 
   Future<void> upsertCruise(Cruise cruise) async {
-    final i = _cruises.indexWhere((c) => c.id == cruise.id);
-    if (i >= 0) {
-      await _replaceCruises([
-        ..._cruises.sublist(0, i),
-        cruise,
-        ..._cruises.sublist(i + 1),
-      ]);
-    } else {
-      await _replaceCruises([..._cruises, cruise]);
-    }
+    final nowUtc = _nowUtc();
+    await _upsertCruise(
+      cruise.copyWith(
+        updatedAtUtc: nowUtc,
+        deletedAtUtc: cruise.deletedAtUtc,
+      ),
+    );
   }
 
   Future<void> upsertExcursion({
@@ -251,12 +260,19 @@ class CruiseStore extends ChangeNotifier {
     final cruise = _cruises[idx];
     final list = [...cruise.excursions];
     final i = list.indexWhere((e) => e.id == excursion.id);
+    final nowUtc = _nowUtc();
+    final normalizedExcursion = excursion.copyWith(
+      updatedAtUtc: nowUtc,
+      deletedAtUtc: excursion.deletedAtUtc,
+    );
     if (i >= 0) {
-      list[i] = excursion;
+      list[i] = normalizedExcursion;
     } else {
-      list.add(excursion);
+      list.add(normalizedExcursion);
     }
-    await upsertCruise(cruise.copyWith(excursions: List.unmodifiable(list)));
+    await _upsertCruise(
+      cruise.copyWith(excursions: List.unmodifiable(list)),
+    );
   }
 
   Future<void> upsertTravelItem({
@@ -270,12 +286,19 @@ class CruiseStore extends ChangeNotifier {
     final cruise = _cruises[idx];
     final list = [...cruise.travel];
     final i = list.indexWhere((t) => t.id == item.id);
+    final normalizedItem = _withTravelSyncMetadata(
+      item,
+      updatedAtUtc: _nowUtc(),
+      deletedAtUtc: item.deletedAtUtc,
+    );
     if (i >= 0) {
-      list[i] = item;
+      list[i] = normalizedItem;
     } else {
-      list.add(item);
+      list.add(normalizedItem);
     }
-    await upsertCruise(cruise.copyWith(travel: List.unmodifiable(list)));
+    await _upsertCruise(
+      cruise.copyWith(travel: List.unmodifiable(list)),
+    );
   }
 
   Future<void> upsertRouteItem({
@@ -289,12 +312,19 @@ class CruiseStore extends ChangeNotifier {
     final cruise = _cruises[idx];
     final list = [...cruise.route];
     final i = list.indexWhere((r) => r.id == item.id);
+    final normalizedItem = _withRouteSyncMetadata(
+      item,
+      updatedAtUtc: _nowUtc(),
+      deletedAtUtc: item.deletedAtUtc,
+    );
     if (i >= 0) {
-      list[i] = item;
+      list[i] = normalizedItem;
     } else {
-      list.add(item);
+      list.add(normalizedItem);
     }
-    await upsertCruise(cruise.copyWith(route: List.unmodifiable(list)));
+    await _upsertCruise(
+      cruise.copyWith(route: List.unmodifiable(list)),
+    );
   }
 
   Future<void> updateExcursionStopVisited(
@@ -307,7 +337,7 @@ class CruiseStore extends ChangeNotifier {
       await load();
     }
 
-    final cruise = getCruise(cruiseId);
+    final cruise = _getStoredCruise(cruiseId);
     if (cruise == null) {
       return;
     }
@@ -320,6 +350,9 @@ class CruiseStore extends ChangeNotifier {
     }
 
     final excursion = cruise.excursions[excursionIndex];
+    if (excursion.deletedAtUtc != null) {
+      return;
+    }
     final stopIndex = excursion.stops.indexWhere((s) => s.id == stopId);
     if (stopIndex < 0) {
       return;
@@ -334,23 +367,33 @@ class CruiseStore extends ChangeNotifier {
     stops[stopIndex] = stop.copyWith(visited: visited);
 
     final excursions = [...cruise.excursions];
+    final nowUtc = _nowUtc();
     excursions[excursionIndex] = excursion.copyWith(
       stops: List.unmodifiable(stops),
+      updatedAtUtc: nowUtc,
+      deletedAtUtc: excursion.deletedAtUtc,
     );
 
-    await upsertCruise(
+    await _upsertCruise(
       cruise.copyWith(excursions: List.unmodifiable(excursions)),
     );
   }
 
   Future<void> deleteCruise(String cruiseId) async {
-    final cruise = getCruise(cruiseId);
-    final affectedDocumentIds = cruise == null
-        ? const <String>[]
-        : _documentReferenceCleanupService.collectCruiseDocumentIds(cruise);
+    final cruise = _getStoredCruise(cruiseId);
+    if (cruise == null || cruise.deletedAtUtc != null) {
+      return;
+    }
+    final affectedDocumentIds = _documentReferenceCleanupService
+        .collectCruiseDocumentIds(cruise);
+    final nowUtc = _nowUtc();
 
-    await _replaceCruises(
-      _cruises.where((c) => c.id != cruiseId),
+    await _upsertCruise(
+      cruise.copyWith(
+        updatedAtUtc: nowUtc,
+        deletedAtUtc: nowUtc,
+        documentIds: const <String>[],
+      ),
       shouldNotifyListeners: false,
       shouldScheduleAutoSync: false,
     );
@@ -372,11 +415,24 @@ class CruiseStore extends ChangeNotifier {
     }
     final cruise = _cruises[idx];
     final excursion = cruise.excursions.firstWhereOrNull((e) => e.id == excursionId);
-    final affectedDocumentIds = excursion?.documentIds ?? const <String>[];
+    if (excursion == null || excursion.deletedAtUtc != null) {
+      return;
+    }
+    final affectedDocumentIds = excursion.documentIds;
+    final nowUtc = _nowUtc();
+    final updatedExcursions = cruise.excursions
+        .map(
+          (current) => current.id == excursionId
+              ? current.copyWith(
+                  updatedAtUtc: nowUtc,
+                  deletedAtUtc: nowUtc,
+                  documentIds: const <String>[],
+                )
+              : current,
+        )
+        .toList(growable: false);
     final next = cruise.copyWith(
-      excursions: List.unmodifiable(
-        cruise.excursions.where((e) => e.id != excursionId),
-      ),
+      excursions: List.unmodifiable(updatedExcursions),
     );
     await _upsertCruise(
       next,
@@ -401,11 +457,25 @@ class CruiseStore extends ChangeNotifier {
     }
     final cruise = _cruises[idx];
     final travelItem = cruise.travel.firstWhereOrNull((t) => t.id == travelItemId);
-    final affectedDocumentIds = travelItem?.documentIds ?? const <String>[];
+    if (travelItem == null || travelItem.deletedAtUtc != null) {
+      return;
+    }
+    final affectedDocumentIds = travelItem.documentIds;
+    final nowUtc = _nowUtc();
+    final updatedTravel = cruise.travel
+        .map(
+          (current) => current.id == travelItemId
+              ? _withTravelSyncMetadata(
+                  current,
+                  updatedAtUtc: nowUtc,
+                  deletedAtUtc: nowUtc,
+                  documentIds: const <String>[],
+                )
+              : current,
+        )
+        .toList(growable: false);
     final next = cruise.copyWith(
-      travel: List.unmodifiable(
-        cruise.travel.where((t) => t.id != travelItemId),
-      ),
+      travel: List.unmodifiable(updatedTravel),
     );
     await _upsertCruise(
       next,
@@ -430,11 +500,27 @@ class CruiseStore extends ChangeNotifier {
     }
     final cruise = _cruises[idx];
     final routeItem = cruise.route.firstWhereOrNull((r) => r.id == routeItemId);
+    if (routeItem == null || routeItem.deletedAtUtc != null) {
+      return;
+    }
     final affectedDocumentIds = routeItem is PortCallItem
         ? routeItem.documentIds
         : const <String>[];
+    final nowUtc = _nowUtc();
+    final updatedRoute = cruise.route
+        .map(
+          (current) => current.id == routeItemId
+              ? _withRouteSyncMetadata(
+                  current,
+                  updatedAtUtc: nowUtc,
+                  deletedAtUtc: nowUtc,
+                  documentIds: const <String>[],
+                )
+              : current,
+        )
+        .toList(growable: false);
     final next = cruise.copyWith(
-      route: List.unmodifiable(cruise.route.where((r) => r.id != routeItemId)),
+      route: List.unmodifiable(updatedRoute),
     );
     await _upsertCruise(
       next,
@@ -544,6 +630,107 @@ class CruiseStore extends ChangeNotifier {
     await _persist();
     notifyListeners();
     return result;
+  }
+
+  Cruise _visibleCruise(Cruise cruise) {
+    return cruise.copyWith(
+      excursions: List<Excursion>.unmodifiable(
+        cruise.excursions.where((excursion) => !_isDeletedExcursion(excursion)),
+      ),
+      travel: List<TravelItem>.unmodifiable(
+        cruise.travel.where((item) => !_isDeletedTravelItem(item)),
+      ),
+      route: List<RouteItem>.unmodifiable(
+        cruise.route.where((item) => !_isDeletedRouteItem(item)),
+      ),
+    );
+  }
+
+  bool _isDeletedCruise(Cruise cruise) => cruise.deletedAtUtc != null;
+  bool _isDeletedExcursion(Excursion excursion) => excursion.deletedAtUtc != null;
+  bool _isDeletedTravelItem(TravelItem item) => item.deletedAtUtc != null;
+  bool _isDeletedRouteItem(RouteItem item) => item.deletedAtUtc != null;
+
+  DateTime _nowUtc() => DateTime.now().toUtc();
+
+  TravelItem _withTravelSyncMetadata(
+    TravelItem item, {
+    required DateTime updatedAtUtc,
+    required DateTime? deletedAtUtc,
+    List<String>? documentIds,
+  }) {
+    if (item is FlightItem) {
+      return item.copyWith(
+        updatedAtUtc: updatedAtUtc,
+        deletedAtUtc: deletedAtUtc,
+        documentIds: documentIds,
+      );
+    }
+    if (item is TrainItem) {
+      return item.copyWith(
+        updatedAtUtc: updatedAtUtc,
+        deletedAtUtc: deletedAtUtc,
+        documentIds: documentIds,
+      );
+    }
+    if (item is TransferItem) {
+      return item.copyWith(
+        updatedAtUtc: updatedAtUtc,
+        deletedAtUtc: deletedAtUtc,
+        documentIds: documentIds,
+      );
+    }
+    if (item is RentalCarItem) {
+      return item.copyWith(
+        updatedAtUtc: updatedAtUtc,
+        deletedAtUtc: deletedAtUtc,
+        documentIds: documentIds,
+      );
+    }
+    if (item is HotelItem) {
+      return item.copyWith(
+        updatedAtUtc: updatedAtUtc,
+        deletedAtUtc: deletedAtUtc,
+        documentIds: documentIds,
+      );
+    }
+    if (item is CruiseCheckIn) {
+      return item.copyWith(
+        updatedAtUtc: updatedAtUtc,
+        deletedAtUtc: deletedAtUtc,
+        documentIds: documentIds,
+      );
+    }
+    if (item is CruiseCheckOut) {
+      return item.copyWith(
+        updatedAtUtc: updatedAtUtc,
+        deletedAtUtc: deletedAtUtc,
+        documentIds: documentIds,
+      );
+    }
+    throw UnsupportedError('Unsupported travel item type: ${item.runtimeType}');
+  }
+
+  RouteItem _withRouteSyncMetadata(
+    RouteItem item, {
+    required DateTime updatedAtUtc,
+    required DateTime? deletedAtUtc,
+    List<String>? documentIds,
+  }) {
+    if (item is SeaDayItem) {
+      return item.copyWith(
+        updatedAtUtc: updatedAtUtc,
+        deletedAtUtc: deletedAtUtc,
+      );
+    }
+    if (item is PortCallItem) {
+      return item.copyWith(
+        updatedAtUtc: updatedAtUtc,
+        deletedAtUtc: deletedAtUtc,
+        documentIds: documentIds,
+      );
+    }
+    throw UnsupportedError('Unsupported route item type: ${item.runtimeType}');
   }
 }
 

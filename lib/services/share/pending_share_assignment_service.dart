@@ -113,7 +113,7 @@ class PendingShareAssignmentService {
       batchId: batchId,
       itemIndex: itemIndex,
     );
-    final cruiseGroups = _cruiseStore.cruises
+    final cruiseGroups = _cruiseStore.activeCruises
         .map((cruise) => _buildCruiseGroup(cruise, loc))
         .toList(growable: false);
 

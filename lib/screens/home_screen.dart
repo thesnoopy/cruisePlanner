@@ -151,7 +151,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     if (_loading) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
-    final cruises = _store?.cruises ?? const <Cruise>[];
+    final cruises = _store?.activeCruises ?? const <Cruise>[];
 
     return Scaffold(
       appBar: AppBar(
