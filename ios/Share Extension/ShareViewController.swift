@@ -13,6 +13,7 @@ final class ShareViewController: SLComposeServiceViewController {
 
   private var sharedMedia: [SharedMediaFile] = []
   private var sharedText: [String] = []
+  private var hasProcessedShare = false
   private let resultQueue = DispatchQueue(label: "de.mailsmart.cruiseplanner.share-extension")
 
   override func isContentValid() -> Bool {
@@ -24,8 +25,13 @@ final class ShareViewController: SLComposeServiceViewController {
     loadIds()
   }
 
+  override func viewDidAppear(_ animated: Bool) {
+    super.viewDidAppear(animated)
+    startProcessingShareIfNeeded()
+  }
+
   override func didSelectPost() {
-    processAttachments()
+    startProcessingShareIfNeeded()
   }
 
   override func configurationItems() -> [Any]! {
@@ -47,6 +53,15 @@ final class ShareViewController: SLComposeServiceViewController {
       (Bundle.main.object(forInfoDictionaryKey: "AppGroupId") as? String)?
       .trimmingCharacters(in: .whitespacesAndNewlines)
       ?? "group.\(hostAppBundleIdentifier)"
+  }
+
+  private func startProcessingShareIfNeeded() {
+    guard !hasProcessedShare else {
+      return
+    }
+
+    hasProcessedShare = true
+    processAttachments()
   }
 
   private func processAttachments() {
