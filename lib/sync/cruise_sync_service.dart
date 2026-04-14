@@ -3,18 +3,15 @@ import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/cruise.dart';
+import '../models/excursion.dart';
+import '../models/route/factory.dart' as route_factory;
+import '../models/route/route_item.dart';
+import '../models/travel/base_travel.dart';
+import '../models/travel/factory.dart' as travel_factory;
 import 'webdav_sync.dart';
 
-/// Service, der den CruiseStore mit der WebDAV‑Datei per 3‑Wege‑Merge synchronisiert.
-///
-/// Idee:
-///  * Baseline B = Stand beim letzten erfolgreichen Sync
-///  * Local   L = aktueller lokaler Stand (vom CruiseStore)
-///  * Remote  R = aktueller Stand aus der Cloud
-///
-/// Pro Cruise-ID wird verglichen, was sich gegenüber B geändert hat.
-/// Dadurch können neue / gelöschte / geänderte Cruises von mehreren
-/// Geräten sauber zusammengeführt werden.
+/// Service, der den CruiseStore mit der WebDAV-Datei per 3-Wege-Merge
+/// synchronisiert.
 class CruiseSyncService {
   static const String _baselineKey = 'cruises_sync_baseline_v1';
 
@@ -34,23 +31,17 @@ class CruiseSyncService {
           .map((e) => Cruise.fromMap(Map<String, dynamic>.from(e as Map)))
           .toList(growable: false);
     } catch (_) {
-      // Wenn etwas schiefgeht: Baseline verwerfen, aber App nicht killen.
       return const <Cruise>[];
     }
   }
 
   Future<void> _saveBaseline(List<Cruise> cruises) async {
     final prefs = await SharedPreferences.getInstance();
-    final list = cruises.map((c) => c.toMap()).toList();
+    final list = cruises.map((c) => c.toMap()).toList(growable: false);
     final jsonStr = jsonEncode(list);
     await prefs.setString(_baselineKey, jsonStr);
   }
 
-  /// Führt einen 3‑Wege‑Merge durch und schreibt das Ergebnis in die Cloud.
-  ///
-  /// [local] ist der aktuelle Inhalt deines CruiseStore (z.B. `store.cruises`).
-  /// Rückgabe ist die gemergte Liste, die du anschließend wieder in den Store
-  /// schreiben solltest (z.B. über eine `replaceAll`‑Methode oder ähnliches).
   Future<List<Cruise>> sync(List<Cruise> local) async {
     final base = await _loadBaseline();
     final remote = await webDav.downloadCruises();
@@ -63,8 +54,6 @@ class CruiseSyncService {
     return merged;
   }
 
-  // ==== 3‑Wege‑Merge ====
-
   List<Cruise> _mergeThreeWay(
     List<Cruise> baseList,
     List<Cruise> localList,
@@ -73,87 +62,248 @@ class CruiseSyncService {
     final base = _byId(baseList);
     final local = _byId(localList);
     final remote = _byId(remoteList);
+    final result = <Cruise>[];
 
-    final allIds = <String>{
-      ...base.keys,
-      ...local.keys,
-      ...remote.keys,
-    };
-
-    final result = <String, Cruise>{};
-
-    for (final id in allIds) {
-      final b = base[id];
-      final l = local[id];
-      final r = remote[id];
-
-      final lc = _classifyChange(b, l);
-      final rc = _classifyChange(b, r);
-
-      // 1) Beide Seiten unverändert -> Baseline übernehmen
-      if (lc == ChangeKind.unchanged && rc == ChangeKind.unchanged) {
-        if (b != null) {
-          result[id] = b;
-        }
-        continue;
-      }
-
-      // 2) Nur lokal geändert (added/modified/removed)
-      if (lc != ChangeKind.unchanged && rc == ChangeKind.unchanged) {
-        if (l != null && lc != ChangeKind.removed) {
-          result[id] = l;
-        }
-        // wenn local == removed -> nichts in result => gelöscht
-        continue;
-      }
-
-      // 3) Nur remote geändert
-      if (lc == ChangeKind.unchanged && rc != ChangeKind.unchanged) {
-        if (r != null && rc != ChangeKind.removed) {
-          result[id] = r;
-        }
-        continue;
-      }
-
-      // 4) Beide geändert -> Konflikte behandeln
-
-      // Variante A: Änderung schlägt Löschung
-      if (lc == ChangeKind.removed && rc != ChangeKind.removed) {
-        // remote hat geändert, lokal gelöscht -> remote gewinnt
-        if (r != null) {
-          result[id] = r;
-        }
-        continue;
-      }
-      if (rc == ChangeKind.removed && lc != ChangeKind.removed) {
-        // lokal hat geändert, remote gelöscht -> lokal gewinnt
-        if (l != null) {
-          result[id] = l;
-        }
-        continue;
-      }
-
-      // 5) Beide added (id neu auf beiden Seiten)
-      if (b == null && l != null && r != null) {
-        // Hier musst du eine Strategie wählen; wir nehmen erstmal: lokal gewinnt.
-        result[id] = l;
-        continue;
-      }
-
-      // 6) Beide modified (von gleicher Baseline aus)
-      if (lc == ChangeKind.modified && rc == ChangeKind.modified) {
-        result[id] = _mergeModifiedCruise(b!, l!, r!);
-        continue;
+    for (final id in _orderedCruiseIds(baseList, localList, remoteList)) {
+      final merged = _mergeCruiseValue(
+        base: base[id],
+        local: local[id],
+        remote: remote[id],
+      );
+      if (merged != null) {
+        result.add(merged);
       }
     }
 
-    return result.values.toList(growable: false);
+    return List<Cruise>.unmodifiable(result);
   }
 
   Map<String, Cruise> _byId(List<Cruise> list) =>
-      {for (final c in list) c.id: c};
+      {for (final cruise in list) cruise.id: cruise};
 
-  ChangeKind _classifyChange(Cruise? base, Cruise? next) {
+  List<String> _orderedCruiseIds(
+    List<Cruise> baseList,
+    List<Cruise> localList,
+    List<Cruise> remoteList,
+  ) {
+    final ordered = <String>[];
+    final seen = <String>{};
+
+    void append(Iterable<Cruise> cruises) {
+      for (final cruise in cruises) {
+        if (seen.add(cruise.id)) {
+          ordered.add(cruise.id);
+        }
+      }
+    }
+
+    append(localList);
+    append(remoteList);
+    append(baseList);
+    return ordered;
+  }
+
+  Cruise? _mergeCruiseValue({
+    required Cruise? base,
+    required Cruise? local,
+    required Cruise? remote,
+  }) {
+    final localChange = _classifyEntityChange(base, local);
+    final remoteChange = _classifyEntityChange(base, remote);
+
+    if (localChange == ChangeKind.unchanged &&
+        remoteChange == ChangeKind.unchanged) {
+      return base;
+    }
+
+    if (localChange != ChangeKind.unchanged &&
+        remoteChange == ChangeKind.unchanged) {
+      return localChange == ChangeKind.removed ? null : local;
+    }
+
+    if (localChange == ChangeKind.unchanged &&
+        remoteChange != ChangeKind.unchanged) {
+      return remoteChange == ChangeKind.removed ? null : remote;
+    }
+
+    if (localChange == ChangeKind.removed &&
+        remoteChange != ChangeKind.removed) {
+      return remote;
+    }
+
+    if (remoteChange == ChangeKind.removed &&
+        localChange != ChangeKind.removed) {
+      return local;
+    }
+
+    if (local == null || remote == null) {
+      return local ?? remote;
+    }
+
+    return _mergeCruiseConflict(base: base, local: local, remote: remote);
+  }
+
+  Cruise _mergeCruiseConflict({
+    required Cruise? base,
+    required Cruise local,
+    required Cruise remote,
+  }) {
+    final rootWinner = _resolveSameEntity(
+      base: base,
+      local: local,
+      remote: remote,
+      updatedAtOf: (entity) => entity.updatedAtUtc,
+      deletedAtOf: (entity) => entity.deletedAtUtc,
+      legacyMerge: _mergeCruiseLegacy,
+    );
+
+    final mergedExcursions = _mergeEntityCollection<Excursion>(
+      base: base?.excursions ?? const <Excursion>[],
+      local: local.excursions,
+      remote: remote.excursions,
+      idOf: (entity) => entity.id,
+      updatedAtOf: (entity) => entity.updatedAtUtc,
+      deletedAtOf: (entity) => entity.deletedAtUtc,
+      legacyMerge: _mergeExcursionLegacy,
+    );
+    final mergedTravel = _mergeEntityCollection<TravelItem>(
+      base: base?.travel ?? const <TravelItem>[],
+      local: local.travel,
+      remote: remote.travel,
+      idOf: (entity) => entity.id,
+      updatedAtOf: (entity) => entity.updatedAtUtc,
+      deletedAtOf: (entity) => entity.deletedAtUtc,
+      legacyMerge: _mergeTravelItemLegacy,
+    );
+    final mergedRoute = _mergeEntityCollection<RouteItem>(
+      base: base?.route ?? const <RouteItem>[],
+      local: local.route,
+      remote: remote.route,
+      idOf: (entity) => entity.id,
+      updatedAtOf: (entity) => entity.updatedAtUtc,
+      deletedAtOf: (entity) => entity.deletedAtUtc,
+      legacyMerge: _mergeRouteItemLegacy,
+    );
+
+    return rootWinner.copyWith(
+      excursions: mergedExcursions,
+      travel: mergedTravel,
+      route: mergedRoute,
+    );
+  }
+
+  List<T> _mergeEntityCollection<T extends Object>({
+    required List<T> base,
+    required List<T> local,
+    required List<T> remote,
+    required String Function(T entity) idOf,
+    required DateTime? Function(T entity) updatedAtOf,
+    required DateTime? Function(T entity) deletedAtOf,
+    required T Function(T? base, T local, T remote) legacyMerge,
+  }) {
+    final baseById = {for (final entity in base) idOf(entity): entity};
+    final localById = {for (final entity in local) idOf(entity): entity};
+    final remoteById = {for (final entity in remote) idOf(entity): entity};
+    final orderedIds = _orderedEntityIds(
+      base: base,
+      local: local,
+      remote: remote,
+      idOf: idOf,
+    );
+    final result = <T>[];
+
+    for (final id in orderedIds) {
+      final merged = _mergeEntityValue<T>(
+        base: baseById[id],
+        local: localById[id],
+        remote: remoteById[id],
+        updatedAtOf: updatedAtOf,
+        deletedAtOf: deletedAtOf,
+        legacyMerge: legacyMerge,
+      );
+      if (merged != null) {
+        result.add(merged);
+      }
+    }
+
+    return List<T>.unmodifiable(result);
+  }
+
+  List<String> _orderedEntityIds<T extends Object>({
+    required List<T> base,
+    required List<T> local,
+    required List<T> remote,
+    required String Function(T entity) idOf,
+  }) {
+    final ordered = <String>[];
+    final seen = <String>{};
+
+    void append(Iterable<T> entities) {
+      for (final entity in entities) {
+        final id = idOf(entity);
+        if (seen.add(id)) {
+          ordered.add(id);
+        }
+      }
+    }
+
+    append(local);
+    append(remote);
+    append(base);
+    return ordered;
+  }
+
+  T? _mergeEntityValue<T extends Object>({
+    required T? base,
+    required T? local,
+    required T? remote,
+    required DateTime? Function(T entity) updatedAtOf,
+    required DateTime? Function(T entity) deletedAtOf,
+    required T Function(T? base, T local, T remote) legacyMerge,
+  }) {
+    final localChange = _classifyEntityChange(base, local);
+    final remoteChange = _classifyEntityChange(base, remote);
+
+    if (localChange == ChangeKind.unchanged &&
+        remoteChange == ChangeKind.unchanged) {
+      return base;
+    }
+
+    if (localChange != ChangeKind.unchanged &&
+        remoteChange == ChangeKind.unchanged) {
+      return localChange == ChangeKind.removed ? null : local;
+    }
+
+    if (localChange == ChangeKind.unchanged &&
+        remoteChange != ChangeKind.unchanged) {
+      return remoteChange == ChangeKind.removed ? null : remote;
+    }
+
+    if (localChange == ChangeKind.removed &&
+        remoteChange != ChangeKind.removed) {
+      return remote;
+    }
+
+    if (remoteChange == ChangeKind.removed &&
+        localChange != ChangeKind.removed) {
+      return local;
+    }
+
+    if (local == null || remote == null) {
+      return local ?? remote;
+    }
+
+    return _resolveSameEntity<T>(
+      base: base,
+      local: local,
+      remote: remote,
+      updatedAtOf: updatedAtOf,
+      deletedAtOf: deletedAtOf,
+      legacyMerge: legacyMerge,
+    );
+  }
+
+  ChangeKind _classifyEntityChange<T extends Object>(T? base, T? next) {
     if (base == null && next == null) {
       return ChangeKind.unchanged;
     }
@@ -163,23 +313,163 @@ class CruiseSyncService {
     if (base != null && next == null) {
       return ChangeKind.removed;
     }
-    // base & next != null
     return base == next ? ChangeKind.unchanged : ChangeKind.modified;
   }
 
-  Cruise _mergeModifiedCruise(Cruise base, Cruise local, Cruise remote) {
-    final baseMap = base.toMap();
-    final localMap = local.toMap();
-    final remoteMap = remote.toMap();
+  T _resolveSameEntity<T extends Object>({
+    required T? base,
+    required T local,
+    required T remote,
+    required DateTime? Function(T entity) updatedAtOf,
+    required DateTime? Function(T entity) deletedAtOf,
+    required T Function(T? base, T local, T remote) legacyMerge,
+  }) {
+    final localDeletedAt = deletedAtOf(local);
+    final remoteDeletedAt = deletedAtOf(remote);
+    final localUpdatedAt = updatedAtOf(local);
+    final remoteUpdatedAt = updatedAtOf(remote);
+    final localDeleted = localDeletedAt != null;
+    final remoteDeleted = remoteDeletedAt != null;
 
-    // Remote bleibt die Fallback-Basis. Nur Felder, die exklusiv lokal gegen
-    // die gemeinsame Baseline geändert wurden, überschreiben die Remote-Version.
+    if (!localDeleted && !remoteDeleted) {
+      final comparison = _compareTimestamps(localUpdatedAt, remoteUpdatedAt);
+      if (comparison > 0) {
+        return local;
+      }
+      if (comparison < 0) {
+        return remote;
+      }
+      return legacyMerge(base, local, remote);
+    }
+
+    if (localDeleted && remoteDeleted) {
+      final comparison = _compareTimestamps(localDeletedAt, remoteDeletedAt);
+      if (comparison > 0) {
+        return local;
+      }
+      if (comparison < 0) {
+        return remote;
+      }
+      return legacyMerge(base, local, remote);
+    }
+
+    final deletedEntity = localDeleted ? local : remote;
+    final updatedEntity = localDeleted ? remote : local;
+    final deletedAt = localDeleted ? localDeletedAt : remoteDeletedAt;
+    final updatedAt = localDeleted ? remoteUpdatedAt : localUpdatedAt;
+    final comparison = _compareTimestamps(deletedAt, updatedAt);
+
+    if (comparison > 0) {
+      return deletedEntity;
+    }
+    if (comparison < 0) {
+      return updatedEntity;
+    }
+
+    return legacyMerge(base, local, remote);
+  }
+
+  int _compareTimestamps(DateTime? left, DateTime? right) {
+    if (left == null && right == null) {
+      return 0;
+    }
+    if (left == null) {
+      return -1;
+    }
+    if (right == null) {
+      return 1;
+    }
+    return left.compareTo(right);
+  }
+
+  Cruise _mergeCruiseLegacy(Cruise? base, Cruise local, Cruise remote) {
+    if (base == null) {
+      return local;
+    }
+
+    return _mergeLegacyEntity(
+      base: base,
+      local: local,
+      remote: remote,
+      toMap: (entity) => entity.toMap(),
+      fromMap: Cruise.fromMap,
+      excludedKeys: const {'excursions', 'travel', 'route'},
+    );
+  }
+
+  Excursion _mergeExcursionLegacy(
+    Excursion? base,
+    Excursion local,
+    Excursion remote,
+  ) {
+    if (base == null) {
+      return local;
+    }
+
+    return _mergeLegacyEntity(
+      base: base,
+      local: local,
+      remote: remote,
+      toMap: (entity) => entity.toMap(),
+      fromMap: Excursion.fromMap,
+    );
+  }
+
+  TravelItem _mergeTravelItemLegacy(
+    TravelItem? base,
+    TravelItem local,
+    TravelItem remote,
+  ) {
+    if (base == null) {
+      return local;
+    }
+
+    return _mergeLegacyEntity(
+      base: base,
+      local: local,
+      remote: remote,
+      toMap: (entity) => entity.toMap(),
+      fromMap: travel_factory.travelItemFromMap,
+    );
+  }
+
+  RouteItem _mergeRouteItemLegacy(
+    RouteItem? base,
+    RouteItem local,
+    RouteItem remote,
+  ) {
+    if (base == null) {
+      return local;
+    }
+
+    return _mergeLegacyEntity(
+      base: base,
+      local: local,
+      remote: remote,
+      toMap: (entity) => entity.toMap(),
+      fromMap: route_factory.routeItemFromMap,
+    );
+  }
+
+  T _mergeLegacyEntity<T>({
+    required T base,
+    required T local,
+    required T remote,
+    required Map<String, dynamic> Function(T entity) toMap,
+    required T Function(Map<String, dynamic> map) fromMap,
+    Set<String> excludedKeys = const <String>{},
+  }) {
+    final baseMap = toMap(base);
+    final localMap = toMap(local);
+    final remoteMap = toMap(remote);
     final mergedMap = Map<String, dynamic>.from(remoteMap);
     final mergeableKeys = <String>{
       ...baseMap.keys,
       ...localMap.keys,
       ...remoteMap.keys,
-    }..remove('id');
+    }
+      ..remove('id')
+      ..removeAll(excludedKeys);
 
     for (final key in mergeableKeys) {
       final localChanged = !_fieldValueEquals(baseMap[key], localMap[key]);
@@ -190,7 +480,7 @@ class CruiseSyncService {
       }
     }
 
-    return Cruise.fromMap(mergedMap);
+    return fromMap(mergedMap);
   }
 
   bool _fieldValueEquals(dynamic a, dynamic b) {
