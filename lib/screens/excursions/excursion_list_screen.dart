@@ -41,13 +41,7 @@ class _ExcursionListScreenState extends State<ExcursionListScreen> {
     final store = CruiseStore();
     await store.load();
 
-    Cruise? cruise;
-    for (final c in store.cruises) {
-      if (c.id == widget.cruiseId) {
-        cruise = c;
-        break;
-      }
-    }
+    final cruise = store.getCruise(widget.cruiseId);
 
     if (!mounted) {
       return;

@@ -39,7 +39,7 @@ class _PortCallDetailScreenState extends State<PortCallDetailScreen> {
     final item = routeItem is PortCallItem ? routeItem : null;
     String? cruiseId;
 
-    for (final cruise in store.cruises) {
+    for (final cruise in store.activeCruises) {
       if (cruise.route.any((routeItem) => routeItem.id == widget.routeItemId)) {
         cruiseId = cruise.id;
         break;

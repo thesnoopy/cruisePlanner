@@ -56,7 +56,7 @@ class _TravelEditScreenState extends State<TravelEditScreen> {
     final item = s.getById<TravelItem>(widget.travelItemId);
     debugPrint("$item");
     String? cid;
-    for (final c in s.cruises) {
+    for (final c in s.activeCruises) {
       if (c.travel.any((t) => t.id == widget.travelItemId)) {
         cid = c.id;
         break;

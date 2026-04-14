@@ -8,12 +8,14 @@ import '../models/route/factory.dart' as route_factory;
 import '../models/route/route_item.dart';
 import '../models/travel/base_travel.dart';
 import '../models/travel/factory.dart' as travel_factory;
+import 'cruise_persistence_migration.dart';
 import 'webdav_sync.dart';
 
 /// Service, der den CruiseStore mit der WebDAV-Datei per 3-Wege-Merge
 /// synchronisiert.
 class CruiseSyncService {
-  static const String _baselineKey = 'cruises_sync_baseline_v1';
+  static const String _baselineKeyV3 = 'cruises_sync_baseline_v3';
+  static const String _legacyBaselineKey = 'cruises_sync_baseline_v1';
 
   final WebDavSync webDav;
 
@@ -21,15 +23,23 @@ class CruiseSyncService {
 
   Future<List<Cruise>> _loadBaseline() async {
     final prefs = await SharedPreferences.getInstance();
-    final jsonStr = prefs.getString(_baselineKey);
-    if (jsonStr == null || jsonStr.trim().isEmpty) {
+    final v3JsonStr = prefs.getString(_baselineKeyV3);
+    if (v3JsonStr != null && v3JsonStr.trim().isNotEmpty) {
+      return _decodeBaseline(v3JsonStr);
+    }
+
+    final legacyJsonStr = prefs.getString(_legacyBaselineKey);
+    if (legacyJsonStr == null || legacyJsonStr.trim().isEmpty) {
       return const <Cruise>[];
     }
+
     try {
-      final decoded = jsonDecode(jsonStr) as List<dynamic>;
-      return decoded
-          .map((e) => Cruise.fromMap(Map<String, dynamic>.from(e as Map)))
-          .toList(growable: false);
+      final normalized = normalizeCruisePersistenceData(
+        _decodeBaseline(legacyJsonStr),
+        nowUtc: DateTime.now().toUtc(),
+      );
+      await _saveBaseline(normalized);
+      return normalized;
     } catch (_) {
       return const <Cruise>[];
     }
@@ -39,7 +49,14 @@ class CruiseSyncService {
     final prefs = await SharedPreferences.getInstance();
     final list = cruises.map((c) => c.toMap()).toList(growable: false);
     final jsonStr = jsonEncode(list);
-    await prefs.setString(_baselineKey, jsonStr);
+    await prefs.setString(_baselineKeyV3, jsonStr);
+  }
+
+  List<Cruise> _decodeBaseline(String jsonStr) {
+    final decoded = jsonDecode(jsonStr) as List<dynamic>;
+    return decoded
+        .map((e) => Cruise.fromMap(Map<String, dynamic>.from(e as Map)))
+        .toList(growable: false);
   }
 
   Future<List<Cruise>> sync(List<Cruise> local) async {

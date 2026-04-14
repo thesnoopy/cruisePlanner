@@ -20,6 +20,7 @@ import '../models/travel/train_item.dart';
 import '../models/travel/transfer_item.dart';
 import '../services/documents/document_reference_cleanup_service.dart';
 import '../sync/app_sync_service.dart';
+import '../sync/cruise_persistence_migration.dart';
 
 class _IndexRef {
   final String cruiseId;
@@ -48,8 +49,9 @@ class CruiseStore extends ChangeNotifier {
         DocumentReferenceCleanupService(cruiseStore: this);
   }
 
-  static const String _spKey = 'cruises_json_v1';
-  static const int _currentSchemaVersion = 2;
+  static const String _spKeyV3 = 'cruises_json_v3';
+  static const String _legacySpKey = 'cruises_json_v1';
+  static const int _currentSchemaVersion = 3;
 
   final AppSyncService _appSyncService;
   late final DocumentReferenceCleanupService _documentReferenceCleanupService;
@@ -112,13 +114,24 @@ class CruiseStore extends ChangeNotifier {
 
   Future<void> load() async {
     final prefs = await SharedPreferences.getInstance();
-    final jsonStr = prefs.getString(_spKey);
-    if (jsonStr == null || jsonStr.trim().isEmpty) {
-      _cruises = const [];
-    } else {
-      final stored = _decodeStoredCruises(jsonStr);
+    final v3JsonStr = prefs.getString(_spKeyV3);
+    if (v3JsonStr != null && v3JsonStr.trim().isNotEmpty) {
+      final stored = _decodeStoredCruises(v3JsonStr);
       _cruises = List.unmodifiable(stored.cruises);
       if (stored.needsMigration) {
+        await _persist();
+      }
+    } else {
+      final legacyJsonStr = prefs.getString(_legacySpKey);
+      if (legacyJsonStr == null || legacyJsonStr.trim().isEmpty) {
+        _cruises = const [];
+      } else {
+        final stored = _decodeStoredCruises(legacyJsonStr);
+        final normalizedCruises = normalizeCruisePersistenceData(
+          stored.cruises,
+          nowUtc: _nowUtc(),
+        );
+        _cruises = List.unmodifiable(normalizedCruises);
         await _persist();
       }
     }
@@ -130,7 +143,7 @@ class CruiseStore extends ChangeNotifier {
   Future<void> _persist() async {
     final prefs = await SharedPreferences.getInstance();
     final payload = jsonEncode(_buildStoragePayload(_cruises));
-    await prefs.setString(_spKey, payload);
+    await prefs.setString(_spKeyV3, payload);
   }
 
   _StoredCruisesData _decodeStoredCruises(String jsonStr) {
@@ -154,9 +167,9 @@ class CruiseStore extends ChangeNotifier {
         );
       }
 
-      if ((schemaVersion == null || schemaVersion == 1) && cruises is List) {
+      if (cruises is List) {
         return _StoredCruisesData(
-          cruises: _migrateV1ToV2(decoded),
+          cruises: _parseCruises(cruises),
           needsMigration: true,
         );
       }
@@ -166,14 +179,6 @@ class CruiseStore extends ChangeNotifier {
       cruises: <Cruise>[],
       needsMigration: false,
     );
-  }
-
-  List<Cruise> _migrateV1ToV2(Map<String, dynamic> legacyData) {
-    final cruises = legacyData['cruises'];
-    if (cruises is! List) {
-      return const <Cruise>[];
-    }
-    return _parseCruises(cruises);
   }
 
   List<Cruise> _parseCruises(List<dynamic> list) {

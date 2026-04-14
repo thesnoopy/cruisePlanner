@@ -351,19 +351,19 @@ class DocumentAttachmentService {
   }
 
   Cruise? _findCruiseWithExcursion(String excursionId) {
-    return _cruiseStore.cruises.firstWhereOrNull(
+    return _cruiseStore.activeCruises.firstWhereOrNull(
       (cruise) => cruise.excursions.any((excursion) => excursion.id == excursionId),
     );
   }
 
   Cruise? _findCruiseWithTravelItem(String travelItemId) {
-    return _cruiseStore.cruises.firstWhereOrNull(
+    return _cruiseStore.activeCruises.firstWhereOrNull(
       (cruise) => cruise.travel.any((travelItem) => travelItem.id == travelItemId),
     );
   }
 
   Cruise? _findCruiseWithPortCall(String portCallId) {
-    return _cruiseStore.cruises.firstWhereOrNull(
+    return _cruiseStore.activeCruises.firstWhereOrNull(
       (cruise) => cruise.route.whereType<PortCallItem>().any((portCall) => portCall.id == portCallId),
     );
   }

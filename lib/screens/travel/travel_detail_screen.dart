@@ -41,7 +41,7 @@ class _TravelDetailScreenState extends State<TravelDetailScreen> {
     final item = store.getById<TravelItem>(widget.travelItemId);
     String? cruiseId;
 
-    for (final cruise in store.cruises) {
+    for (final cruise in store.activeCruises) {
       if (cruise.travel.any((travelItem) => travelItem.id == widget.travelItemId)) {
         cruiseId = cruise.id;
         break;

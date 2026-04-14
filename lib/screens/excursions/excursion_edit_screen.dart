@@ -88,16 +88,15 @@ class _ExcursionEditScreenState extends State<ExcursionEditScreen> {
     final store = CruiseStore();
     await store.load();
 
-    Excursion? ex;
+    final ex = store.getById<Excursion>(widget.excursionId);
     String? cruiseId;
 
     // Finde Excursion + zugehörige Cruise
     outer:
-    for (final c in store.cruises) {
-      for (final e in c.excursions) {
-        if (e.id == widget.excursionId) {
-          ex = e;
-          cruiseId = c.id;
+    for (final cruise in store.activeCruises) {
+      for (final excursion in cruise.excursions) {
+        if (excursion.id == widget.excursionId) {
+          cruiseId = cruise.id;
           break outer;
         }
       }
