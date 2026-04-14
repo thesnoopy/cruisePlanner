@@ -3,7 +3,6 @@
 source 'https://github.com/CocoaPods/Specs.git'
 platform :ios, '13.0'
 require 'json'
-require 'rbconfig'
 
 ENV['COCOAPODS_DISABLE_STATS'] = 'true'
 
@@ -30,12 +29,6 @@ end
 require File.expand_path(File.join(flutter_root, 'packages', 'flutter_tools', 'bin', 'podhelper'), __FILE__)
 
 flutter_ios_podfile_setup
-
-plugins_dependencies_path = File.expand_path(File.join('..', '.flutter-plugins-dependencies'), __dir__)
-filter_plugins_script_path = File.join(__dir__, 'scripts', 'filter_flutter_plugins.rb')
-if File.exist?(plugins_dependencies_path) && File.exist?(filter_plugins_script_path)
-  system(RbConfig.ruby, filter_plugins_script_path) or raise 'Failed to filter Flutter iOS plugins'
-end
 
 target 'Runner' do
   use_frameworks!     # Flutter erwartet das bei modernen Plugins

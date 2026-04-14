@@ -1,8 +1,3 @@
-import com.android.build.gradle.LibraryExtension
-import org.gradle.api.JavaVersion
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-import org.jetbrains.kotlin.gradle.tasks.KotlinJvmCompile
-
 allprojects {
     repositories {
         google()
@@ -22,21 +17,6 @@ subprojects {
 }
 subprojects {
     project.evaluationDependsOn(":app")
-}
-
-project(":receive_sharing_intent") {
-    plugins.withId("com.android.library") {
-        extensions.configure<LibraryExtension> {
-            compileOptions {
-                sourceCompatibility = JavaVersion.VERSION_17
-                targetCompatibility = JavaVersion.VERSION_17
-            }
-        }
-    }
-
-    tasks.withType<KotlinJvmCompile>().configureEach {
-        compilerOptions.jvmTarget.set(JvmTarget.JVM_17)
-    }
 }
 
 tasks.register<Delete>("clean") {

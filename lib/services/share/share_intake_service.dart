@@ -2,8 +2,6 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
-import 'package:path/path.dart' as p;
-import 'package:receive_sharing_intent/receive_sharing_intent.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 
@@ -162,10 +160,8 @@ class ShareIntakeService extends ChangeNotifier {
 
     switch (defaultTargetPlatform) {
       case TargetPlatform.android:
-        await _initializeAndroid();
-        return;
       case TargetPlatform.iOS:
-        await _initializeIos();
+        await _initializeNative();
         return;
       case TargetPlatform.fuchsia:
       case TargetPlatform.linux:
@@ -175,34 +171,7 @@ class ShareIntakeService extends ChangeNotifier {
     }
   }
 
-  Future<void> _initializeAndroid() async {
-    _shareSubscription = ReceiveSharingIntent.instance
-        .getMediaStream()
-        .map(_normalizeSharedMediaFiles)
-        .listen(
-          (items) {
-            unawaited(
-              _captureSharedItems(
-                items,
-                source: ShareIntakeSource.resumedShare,
-                resetAndroidPlugin: true,
-              ),
-            );
-          },
-          onError: (Object error, StackTrace stackTrace) {
-            debugPrint('Share intake stream error: $error');
-          },
-        );
-
-    final initialMedia = await ReceiveSharingIntent.instance.getInitialMedia();
-    await _captureSharedItems(
-      _normalizeSharedMediaFiles(initialMedia),
-      source: ShareIntakeSource.initialLaunch,
-      resetAndroidPlugin: true,
-    );
-  }
-
-  Future<void> _initializeIos() async {
+  Future<void> _initializeNative() async {
     final initialItems = await _nativeBridge.getInitialSharedItems();
 
     _shareSubscription = _nativeBridge.sharedItemsStream.listen(
@@ -228,12 +197,8 @@ class ShareIntakeService extends ChangeNotifier {
   Future<void> _captureSharedItems(
     List<ShareIntakeItem> items, {
     required ShareIntakeSource source,
-    bool resetAndroidPlugin = false,
   }) async {
     if (items.isEmpty) {
-      if (resetAndroidPlugin) {
-        ReceiveSharingIntent.instance.reset();
-      }
       return;
     }
 
@@ -251,116 +216,7 @@ class ShareIntakeService extends ChangeNotifier {
       ],
     );
     await _persist();
-    if (resetAndroidPlugin) {
-      ReceiveSharingIntent.instance.reset();
-    }
     notifyListeners();
-  }
-
-  List<ShareIntakeItem> _normalizeSharedMediaFiles(
-    List<SharedMediaFile> sharedMedia,
-  ) {
-    return sharedMedia
-        .map(_normalizeSharedMediaFile)
-        .whereType<ShareIntakeItem>()
-        .toList(growable: false);
-  }
-
-  ShareIntakeItem? _normalizeSharedMediaFile(SharedMediaFile file) {
-    final normalizedValue = _normalizeSharedValue(file);
-    if (normalizedValue == null) {
-      return null;
-    }
-
-    final kind = _mapKind(file, normalizedValue);
-    final normalizedThumbnail = _normalizeFileLikeValue(file.thumbnail);
-    final fileName = switch (kind) {
-      ShareIntakeItemKind.file || ShareIntakeItemKind.image =>
-        _extractFileName(normalizedValue),
-      ShareIntakeItemKind.text || ShareIntakeItemKind.url => null,
-    };
-
-    return ShareIntakeItem(
-      kind: kind,
-      value: normalizedValue,
-      mimeType: _trimToNull(file.mimeType),
-      fileName: fileName,
-      message: _trimToNull(file.message),
-      thumbnailValue: normalizedThumbnail,
-      durationMillis: file.duration,
-    );
-  }
-
-  ShareIntakeItemKind _mapKind(SharedMediaFile file, String normalizedValue) {
-    switch (file.type) {
-      case SharedMediaType.image:
-        return ShareIntakeItemKind.image;
-      case SharedMediaType.text:
-        return _looksLikeUrl(normalizedValue)
-            ? ShareIntakeItemKind.url
-            : ShareIntakeItemKind.text;
-      case SharedMediaType.url:
-        return ShareIntakeItemKind.url;
-      case SharedMediaType.file:
-      case SharedMediaType.video:
-        return ShareIntakeItemKind.file;
-    }
-  }
-
-  String? _normalizeSharedValue(SharedMediaFile file) {
-    switch (file.type) {
-      case SharedMediaType.image:
-      case SharedMediaType.file:
-      case SharedMediaType.video:
-        return _normalizeFileLikeValue(file.path);
-      case SharedMediaType.text:
-      case SharedMediaType.url:
-        return _trimToNull(file.path);
-    }
-  }
-
-  String? _normalizeFileLikeValue(String? value) {
-    final trimmed = _trimToNull(value);
-    if (trimmed == null) {
-      return null;
-    }
-
-    final uri = Uri.tryParse(trimmed);
-    if (uri != null && uri.hasScheme) {
-      if (uri.scheme == 'file') {
-        return uri.toFilePath();
-      }
-
-      return trimmed;
-    }
-
-    return trimmed;
-  }
-
-  String? _extractFileName(String pathValue) {
-    final normalized = pathValue.trim();
-    if (normalized.isEmpty) {
-      return null;
-    }
-
-    final baseName = p.basename(normalized).trim();
-    return baseName.isEmpty ? null : baseName;
-  }
-
-  bool _looksLikeUrl(String value) {
-    final uri = Uri.tryParse(value);
-    return uri != null &&
-        uri.hasScheme &&
-        (uri.scheme == 'http' || uri.scheme == 'https');
-  }
-
-  String? _trimToNull(String? value) {
-    final trimmed = value?.trim();
-    if (trimmed == null || trimmed.isEmpty) {
-      return null;
-    }
-
-    return trimmed;
   }
 
   Future<void> _loadPersisted() async {

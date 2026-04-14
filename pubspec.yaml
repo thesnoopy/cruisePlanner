@@ -50,7 +50,6 @@ dependencies:
   map_launcher: ^4.4.3
   file_picker: ^8.1.7
   open_filex: ^4.7.0
-  receive_sharing_intent: ^1.8.1
 
   crypto: ^3.0.0
   path:
