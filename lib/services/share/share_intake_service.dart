@@ -8,15 +8,18 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../models/share/share_intake_payload.dart';
+import 'share_intake_native_bridge.dart';
 
 typedef SharedPreferencesAsyncLoader = Future<SharedPreferences> Function();
 
 class ShareIntakeService extends ChangeNotifier {
   factory ShareIntakeService({
     SharedPreferencesAsyncLoader? preferencesLoader,
+    ShareIntakeNativeBridge? nativeBridge,
     Uuid? uuid,
   }) {
     _instance ??= ShareIntakeService._internal(
+      nativeBridge: nativeBridge,
       preferencesLoader: preferencesLoader,
       uuid: uuid,
     );
@@ -24,19 +27,22 @@ class ShareIntakeService extends ChangeNotifier {
   }
 
   ShareIntakeService._internal({
+    ShareIntakeNativeBridge? nativeBridge,
     SharedPreferencesAsyncLoader? preferencesLoader,
     Uuid? uuid,
   })  : _preferencesLoader = preferencesLoader ?? SharedPreferences.getInstance,
+        _nativeBridge = nativeBridge ?? const ShareIntakeNativeBridge(),
         _uuid = uuid ?? const Uuid();
 
   static ShareIntakeService? _instance;
   static const String _storageKey = 'share_intake_queue_v1';
 
   final SharedPreferencesAsyncLoader _preferencesLoader;
+  final ShareIntakeNativeBridge _nativeBridge;
   final Uuid _uuid;
 
   Future<void>? _initialization;
-  StreamSubscription<List<SharedMediaFile>>? _mediaSubscription;
+  StreamSubscription<List<ShareIntakeItem>>? _shareSubscription;
   List<ShareIntakeBatch> _pendingBatches = const <ShareIntakeBatch>[];
 
   List<ShareIntakeBatch> get pendingBatches =>
@@ -150,15 +156,60 @@ class ShareIntakeService extends ChangeNotifier {
 
   Future<void> _initialize() async {
     await _loadPersisted();
-    if (_mediaSubscription != null) {
+    if (_shareSubscription != null || kIsWeb) {
       return;
     }
 
-    _mediaSubscription = ReceiveSharingIntent.instance.getMediaStream().listen(
-      (sharedMedia) {
+    switch (defaultTargetPlatform) {
+      case TargetPlatform.android:
+        await _initializeAndroid();
+        return;
+      case TargetPlatform.iOS:
+        await _initializeIos();
+        return;
+      case TargetPlatform.fuchsia:
+      case TargetPlatform.linux:
+      case TargetPlatform.macOS:
+      case TargetPlatform.windows:
+        return;
+    }
+  }
+
+  Future<void> _initializeAndroid() async {
+    _shareSubscription = ReceiveSharingIntent.instance
+        .getMediaStream()
+        .map(_normalizeSharedMediaFiles)
+        .listen(
+          (items) {
+            unawaited(
+              _captureSharedItems(
+                items,
+                source: ShareIntakeSource.resumedShare,
+                resetAndroidPlugin: true,
+              ),
+            );
+          },
+          onError: (Object error, StackTrace stackTrace) {
+            debugPrint('Share intake stream error: $error');
+          },
+        );
+
+    final initialMedia = await ReceiveSharingIntent.instance.getInitialMedia();
+    await _captureSharedItems(
+      _normalizeSharedMediaFiles(initialMedia),
+      source: ShareIntakeSource.initialLaunch,
+      resetAndroidPlugin: true,
+    );
+  }
+
+  Future<void> _initializeIos() async {
+    final initialItems = await _nativeBridge.getInitialSharedItems();
+
+    _shareSubscription = _nativeBridge.sharedItemsStream.listen(
+      (items) {
         unawaited(
-          _captureSharedMedia(
-            sharedMedia,
+          _captureSharedItems(
+            items,
             source: ShareIntakeSource.resumedShare,
           ),
         );
@@ -168,24 +219,21 @@ class ShareIntakeService extends ChangeNotifier {
       },
     );
 
-    final initialMedia = await ReceiveSharingIntent.instance.getInitialMedia();
-    await _captureSharedMedia(
-      initialMedia,
+    await _captureSharedItems(
+      initialItems,
       source: ShareIntakeSource.initialLaunch,
     );
   }
 
-  Future<void> _captureSharedMedia(
-    List<SharedMediaFile> sharedMedia, {
+  Future<void> _captureSharedItems(
+    List<ShareIntakeItem> items, {
     required ShareIntakeSource source,
+    bool resetAndroidPlugin = false,
   }) async {
-    final items = sharedMedia
-        .map(_normalizeSharedMediaFile)
-        .whereType<ShareIntakeItem>()
-        .toList(growable: false);
-
     if (items.isEmpty) {
-      ReceiveSharingIntent.instance.reset();
+      if (resetAndroidPlugin) {
+        ReceiveSharingIntent.instance.reset();
+      }
       return;
     }
 
@@ -203,8 +251,19 @@ class ShareIntakeService extends ChangeNotifier {
       ],
     );
     await _persist();
-    ReceiveSharingIntent.instance.reset();
+    if (resetAndroidPlugin) {
+      ReceiveSharingIntent.instance.reset();
+    }
     notifyListeners();
+  }
+
+  List<ShareIntakeItem> _normalizeSharedMediaFiles(
+    List<SharedMediaFile> sharedMedia,
+  ) {
+    return sharedMedia
+        .map(_normalizeSharedMediaFile)
+        .whereType<ShareIntakeItem>()
+        .toList(growable: false);
   }
 
   ShareIntakeItem? _normalizeSharedMediaFile(SharedMediaFile file) {

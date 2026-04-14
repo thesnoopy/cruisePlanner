@@ -2,6 +2,7 @@
 
 source 'https://github.com/CocoaPods/Specs.git'
 platform :ios, '13.0'
+require 'json'
 
 ENV['COCOAPODS_DISABLE_STATS'] = 'true'
 
@@ -28,6 +29,21 @@ end
 require File.expand_path(File.join(flutter_root, 'packages', 'flutter_tools', 'bin', 'podhelper'), __FILE__)
 
 flutter_ios_podfile_setup
+
+plugins_dependencies_path = File.expand_path(File.join('..', '.flutter-plugins-dependencies'), __dir__)
+if File.exist?(plugins_dependencies_path)
+  plugins_dependencies = JSON.parse(File.read(plugins_dependencies_path))
+  ios_plugins = plugins_dependencies.dig('plugins', 'ios')
+
+  if ios_plugins.is_a?(Array)
+    filtered_ios_plugins = ios_plugins.reject { |plugin| plugin['name'] == 'receive_sharing_intent' }
+
+    if filtered_ios_plugins.length != ios_plugins.length
+      plugins_dependencies['plugins']['ios'] = filtered_ios_plugins
+      File.write(plugins_dependencies_path, JSON.generate(plugins_dependencies))
+    end
+  end
+end
 
 target 'Runner' do
   use_frameworks!     # Flutter erwartet das bei modernen Plugins
