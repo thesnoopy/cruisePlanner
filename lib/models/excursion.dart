@@ -1,10 +1,13 @@
 
 import 'identifiable.dart';
 import 'documents/document_ids.dart';
+import 'sync_metadata.dart';
 import 'excursions/excursion_payment_plan.dart';
 import 'excursions/excursion_stop.dart';
 
 class Excursion extends Identifiable {
+  static const Object _unset = Object();
+
   @override
   final String id;
   final String title;
@@ -16,6 +19,8 @@ class Excursion extends Identifiable {
   final String? currency;
   final List<ExcursionStop> stops;
   final List<String> documentIds;
+  final DateTime? updatedAtUtc;
+  final DateTime? deletedAtUtc;
 
   final ExcursionPaymentPlan? paymentPlan;
 
@@ -30,6 +35,8 @@ class Excursion extends Identifiable {
     this.currency,
     this.stops = const [],
     List<String> documentIds = const [],
+    this.updatedAtUtc,
+    this.deletedAtUtc,
     this.paymentPlan,
   }) : documentIds = DocumentIds.fromJsonValue(documentIds);
 
@@ -44,6 +51,8 @@ class Excursion extends Identifiable {
     String? currency,
     List<ExcursionStop>? stops,
     List<String>? documentIds,
+    Object? updatedAtUtc = _unset,
+    Object? deletedAtUtc = _unset,
     ExcursionPaymentPlan? paymentPlan,
   }) {
     return Excursion(
@@ -57,6 +66,12 @@ class Excursion extends Identifiable {
       currency: currency ?? this.currency,
       stops: stops ?? this.stops,
       documentIds: documentIds ?? this.documentIds,
+      updatedAtUtc: identical(updatedAtUtc, _unset)
+          ? this.updatedAtUtc
+          : updatedAtUtc as DateTime?,
+      deletedAtUtc: identical(deletedAtUtc, _unset)
+          ? this.deletedAtUtc
+          : deletedAtUtc as DateTime?,
       paymentPlan: paymentPlan ?? this.paymentPlan,
     );
   }
@@ -75,6 +90,8 @@ class Excursion extends Identifiable {
           .map((e) => ExcursionStop.fromMap(Map<String, dynamic>.from(e as Map)))
           .toList(growable: false),
       documentIds: DocumentIds.fromJsonValue(map['documentIds']),
+      updatedAtUtc: readNullableUtcDateTime(map, 'updatedAtUtc'),
+      deletedAtUtc: readNullableUtcDateTime(map, 'deletedAtUtc'),
       paymentPlan: map['paymentPlan'] != null
           ? ExcursionPaymentPlan.fromMap(Map<String, dynamic>.from(map['paymentPlan']))
           : null,
@@ -92,6 +109,8 @@ class Excursion extends Identifiable {
         'currency': currency,
         'stops': stops.map((stop) => stop.toMap()).toList(growable: false),
         'documentIds': documentIds,
+        'updatedAtUtc': writeNullableUtcDateTime(updatedAtUtc),
+        'deletedAtUtc': writeNullableUtcDateTime(deletedAtUtc),
         'paymentPlan': paymentPlan?.toMap(),
       };
 
@@ -107,6 +126,8 @@ class Excursion extends Identifiable {
         currency,
         stops,
         documentIds,
+        updatedAtUtc,
+        deletedAtUtc,
         paymentPlan,
       ];
 }

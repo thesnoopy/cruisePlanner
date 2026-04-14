@@ -4,6 +4,8 @@ import 'base_travel.dart';
 enum TransferMode { shuttle, taxi, privateDriver, rideshare }
 
 class TransferItem extends TravelItem {
+  static const Object _unset = Object();
+
   @override
   final String id;
   @override
@@ -24,6 +26,10 @@ class TransferItem extends TravelItem {
   final String? recordLocator;
   @override
   final List<String> documentIds;
+  @override
+  final DateTime? updatedAtUtc;
+  @override
+  final DateTime? deletedAtUtc;
 
   final TransferMode? mode;
 
@@ -39,6 +45,8 @@ class TransferItem extends TravelItem {
     this.mode,
     this.recordLocator,
     List<String> documentIds = const [],
+    this.updatedAtUtc,
+    this.deletedAtUtc,
   }) : documentIds = TravelItem.readDocumentIds(documentIds);
 
   @override
@@ -56,6 +64,8 @@ class TransferItem extends TravelItem {
     TransferMode? mode,
     String? recordLocator,
     List<String>? documentIds,
+    Object? updatedAtUtc = _unset,
+    Object? deletedAtUtc = _unset,
   }) =>
       TransferItem(
         id: id ?? this.id,
@@ -69,6 +79,12 @@ class TransferItem extends TravelItem {
         mode: mode ?? this.mode,
         recordLocator: recordLocator ?? this.recordLocator,
         documentIds: documentIds ?? this.documentIds,
+        updatedAtUtc: identical(updatedAtUtc, _unset)
+            ? this.updatedAtUtc
+            : updatedAtUtc as DateTime?,
+        deletedAtUtc: identical(deletedAtUtc, _unset)
+            ? this.deletedAtUtc
+            : deletedAtUtc as DateTime?,
       );
 
   @override
@@ -85,6 +101,8 @@ class TransferItem extends TravelItem {
         'mode': mode?.name,
         'recordLocator': recordLocator,
         'documentIds': documentIds,
+        'updatedAtUtc': TravelItem.writeSyncTimestamp(updatedAtUtc),
+        'deletedAtUtc': TravelItem.writeSyncTimestamp(deletedAtUtc),
       };
 
   factory TransferItem.fromMap(Map<String, dynamic> map) => TransferItem(
@@ -101,8 +119,10 @@ class TransferItem extends TravelItem {
             : null,
         recordLocator: map['recordLocator'],
         documentIds: TravelItem.readDocumentIds(map['documentIds']),
+        updatedAtUtc: TravelItem.readSyncTimestamp(map, 'updatedAtUtc'),
+        deletedAtUtc: TravelItem.readSyncTimestamp(map, 'deletedAtUtc'),
       );
 
   @override
-  List<Object?> get props => [id, kind, start, end, from, to, notes, price, currency, mode, recordLocator, documentIds];
+  List<Object?> get props => [id, kind, start, end, from, to, notes, price, currency, mode, recordLocator, documentIds, updatedAtUtc, deletedAtUtc];
 }

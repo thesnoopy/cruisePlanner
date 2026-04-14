@@ -3,12 +3,15 @@ import 'period.dart';
 import 'ship.dart';
 import 'documents/document_ids.dart';
 import 'excursion.dart';
+import 'sync_metadata.dart';
 import 'travel/base_travel.dart';
 import 'travel/factory.dart';
 import 'route/route_item.dart';
 import 'route/factory.dart' as rf;
 
 class Cruise extends Identifiable {
+  static const Object _unset = Object();
+
   @override
   final String id;
   final String title;
@@ -21,6 +24,8 @@ class Cruise extends Identifiable {
   final List<TravelItem> travel;
   final List<RouteItem> route;
   final List<String> documentIds;
+  final DateTime? updatedAtUtc;
+  final DateTime? deletedAtUtc;
 
   Cruise({
     required this.id,
@@ -34,6 +39,8 @@ class Cruise extends Identifiable {
     this.travel = const [],
     this.route = const [],
     List<String> documentIds = const [],
+    this.updatedAtUtc,
+    this.deletedAtUtc,
   }) : documentIds = DocumentIds.fromJsonValue(documentIds);
 
   Cruise copyWith({
@@ -48,6 +55,8 @@ class Cruise extends Identifiable {
     List<TravelItem>? travel,
     List<RouteItem>? route,
     List<String>? documentIds,
+    Object? updatedAtUtc = _unset,
+    Object? deletedAtUtc = _unset,
   }) =>
       Cruise(
         id: id ?? this.id,
@@ -61,6 +70,12 @@ class Cruise extends Identifiable {
         travel: travel ?? this.travel,
         route: route ?? this.route,
         documentIds: documentIds ?? this.documentIds,
+        updatedAtUtc: identical(updatedAtUtc, _unset)
+            ? this.updatedAtUtc
+            : updatedAtUtc as DateTime?,
+        deletedAtUtc: identical(deletedAtUtc, _unset)
+            ? this.deletedAtUtc
+            : deletedAtUtc as DateTime?,
       );
 
   Map<String, dynamic> toMap() => {
@@ -75,6 +90,8 @@ class Cruise extends Identifiable {
         'travel': travel.map((t) => t.toMap()).toList(),
         'route': route.map((r) => r.toMap()).toList(),
         'documentIds': documentIds,
+        'updatedAtUtc': writeNullableUtcDateTime(updatedAtUtc),
+        'deletedAtUtc': writeNullableUtcDateTime(deletedAtUtc),
       };
 
   factory Cruise.fromMap(Map<String, dynamic> map) => Cruise(
@@ -95,6 +112,8 @@ class Cruise extends Identifiable {
             .map((e) => rf.routeItemFromMap(Map<String, dynamic>.from(e)))
             .toList(growable: false),
         documentIds: DocumentIds.fromJsonValue(map['documentIds']),
+        updatedAtUtc: readNullableUtcDateTime(map, 'updatedAtUtc'),
+        deletedAtUtc: readNullableUtcDateTime(map, 'deletedAtUtc'),
       );
 
   @override
@@ -109,5 +128,7 @@ class Cruise extends Identifiable {
         travel,
         route,
         documentIds,
+        updatedAtUtc,
+        deletedAtUtc,
       ];
 }

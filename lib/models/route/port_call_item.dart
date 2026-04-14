@@ -2,12 +2,18 @@ import 'route_item.dart';
 import '../documents/document_ids.dart';
 
 class PortCallItem extends RouteItem {
+  static const Object _unset = Object();
+
   @override
   final String id;
   @override
   final DateTime date;
   @override
   final String type = 'port';
+  @override
+  final DateTime? updatedAtUtc;
+  @override
+  final DateTime? deletedAtUtc;
 
   final String portName;
   final DateTime? arrival;
@@ -26,6 +32,8 @@ class PortCallItem extends RouteItem {
     this.allAboard,
     this.notes,
     List<String> documentIds = const [],
+    this.updatedAtUtc,
+    this.deletedAtUtc,
   }) : documentIds = DocumentIds.fromJsonValue(documentIds);
 
   PortCallItem copyWith({
@@ -37,6 +45,8 @@ class PortCallItem extends RouteItem {
     DateTime? allAboard,
     String? notes,
     List<String>? documentIds,
+    Object? updatedAtUtc = _unset,
+    Object? deletedAtUtc = _unset,
   }) =>
       PortCallItem(
         id: id ?? this.id,
@@ -47,6 +57,12 @@ class PortCallItem extends RouteItem {
         allAboard: allAboard ?? this.allAboard,
         notes: notes ?? this.notes,
         documentIds: documentIds ?? this.documentIds,
+        updatedAtUtc: identical(updatedAtUtc, _unset)
+            ? this.updatedAtUtc
+            : updatedAtUtc as DateTime?,
+        deletedAtUtc: identical(deletedAtUtc, _unset)
+            ? this.deletedAtUtc
+            : deletedAtUtc as DateTime?,
       );
 
   @override
@@ -60,6 +76,8 @@ class PortCallItem extends RouteItem {
         'allAboard': allAboard?.toIso8601String(),
         'notes': notes,
         'documentIds': documentIds,
+        'updatedAtUtc': RouteItem.writeSyncTimestamp(updatedAtUtc),
+        'deletedAtUtc': RouteItem.writeSyncTimestamp(deletedAtUtc),
       };
 
   factory PortCallItem.fromMap(Map<String, dynamic> map) => PortCallItem(
@@ -71,8 +89,10 @@ class PortCallItem extends RouteItem {
         allAboard: map['allAboard'] != null ? DateTime.parse(map['allAboard']) : null,
         notes: map['notes'],
         documentIds: DocumentIds.fromJsonValue(map['documentIds']),
+        updatedAtUtc: RouteItem.readSyncTimestamp(map, 'updatedAtUtc'),
+        deletedAtUtc: RouteItem.readSyncTimestamp(map, 'deletedAtUtc'),
       );
 
   @override
-  List<Object?> get props => [id, type, date, portName, arrival, departure, allAboard, notes, documentIds];
+  List<Object?> get props => [id, type, date, portName, arrival, departure, allAboard, notes, documentIds, updatedAtUtc, deletedAtUtc];
 }
