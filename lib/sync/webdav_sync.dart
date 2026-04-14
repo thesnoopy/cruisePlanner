@@ -14,6 +14,22 @@ class RemoteInfo {
   const RemoteInfo({this.mTimeUtc, this.eTag});
 }
 
+class RemoteCruiseSchemaTooNewException implements Exception {
+  const RemoteCruiseSchemaTooNewException({
+    required this.remoteSchemaVersion,
+    required this.supportedSchemaVersion,
+  });
+
+  final int remoteSchemaVersion;
+  final int supportedSchemaVersion;
+
+  @override
+  String toString() {
+    return 'Remote cruise schema version $remoteSchemaVersion is newer than '
+        'supported version $supportedSchemaVersion. Sync aborted.';
+  }
+}
+
 /// Low-Level WebDAV‑Zugriff für die Cruise-JSON-Datei.
 ///
 /// Diese Klasse kennt nur:
@@ -22,6 +38,8 @@ class RemoteInfo {
 ///
 /// Die eigentliche Merge-Logik steckt in [CruiseSyncService].
 class WebDavSync {
+  static const int supportedCruiseSchemaVersion = 3;
+
   final WebDavSettings settings;
 
   const WebDavSync(this.settings);
@@ -81,7 +99,20 @@ class WebDavSync {
       final decoded = jsonDecode(jsonStr);
 
       final List<dynamic> list;
-      if (decoded is Map<String, dynamic> && decoded['cruises'] is List) {
+      if (decoded is Map<String, dynamic>) {
+        final schemaVersion = decoded['schemaVersion'];
+        if (schemaVersion is int &&
+            schemaVersion > supportedCruiseSchemaVersion) {
+          throw RemoteCruiseSchemaTooNewException(
+            remoteSchemaVersion: schemaVersion,
+            supportedSchemaVersion: supportedCruiseSchemaVersion,
+          );
+        }
+
+        if (decoded['cruises'] is! List) {
+          return const <Cruise>[];
+        }
+
         list = decoded['cruises'] as List<dynamic>;
       } else if (decoded is List) {
         // Fallback: nackte Liste ohne Wrapper
@@ -115,6 +146,7 @@ class WebDavSync {
     await _backupCurrentRemoteFileIfExists(client);
 
     final payload = <String, dynamic>{
+      'schemaVersion': supportedCruiseSchemaVersion,
       'cruises': cruises.map((c) => c.toMap()).toList(),
     };
     final jsonStr = jsonEncode(payload);
