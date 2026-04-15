@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="480" viewBox="0 0 720 480">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#1c6e8c"/>
+      <stop offset="100%" stop-color="#f2c14e"/>
+    </linearGradient>
+  </defs>
+  <rect width="720" height="480" rx="36" fill="url(#bg)"/>
+  <rect x="54" y="54" width="612" height="372" rx="28" fill="#ffffff" fill-opacity="0.92"/>
+  <text x="88" y="142" font-family="Arial, Helvetica, sans-serif" font-size="34" font-weight="700" fill="#0d3b66">Palma Day Pass</text>
+  <text x="88" y="194" font-family="Arial, Helvetica, sans-serif" font-size="22" fill="#0d3b66">Old Town Shuttle and Cathedral Access</text>
+  <text x="88" y="248" font-family="Arial, Helvetica, sans-serif" font-size="20" fill="#555555">Port of Palma</text>
+  <text x="88" y="284" font-family="Arial, Helvetica, sans-serif" font-size="20" fill="#555555">Demo image for screenshot seeding</text>
+  <circle cx="584" cy="164" r="52" fill="#1c6e8c" fill-opacity="0.14"/>
+  <path d="M552 172c18-42 58-42 76 0" fill="none" stroke="#1c6e8c" stroke-width="8" stroke-linecap="round"/>
+  <path d="M564 188h52" fill="none" stroke="#1c6e8c" stroke-width="8" stroke-linecap="round"/>
+</svg>
