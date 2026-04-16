@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:crypto/crypto.dart';
 import 'package:path/path.dart' as p;
@@ -86,6 +87,21 @@ class DocumentFileStore {
 
     await destinationFile.parent.create(recursive: true);
     return sourceFile.copy(destinationFile.path);
+  }
+
+  Future<File> writeBytesIntoStorage({
+    required Uint8List bytes,
+    required String documentId,
+    required String fileExtension,
+  }) async {
+    await createDocumentDirectory(documentId);
+
+    final relativePath = buildRelativePath(documentId, fileExtension);
+    final destinationFile = await resolveAbsoluteFile(relativePath);
+
+    await destinationFile.parent.create(recursive: true);
+    await destinationFile.writeAsBytes(bytes, flush: true);
+    return destinationFile;
   }
 
   Future<String> calculateContentHash(File file) async {

@@ -5,6 +5,7 @@ import '../../models/documents/document_record.dart';
 import '../../store/document_store.dart';
 import 'document_attachment_service.dart';
 import 'document_import_service.dart';
+import 'url_snapshot_import_service.dart';
 
 class ExcursionDocumentSectionData {
   const ExcursionDocumentSectionData({
@@ -39,13 +40,17 @@ class ExcursionDocumentSectionService {
     DocumentAttachmentService? attachmentService,
     DocumentStore? documentStore,
     DocumentImportService? importService,
+    UrlSnapshotImportService? urlSnapshotImportService,
   })  : _attachmentService = attachmentService ?? DocumentAttachmentService(),
         _documentStore = documentStore ?? DocumentStore(),
-        _importService = importService ?? DocumentImportService();
+        _importService = importService ?? DocumentImportService(),
+        _urlSnapshotImportService =
+            urlSnapshotImportService ?? UrlSnapshotImportService();
 
   final DocumentAttachmentService _attachmentService;
   final DocumentStore _documentStore;
   final DocumentImportService _importService;
+  final UrlSnapshotImportService _urlSnapshotImportService;
 
   Future<ExcursionDocumentSectionData> loadForExcursion(
     String excursionId,
@@ -126,6 +131,52 @@ class ExcursionDocumentSectionService {
       outcome: importResolution.kind == DocumentImportResolutionKind.imported
           ? ExcursionDocumentImportOutcome.importedAndLinked
           : ExcursionDocumentImportOutcome.existingLinked,
+    );
+  }
+
+  Future<ExcursionDocumentImportResult> importUrlDocument({
+    required String excursionId,
+    required String sourceUrl,
+    String? title,
+  }) async {
+    final document = await _urlSnapshotImportService.importUrl(
+      sourceUrl: sourceUrl,
+      title: title,
+    );
+    return _attachImportedDocument(
+      excursionId: excursionId,
+      document: document,
+    );
+  }
+
+  Future<ExcursionDocumentImportResult> _attachImportedDocument({
+    required String excursionId,
+    required DocumentRecord document,
+  }) async {
+    final linkedDocuments = await _attachmentService.getDocumentsForExcursion(
+      excursionId: excursionId,
+    );
+    final alreadyLinked = linkedDocuments.any(
+      (linkedDocument) => linkedDocument.id == document.id,
+    );
+    if (alreadyLinked) {
+      return ExcursionDocumentImportResult(
+        document: document,
+        outcome: ExcursionDocumentImportOutcome.alreadyLinked,
+      );
+    }
+
+    final attached = await _attachmentService.attachDocumentToExcursion(
+      excursionId: excursionId,
+      documentId: document.id,
+    );
+    if (!attached) {
+      throw StateError('Failed to attach document to excursion.');
+    }
+
+    return ExcursionDocumentImportResult(
+      document: document,
+      outcome: ExcursionDocumentImportOutcome.importedAndLinked,
     );
   }
 }

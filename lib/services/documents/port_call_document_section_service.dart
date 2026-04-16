@@ -5,6 +5,7 @@ import '../../models/documents/document_record.dart';
 import '../../store/document_store.dart';
 import 'document_attachment_service.dart';
 import 'document_import_service.dart';
+import 'url_snapshot_import_service.dart';
 
 class PortCallDocumentSectionData {
   const PortCallDocumentSectionData({
@@ -39,13 +40,17 @@ class PortCallDocumentSectionService {
     DocumentAttachmentService? attachmentService,
     DocumentStore? documentStore,
     DocumentImportService? importService,
+    UrlSnapshotImportService? urlSnapshotImportService,
   })  : _attachmentService = attachmentService ?? DocumentAttachmentService(),
         _documentStore = documentStore ?? DocumentStore(),
-        _importService = importService ?? DocumentImportService();
+        _importService = importService ?? DocumentImportService(),
+        _urlSnapshotImportService =
+            urlSnapshotImportService ?? UrlSnapshotImportService();
 
   final DocumentAttachmentService _attachmentService;
   final DocumentStore _documentStore;
   final DocumentImportService _importService;
+  final UrlSnapshotImportService _urlSnapshotImportService;
 
   Future<PortCallDocumentSectionData> loadForPortCall(String portCallId) async {
     final linkedDocuments = await _attachmentService.getDocumentsForPortCall(
@@ -124,6 +129,52 @@ class PortCallDocumentSectionService {
       outcome: importResolution.kind == DocumentImportResolutionKind.imported
           ? PortCallDocumentImportOutcome.importedAndLinked
           : PortCallDocumentImportOutcome.existingLinked,
+    );
+  }
+
+  Future<PortCallDocumentImportResult> importUrlDocument({
+    required String portCallId,
+    required String sourceUrl,
+    String? title,
+  }) async {
+    final document = await _urlSnapshotImportService.importUrl(
+      sourceUrl: sourceUrl,
+      title: title,
+    );
+    return _attachImportedDocument(
+      portCallId: portCallId,
+      document: document,
+    );
+  }
+
+  Future<PortCallDocumentImportResult> _attachImportedDocument({
+    required String portCallId,
+    required DocumentRecord document,
+  }) async {
+    final linkedDocuments = await _attachmentService.getDocumentsForPortCall(
+      portCallId: portCallId,
+    );
+    final alreadyLinked = linkedDocuments.any(
+      (linkedDocument) => linkedDocument.id == document.id,
+    );
+    if (alreadyLinked) {
+      return PortCallDocumentImportResult(
+        document: document,
+        outcome: PortCallDocumentImportOutcome.alreadyLinked,
+      );
+    }
+
+    final attached = await _attachmentService.attachDocumentToPortCall(
+      portCallId: portCallId,
+      documentId: document.id,
+    );
+    if (!attached) {
+      throw StateError('Failed to attach document to port call.');
+    }
+
+    return PortCallDocumentImportResult(
+      document: document,
+      outcome: PortCallDocumentImportOutcome.importedAndLinked,
     );
   }
 }

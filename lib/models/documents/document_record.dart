@@ -1,5 +1,61 @@
 import 'document_kind.dart';
 
+enum DocumentOrigin {
+  localFile,
+  urlImport,
+  ;
+
+  String get jsonValue {
+    switch (this) {
+      case DocumentOrigin.localFile:
+        return 'localFile';
+      case DocumentOrigin.urlImport:
+        return 'urlImport';
+    }
+  }
+
+  static DocumentOrigin fromJsonValue(Object? value) {
+    switch (value) {
+      case 'urlImport':
+        return DocumentOrigin.urlImport;
+      case 'localFile':
+      default:
+        return DocumentOrigin.localFile;
+    }
+  }
+}
+
+enum DocumentSnapshotStatus {
+  available,
+  linkOnly,
+  failed,
+  ;
+
+  String get jsonValue {
+    switch (this) {
+      case DocumentSnapshotStatus.available:
+        return 'available';
+      case DocumentSnapshotStatus.linkOnly:
+        return 'linkOnly';
+      case DocumentSnapshotStatus.failed:
+        return 'failed';
+    }
+  }
+
+  static DocumentSnapshotStatus? fromJsonValue(Object? value) {
+    switch (value) {
+      case 'available':
+        return DocumentSnapshotStatus.available;
+      case 'linkOnly':
+        return DocumentSnapshotStatus.linkOnly;
+      case 'failed':
+        return DocumentSnapshotStatus.failed;
+      default:
+        return null;
+    }
+  }
+}
+
 class DocumentRecord {
   final String id;
   final DocumentKind kind;
@@ -13,6 +69,12 @@ class DocumentRecord {
   final DateTime createdAt;
   final DateTime updatedAt;
   final bool deleted;
+  final DocumentOrigin origin;
+  final String? sourceUrl;
+  final DocumentSnapshotStatus? snapshotStatus;
+  final DateTime? capturedAtUtc;
+  final String? sourceDescription;
+  final String? sourceHost;
 
   const DocumentRecord({
     required this.id,
@@ -27,6 +89,12 @@ class DocumentRecord {
     required this.createdAt,
     required this.updatedAt,
     required this.deleted,
+    this.origin = DocumentOrigin.localFile,
+    this.sourceUrl,
+    this.snapshotStatus,
+    this.capturedAtUtc,
+    this.sourceDescription,
+    this.sourceHost,
   });
 
   DocumentRecord copyWith({
@@ -42,6 +110,17 @@ class DocumentRecord {
     DateTime? createdAt,
     DateTime? updatedAt,
     bool? deleted,
+    DocumentOrigin? origin,
+    String? sourceUrl,
+    bool clearSourceUrl = false,
+    DocumentSnapshotStatus? snapshotStatus,
+    bool clearSnapshotStatus = false,
+    DateTime? capturedAtUtc,
+    bool clearCapturedAtUtc = false,
+    String? sourceDescription,
+    bool clearSourceDescription = false,
+    String? sourceHost,
+    bool clearSourceHost = false,
   }) {
     return DocumentRecord(
       id: id ?? this.id,
@@ -56,6 +135,18 @@ class DocumentRecord {
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       deleted: deleted ?? this.deleted,
+      origin: origin ?? this.origin,
+      sourceUrl: clearSourceUrl ? null : sourceUrl ?? this.sourceUrl,
+      snapshotStatus: clearSnapshotStatus
+          ? null
+          : snapshotStatus ?? this.snapshotStatus,
+      capturedAtUtc: clearCapturedAtUtc
+          ? null
+          : capturedAtUtc ?? this.capturedAtUtc,
+      sourceDescription: clearSourceDescription
+          ? null
+          : sourceDescription ?? this.sourceDescription,
+      sourceHost: clearSourceHost ? null : sourceHost ?? this.sourceHost,
     );
   }
 
@@ -73,6 +164,12 @@ class DocumentRecord {
       'createdAt': createdAt.toIso8601String(),
       'updatedAt': updatedAt.toIso8601String(),
       'deleted': deleted,
+      'origin': origin.jsonValue,
+      'sourceUrl': sourceUrl,
+      'snapshotStatus': snapshotStatus?.jsonValue,
+      'capturedAtUtc': capturedAtUtc?.toIso8601String(),
+      'sourceDescription': sourceDescription,
+      'sourceHost': sourceHost,
     };
   }
 
@@ -119,6 +216,14 @@ class DocumentRecord {
       createdAt: createdAt,
       updatedAt: updatedAt,
       deleted: _readBool(json['deleted']) ?? false,
+      origin: DocumentOrigin.fromJsonValue(json['origin']),
+      sourceUrl: _readNullableString(json['sourceUrl']),
+      snapshotStatus: DocumentSnapshotStatus.fromJsonValue(
+        json['snapshotStatus'],
+      ),
+      capturedAtUtc: _readNullableDateTime(json['capturedAtUtc']),
+      sourceDescription: _readNullableString(json['sourceDescription']),
+      sourceHost: _readNullableString(json['sourceHost']),
     );
   }
 
@@ -146,6 +251,15 @@ class DocumentRecord {
     }
 
     return normalized;
+  }
+
+  static String? _readNullableString(Object? value) {
+    if (value is! String) {
+      return null;
+    }
+
+    final trimmed = value.trim();
+    return trimmed.isEmpty ? null : trimmed;
   }
 
   static int? _readInt(Object? value) {
@@ -191,5 +305,13 @@ class DocumentRecord {
     }
 
     return null;
+  }
+
+  static DateTime? _readNullableDateTime(Object? value) {
+    if (value == null) {
+      return null;
+    }
+
+    return _readDateTime(value);
   }
 }

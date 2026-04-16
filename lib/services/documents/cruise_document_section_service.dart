@@ -5,6 +5,7 @@ import '../../models/documents/document_record.dart';
 import '../../store/document_store.dart';
 import 'document_attachment_service.dart';
 import 'document_import_service.dart';
+import 'url_snapshot_import_service.dart';
 
 class CruiseDocumentSectionData {
   const CruiseDocumentSectionData({
@@ -39,13 +40,17 @@ class CruiseDocumentSectionService {
     DocumentAttachmentService? attachmentService,
     DocumentStore? documentStore,
     DocumentImportService? importService,
+    UrlSnapshotImportService? urlSnapshotImportService,
   })  : _attachmentService = attachmentService ?? DocumentAttachmentService(),
         _documentStore = documentStore ?? DocumentStore(),
-        _importService = importService ?? DocumentImportService();
+        _importService = importService ?? DocumentImportService(),
+        _urlSnapshotImportService =
+            urlSnapshotImportService ?? UrlSnapshotImportService();
 
   final DocumentAttachmentService _attachmentService;
   final DocumentStore _documentStore;
   final DocumentImportService _importService;
+  final UrlSnapshotImportService _urlSnapshotImportService;
 
   Future<CruiseDocumentSectionData> loadForCruise(String cruiseId) async {
     final linkedDocuments = await _attachmentService.getDocumentsForCruise(
@@ -124,6 +129,52 @@ class CruiseDocumentSectionService {
       outcome: importResolution.kind == DocumentImportResolutionKind.imported
           ? CruiseDocumentImportOutcome.importedAndLinked
           : CruiseDocumentImportOutcome.existingLinked,
+    );
+  }
+
+  Future<CruiseDocumentImportResult> importUrlDocument({
+    required String cruiseId,
+    required String sourceUrl,
+    String? title,
+  }) async {
+    final document = await _urlSnapshotImportService.importUrl(
+      sourceUrl: sourceUrl,
+      title: title,
+    );
+    return _attachImportedDocument(
+      cruiseId: cruiseId,
+      document: document,
+    );
+  }
+
+  Future<CruiseDocumentImportResult> _attachImportedDocument({
+    required String cruiseId,
+    required DocumentRecord document,
+  }) async {
+    final linkedDocuments = await _attachmentService.getDocumentsForCruise(
+      cruiseId: cruiseId,
+    );
+    final alreadyLinked = linkedDocuments.any(
+      (linkedDocument) => linkedDocument.id == document.id,
+    );
+    if (alreadyLinked) {
+      return CruiseDocumentImportResult(
+        document: document,
+        outcome: CruiseDocumentImportOutcome.alreadyLinked,
+      );
+    }
+
+    final attached = await _attachmentService.attachDocumentToCruise(
+      cruiseId: cruiseId,
+      documentId: document.id,
+    );
+    if (!attached) {
+      throw StateError('Failed to attach document to cruise.');
+    }
+
+    return CruiseDocumentImportResult(
+      document: document,
+      outcome: CruiseDocumentImportOutcome.importedAndLinked,
     );
   }
 }

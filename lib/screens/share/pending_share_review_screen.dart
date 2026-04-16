@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../l10n/app_localizations.dart';
 import '../../models/share/share_intake_payload.dart';
+import '../../services/share/pending_share_assignment_service.dart';
 import '../../services/share/share_intake_service.dart';
 import '../../utils/format.dart';
 import 'pending_share_assignment_screen.dart';
@@ -140,12 +141,19 @@ class _PendingShareItemTile extends StatelessWidget {
   final int itemIndex;
   final ShareIntakeItem item;
 
+  static final PendingShareAssignmentService _assignmentService =
+      PendingShareAssignmentService();
+
   @override
   Widget build(BuildContext context) {
     final loc = AppLocalizations.of(context)!;
     final title = _itemTitle(item);
     final subtitle = _itemSubtitle(item);
-    final canAssign = item.isFileBased;
+    final canAssign = _assignmentService.canAssignItem(
+      batchId: batchId,
+      itemIndex: itemIndex,
+      item: item,
+    );
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

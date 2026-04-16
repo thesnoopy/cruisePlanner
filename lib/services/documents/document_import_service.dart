@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:path/path.dart' as p;
 import 'package:uuid/uuid.dart';
@@ -40,6 +41,75 @@ class DocumentImportService {
       sourceFile: sourceFile,
       title: title,
     );
+  }
+
+  Future<DocumentRecord> createStoredDocument({
+    required Uint8List bytes,
+    required String originalFileName,
+    required String mimeType,
+    String? title,
+    DocumentKind? kind,
+    DocumentOrigin origin = DocumentOrigin.localFile,
+    String? sourceUrl,
+    DocumentSnapshotStatus? snapshotStatus,
+    DateTime? capturedAtUtc,
+    String? sourceDescription,
+    String? sourceHost,
+  }) async {
+    final normalizedFileName = originalFileName.trim();
+    if (normalizedFileName.isEmpty) {
+      throw ArgumentError.value(
+        originalFileName,
+        'originalFileName',
+        'Must not be empty.',
+      );
+    }
+
+    final normalizedMimeType = mimeType.trim();
+    if (normalizedMimeType.isEmpty) {
+      throw ArgumentError.value(mimeType, 'mimeType', 'Must not be empty.');
+    }
+
+    final documentId = _uuid.v4();
+    final fileExtension = _extractFileExtension(normalizedFileName);
+    final storedFile = await _fileStore.writeBytesIntoStorage(
+      bytes: bytes,
+      documentId: documentId,
+      fileExtension: fileExtension,
+    );
+
+    final relativePath = _fileStore.buildRelativePath(documentId, fileExtension);
+    final contentHash = await _fileStore.calculateContentHash(storedFile);
+    final byteSize = await storedFile.length();
+    final resolvedTitle = _resolveTitle(
+      explicitTitle: title,
+      originalFileName: normalizedFileName,
+    );
+    final now = DateTime.now().toUtc();
+
+    final record = DocumentRecord(
+      id: documentId,
+      kind: kind ?? _inferDocumentKind(normalizedMimeType, fileExtension),
+      title: resolvedTitle,
+      originalFileName: normalizedFileName,
+      mimeType: normalizedMimeType,
+      fileExtension: fileExtension,
+      localRelativePath: relativePath,
+      byteSize: byteSize,
+      contentHash: contentHash,
+      createdAt: now,
+      updatedAt: now,
+      deleted: false,
+      origin: origin,
+      sourceUrl: sourceUrl?.trim(),
+      snapshotStatus: snapshotStatus,
+      capturedAtUtc: capturedAtUtc?.toUtc(),
+      sourceDescription: sourceDescription?.trim(),
+      sourceHost: sourceHost?.trim(),
+    );
+
+    await _documentStore.saveDocument(record);
+    return record;
   }
 
   Future<DocumentImportResolution> importFileIfNeeded({
@@ -186,6 +256,9 @@ class DocumentImportService {
         return 'text/csv';
       case 'json':
         return 'application/json';
+      case 'htm':
+      case 'html':
+        return 'text/html';
       default:
         return 'application/octet-stream';
     }

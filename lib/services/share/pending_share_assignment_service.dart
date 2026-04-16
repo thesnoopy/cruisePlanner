@@ -98,7 +98,37 @@ class PendingShareAssignmentService {
   final TravelDocumentSectionService _travelDocumentSectionService;
   final PortCallDocumentSectionService _portCallDocumentSectionService;
 
-  bool canAssignItem(ShareIntakeItem item) => item.isFileBased;
+  bool canAssignItem({
+    required String batchId,
+    required int itemIndex,
+    ShareIntakeItem? item,
+  }) {
+    final resolvedItem = item ??
+        _shareIntakeService.getPendingItem(
+          batchId: batchId,
+          itemIndex: itemIndex,
+        );
+    if (resolvedItem == null) {
+      return false;
+    }
+
+    if (resolvedItem.isFileBased) {
+      return true;
+    }
+
+    if (resolvedItem.kind != ShareIntakeItemKind.url) {
+      return false;
+    }
+
+    if (!_isSupportedUrlValue(resolvedItem.value)) {
+      return false;
+    }
+
+    return _isFirstUrlItem(
+      batchId: batchId,
+      itemIndex: itemIndex,
+    );
+  }
 
   Future<PendingShareAssignmentSelectionData> loadSelectionData({
     required String batchId,
@@ -136,16 +166,48 @@ class PendingShareAssignmentService {
     if (item == null) {
       throw StateError('Pending share item not found.');
     }
-    if (!canAssignItem(item)) {
+    if (!canAssignItem(
+      batchId: batchId,
+      itemIndex: itemIndex,
+      item: item,
+    )) {
       throw UnsupportedError('Pending share item is not assignable.');
     }
 
+    final outcome = item.kind == ShareIntakeItemKind.url
+        ? await _assignUrlItem(
+            item: item,
+            target: target,
+            title: title,
+          )
+        : await _assignFileItem(
+            item: item,
+            target: target,
+            title: title,
+          );
+
+    if (item.kind == ShareIntakeItemKind.url) {
+      await _removeUrlItemsFromBatch(batchId: batchId);
+    } else {
+      await _shareIntakeService.removePendingItem(
+        batchId: batchId,
+        itemIndex: itemIndex,
+      );
+    }
+    return outcome;
+  }
+
+  Future<PendingShareAssignmentOutcome> _assignFileItem({
+    required ShareIntakeItem item,
+    required PendingShareAssignmentTarget target,
+    String? title,
+  }) async {
     final normalizedPath = item.value.trim();
     if (normalizedPath.isEmpty) {
       throw StateError('Pending share item has no source path.');
     }
 
-    final outcome = switch (target.type) {
+    return switch (target.type) {
       PendingShareAssignmentTargetType.cruise => _mapCruiseOutcome(
           await _cruiseDocumentSectionService.importDocument(
             cruiseId: target.id,
@@ -175,12 +237,48 @@ class PendingShareAssignmentService {
           ),
         ),
     };
+  }
 
-    await _shareIntakeService.removePendingItem(
-      batchId: batchId,
-      itemIndex: itemIndex,
-    );
-    return outcome;
+  Future<PendingShareAssignmentOutcome> _assignUrlItem({
+    required ShareIntakeItem item,
+    required PendingShareAssignmentTarget target,
+    String? title,
+  }) async {
+    final normalizedUrl = item.value.trim();
+    if (normalizedUrl.isEmpty) {
+      throw StateError('Pending share item has no source URL.');
+    }
+
+    return switch (target.type) {
+      PendingShareAssignmentTargetType.cruise => _mapCruiseOutcome(
+          await _cruiseDocumentSectionService.importUrlDocument(
+            cruiseId: target.id,
+            sourceUrl: normalizedUrl,
+            title: title,
+          ),
+        ),
+      PendingShareAssignmentTargetType.excursion => _mapExcursionOutcome(
+          await _excursionDocumentSectionService.importUrlDocument(
+            excursionId: target.id,
+            sourceUrl: normalizedUrl,
+            title: title,
+          ),
+        ),
+      PendingShareAssignmentTargetType.travelItem => _mapTravelOutcome(
+          await _travelDocumentSectionService.importUrlDocument(
+            travelItemId: target.id,
+            sourceUrl: normalizedUrl,
+            title: title,
+          ),
+        ),
+      PendingShareAssignmentTargetType.portCall => _mapPortCallOutcome(
+          await _portCallDocumentSectionService.importUrlDocument(
+            portCallId: target.id,
+            sourceUrl: normalizedUrl,
+            title: title,
+          ),
+        ),
+    };
   }
 
   PendingShareAssignmentCruiseGroup _buildCruiseGroup(
@@ -350,5 +448,48 @@ class PendingShareAssignmentService {
       return from;
     }
     return '$from -> $to';
+  }
+
+  bool _isFirstUrlItem({
+    required String batchId,
+    required int itemIndex,
+  }) {
+    final batch = _shareIntakeService.getPendingBatch(batchId);
+    if (batch == null || itemIndex < 0 || itemIndex >= batch.items.length) {
+      return false;
+    }
+
+    for (var index = 0; index < itemIndex; index++) {
+      if (batch.items[index].kind == ShareIntakeItemKind.url) {
+        return false;
+      }
+    }
+
+    return batch.items[itemIndex].kind == ShareIntakeItemKind.url;
+  }
+
+  bool _isSupportedUrlValue(String value) {
+    final uri = Uri.tryParse(value.trim());
+    return uri != null && (uri.isScheme('http') || uri.isScheme('https'));
+  }
+
+  Future<void> _removeUrlItemsFromBatch({
+    required String batchId,
+  }) async {
+    final batch = _shareIntakeService.getPendingBatch(batchId);
+    if (batch == null) {
+      return;
+    }
+
+    for (var index = batch.items.length - 1; index >= 0; index--) {
+      if (batch.items[index].kind != ShareIntakeItemKind.url) {
+        continue;
+      }
+
+      await _shareIntakeService.removePendingItem(
+        batchId: batchId,
+        itemIndex: index,
+      );
+    }
   }
 }

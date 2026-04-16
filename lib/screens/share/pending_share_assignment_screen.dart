@@ -107,7 +107,11 @@ class _PendingShareAssignmentScreenState
     PendingShareAssignmentTarget target,
   ) async {
     final loc = AppLocalizations.of(context)!;
-    if (!_service.canAssignItem(item)) {
+    if (!_service.canAssignItem(
+      batchId: widget.batchId,
+      itemIndex: widget.itemIndex,
+      item: item,
+    )) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(loc.shareAssignUnsupported)),
       );
@@ -184,7 +188,11 @@ class _PendingShareAssignmentScreenState
       );
     }
 
-    if (!_service.canAssignItem(item)) {
+    if (!_service.canAssignItem(
+      batchId: widget.batchId,
+      itemIndex: widget.itemIndex,
+      item: item,
+    )) {
       return Center(
         child: Padding(
           padding: const EdgeInsets.all(24),
