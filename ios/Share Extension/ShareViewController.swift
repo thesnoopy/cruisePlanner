@@ -196,12 +196,19 @@ final class ShareViewController: UIViewController {
   }
 
   private func handleImage(_ attachment: NSItemProvider, completion: @escaping () -> Void) {
-    attachment.loadItem(forTypeIdentifier: imageContentType, options: nil) { [weak self] item, error in
-      defer { completion() }
-      guard error == nil, let self, let sourceURL = item as? URL else {
+    let typeIdentifier = preferredImageTypeIdentifier(for: attachment)
+
+    attachment.loadFileRepresentation(forTypeIdentifier: typeIdentifier) { [weak self] url, error in
+      guard error == nil, let self, let sourceURL = url else {
+        self?.loadImageAsItem(
+          attachment,
+          typeIdentifier: typeIdentifier,
+          completion: completion
+        )
         return
       }
 
+      defer { completion() }
       guard let copiedURL = self.copyItemToSharedContainer(from: sourceURL, type: .image) else {
         return
       }
@@ -216,6 +223,21 @@ final class ShareViewController: UIViewController {
           )
         )
       }
+    }
+  }
+
+  private func loadImageAsItem(
+    _ attachment: NSItemProvider,
+    typeIdentifier: String,
+    completion: @escaping () -> Void
+  ) {
+    attachment.loadItem(forTypeIdentifier: typeIdentifier, options: nil) { [weak self] item, error in
+      defer { completion() }
+      guard error == nil, let self else {
+        return
+      }
+
+      self.persistLoadedImage(from: item, attachment: attachment, typeIdentifier: typeIdentifier)
     }
   }
 
@@ -289,6 +311,46 @@ final class ShareViewController: UIViewController {
     }
 
     persistSharedMediaFile(from: copiedURL)
+  }
+
+  private func persistLoadedImage(
+    from item: NSSecureCoding?,
+    attachment: NSItemProvider,
+    typeIdentifier: String
+  ) {
+    let copiedURL: URL?
+    if let sourceURL = item as? URL {
+      copiedURL = copyItemToSharedContainer(from: sourceURL, type: .image)
+    } else if let data = item as? Data {
+      copiedURL = copyDataToSharedContainer(
+        data,
+        suggestedName: attachment.suggestedName,
+        typeIdentifier: typeIdentifier
+      )
+    } else if let image = item as? UIImage {
+      copiedURL = copyImageToSharedContainer(
+        image,
+        suggestedName: attachment.suggestedName,
+        typeIdentifier: typeIdentifier
+      )
+    } else {
+      copiedURL = nil
+    }
+
+    guard let copiedURL else {
+      return
+    }
+
+    resultQueue.sync {
+      sharedMedia.append(
+        SharedMediaFile(
+          path: copiedURL.absoluteString,
+          thumbnail: nil,
+          duration: nil,
+          type: .image
+        )
+      )
+    }
   }
 
   private func persistSharedMediaFile(from copiedURL: URL) {
@@ -448,6 +510,24 @@ final class ShareViewController: UIViewController {
     }
   }
 
+  private func copyImageToSharedContainer(
+    _ image: UIImage,
+    suggestedName: String?,
+    typeIdentifier: String
+  ) -> URL? {
+    guard
+      let imageData = encodedImageData(from: image, typeIdentifier: typeIdentifier)
+    else {
+      return nil
+    }
+
+    return copyDataToSharedContainer(
+      imageData,
+      suggestedName: suggestedName,
+      typeIdentifier: typeIdentifier
+    )
+  }
+
   private func fileName(for url: URL, type: SharedMediaType) -> String {
     let lastPathComponent = url.lastPathComponent.trimmingCharacters(in: .whitespacesAndNewlines)
     if !lastPathComponent.isEmpty {
@@ -481,14 +561,54 @@ final class ShareViewController: UIViewController {
   }
 
   private func defaultExtension(for typeIdentifier: String) -> String {
-    switch typeIdentifier {
-    case pdfContentType:
+    if typeIdentifier == pdfContentType {
       return "pdf"
+    }
+
+    if let preferredExtension = preferredFileExtension(for: typeIdentifier) {
+      return preferredExtension
+    }
+
+    switch typeIdentifier {
     case imageContentType:
       return "png"
     default:
       return "dat"
     }
+  }
+
+  private func preferredImageTypeIdentifier(for attachment: NSItemProvider) -> String {
+    for identifier in attachment.registeredTypeIdentifiers {
+      if UTTypeConformsTo(identifier as CFString, imageContentType as CFString) {
+        return identifier
+      }
+    }
+
+    return imageContentType
+  }
+
+  private func preferredFileExtension(for typeIdentifier: String) -> String? {
+    guard
+      let unmanagedExtension = UTTypeCopyPreferredTagWithClass(
+        typeIdentifier as CFString,
+        kUTTagClassFilenameExtension
+      )
+    else {
+      return nil
+    }
+
+    let fileExtension = unmanagedExtension.takeRetainedValue() as String
+    let normalizedExtension = fileExtension.trimmingCharacters(in: .whitespacesAndNewlines)
+      .lowercased()
+    return normalizedExtension.isEmpty ? nil : normalizedExtension
+  }
+
+  private func encodedImageData(from image: UIImage, typeIdentifier: String) -> Data? {
+    if typeIdentifier == "public.jpeg" || typeIdentifier == "public.jpg" {
+      return image.jpegData(compressionQuality: 1.0)
+    }
+
+    return image.pngData() ?? image.jpegData(compressionQuality: 1.0)
   }
 
   private func extractURLString(from item: NSSecureCoding?) -> String? {
