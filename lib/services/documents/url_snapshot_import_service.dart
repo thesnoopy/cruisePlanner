@@ -307,7 +307,11 @@ class UrlSnapshotImportService {
     ).firstMatch(contentType);
     final charset = charsetMatch?.group(1)?.trim().replaceAll('"', '');
     final encoding = charset == null ? null : Encoding.getByName(charset);
-    return (encoding ?? utf8).decode(bodyBytes, allowMalformed: true);
+    if (encoding != null) {
+      return encoding.decode(bodyBytes);
+    }
+
+    return utf8.decode(bodyBytes, allowMalformed: true);
   }
 
   String _normalizeMimeType(String contentTypeHeader) {
