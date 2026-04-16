@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:open_filex/open_filex.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../models/documents/document_record.dart';
 import 'document_file_store.dart';
@@ -40,6 +41,36 @@ class DocumentOpenService {
       _buildOpenErrorMessage(result),
       file.path,
     );
+  }
+
+  Future<void> openSourceUrl(DocumentRecord document) async {
+    final sourceUrl = document.sourceUrl?.trim() ?? '';
+    if (sourceUrl.isEmpty) {
+      throw ArgumentError.value(
+        document.sourceUrl,
+        'document.sourceUrl',
+        'Invalid URL.',
+      );
+    }
+
+    final uri = Uri.tryParse(sourceUrl);
+    if (uri == null || !(uri.isScheme('http') || uri.isScheme('https'))) {
+      throw ArgumentError.value(
+        document.sourceUrl,
+        'document.sourceUrl',
+        'Invalid URL.',
+      );
+    }
+
+    final launched = await launchUrl(
+      uri,
+      mode: LaunchMode.externalApplication,
+    );
+    if (launched) {
+      return;
+    }
+
+    throw StateError('Failed to open source URL.');
   }
 
   String _buildOpenErrorMessage(OpenResult result) {

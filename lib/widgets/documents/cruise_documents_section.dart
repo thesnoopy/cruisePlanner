@@ -93,6 +93,22 @@ class _CruiseDocumentsSectionState extends State<CruiseDocumentsSection> {
     }
   }
 
+  Future<void> _openSourceUrl(DocumentRecord document) async {
+    final loc = AppLocalizations.of(context)!;
+
+    try {
+      await _openService.openSourceUrl(document);
+    } catch (_) {
+      if (!mounted) {
+        return;
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(loc.documentOpenFailed)),
+      );
+    }
+  }
+
   Future<void> _showAttachSheet() async {
     final loc = AppLocalizations.of(context)!;
     final data = _data;
@@ -285,15 +301,7 @@ class _CruiseDocumentsSectionState extends State<CruiseDocumentsSection> {
                       ),
                       subtitle: Text(_subtitleForDocument(loc, document)),
                       onTap: () => _openDocument(document),
-                      trailing: widget.isReadOnly
-                          ? null
-                          : IconButton(
-                              tooltip: loc.detachDocument,
-                              onPressed: _isMutating
-                                  ? null
-                                  : () => _detachDocument(document),
-                              icon: const Icon(Icons.link_off_outlined),
-                            ),
+                      trailing: _buildTrailingActions(loc, document),
                     ),
                 ],
               ),
@@ -322,6 +330,34 @@ class _CruiseDocumentsSectionState extends State<CruiseDocumentsSection> {
       if (extension.isNotEmpty) extension,
     ];
     return parts.join(' - ');
+  }
+
+  Widget? _buildTrailingActions(
+    AppLocalizations loc,
+    DocumentRecord document,
+  ) {
+    final hasSourceUrl = document.sourceUrl?.trim().isNotEmpty == true;
+    if (!hasSourceUrl && widget.isReadOnly) {
+      return null;
+    }
+
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        if (hasSourceUrl)
+          IconButton(
+            tooltip: document.sourceUrl!.trim(),
+            onPressed: () => _openSourceUrl(document),
+            icon: const Icon(Icons.open_in_browser_outlined),
+          ),
+        if (!widget.isReadOnly)
+          IconButton(
+            tooltip: loc.detachDocument,
+            onPressed: _isMutating ? null : () => _detachDocument(document),
+            icon: const Icon(Icons.link_off_outlined),
+          ),
+      ],
+    );
   }
 
   String _labelForKind(AppLocalizations loc, DocumentKind kind) {

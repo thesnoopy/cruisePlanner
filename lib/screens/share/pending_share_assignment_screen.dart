@@ -119,12 +119,10 @@ class _PendingShareAssignmentScreenState
     }
 
     String? title;
-    if (item.isFileBased) {
+    if (item.isFileBased || item.kind == ShareIntakeItemKind.url) {
       title = await showDocumentTitlePromptDialog(
         context: context,
-        initialTitle: suggestedDocumentTitleFromFileName(
-          item.fileName?.trim() ?? '',
-        ),
+        initialTitle: _initialDocumentTitle(item),
       );
       if (title == null || !mounted) {
         return;
@@ -263,6 +261,18 @@ class _PendingShareAssignmentScreenState
         return loc.documentLinkedExisting;
       case PendingShareAssignmentOutcome.alreadyLinked:
         return loc.documentAlreadyLinked;
+    }
+  }
+
+  String _initialDocumentTitle(ShareIntakeItem item) {
+    switch (item.kind) {
+      case ShareIntakeItemKind.file:
+      case ShareIntakeItemKind.image:
+        return suggestedDocumentTitleFromFileName(item.fileName?.trim() ?? '');
+      case ShareIntakeItemKind.url:
+        return suggestedDocumentTitleFromUrl(item.value);
+      case ShareIntakeItemKind.text:
+        return item.value.trim();
     }
   }
 }

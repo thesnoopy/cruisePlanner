@@ -13,6 +13,36 @@ String suggestedDocumentTitleFromFileName(String fileName) {
   return baseName.isEmpty ? trimmedFileName : baseName;
 }
 
+String suggestedDocumentTitleFromUrl(String rawUrl) {
+  final normalizedUrl = rawUrl.trim();
+  if (normalizedUrl.isEmpty) {
+    return '';
+  }
+
+  final uri = Uri.tryParse(normalizedUrl);
+  if (uri == null) {
+    return normalizedUrl;
+  }
+
+  final pathSegments = uri.pathSegments
+      .map((segment) => Uri.decodeComponent(segment).trim())
+      .where((segment) => segment.isNotEmpty)
+      .toList(growable: false);
+  if (pathSegments.isNotEmpty) {
+    final baseName = p.basenameWithoutExtension(pathSegments.last).trim();
+    if (baseName.isNotEmpty) {
+      return baseName;
+    }
+  }
+
+  final host = uri.host.trim();
+  if (host.isNotEmpty) {
+    return host;
+  }
+
+  return normalizedUrl;
+}
+
 Future<String?> showDocumentTitlePromptDialog({
   required BuildContext context,
   required String initialTitle,
