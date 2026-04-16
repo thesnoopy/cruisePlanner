@@ -6,15 +6,20 @@ import 'package:path/path.dart' as p;
 
 import '../../models/documents/document_record.dart';
 import 'document_import_service.dart';
+import 'url_pdf_snapshot_native_bridge.dart';
 
 class UrlSnapshotImportService {
   UrlSnapshotImportService({
     DocumentImportService? documentImportService,
+    UrlPdfSnapshotNativeBridge? pdfSnapshotNativeBridge,
     http.Client? httpClient,
   })  : _documentImportService = documentImportService ?? DocumentImportService(),
+        _pdfSnapshotNativeBridge =
+            pdfSnapshotNativeBridge ?? const UrlPdfSnapshotNativeBridge(),
         _httpClient = httpClient ?? http.Client();
 
   final DocumentImportService _documentImportService;
+  final UrlPdfSnapshotNativeBridge _pdfSnapshotNativeBridge;
   final http.Client _httpClient;
 
   Future<DocumentRecord> importUrl({
@@ -29,50 +34,67 @@ class UrlSnapshotImportService {
     }
 
     final capturedAtUtc = DateTime.now().toUtc();
-    final snapshot = await _captureSnapshot(parsedSourceUri);
-    final effectiveUri = snapshot?.effectiveUri ?? parsedSourceUri;
-    final metadata = snapshot?.metadata ??
-        _UrlPageMetadata(
-          title: title?.trim(),
-          host: _hostLabel(effectiveUri),
-        );
-
+    final metadataSnapshot = await _fetchPageMetadata(parsedSourceUri);
+    final pdfSnapshot = await _pdfSnapshotNativeBridge.captureUrlAsPdf(
+      sourceUrl: normalizedSourceUrl,
+    );
+    final effectiveUri = _resolveEffectiveUri(
+      originalUri: parsedSourceUri,
+      metadataUri: metadataSnapshot?.effectiveUri,
+      pdfUrl: pdfSnapshot?.effectiveUrl,
+    );
+    final metadata = _resolveMetadata(
+      explicitTitle: title,
+      metadataSnapshot: metadataSnapshot,
+      pdfSnapshot: pdfSnapshot,
+      effectiveUri: effectiveUri,
+    );
     final resolvedTitle = _resolveTitle(
       explicitTitle: title,
       metadata: metadata,
       uri: effectiveUri,
     );
-    final fileName = _buildFileName(resolvedTitle);
-    final bytes = Uint8List.fromList(
-      utf8.encode(
-        snapshot?.html ??
-            _buildLinkOnlyHtml(
-              title: resolvedTitle,
-              sourceUrl: normalizedSourceUrl,
-              description: metadata.description,
-              host: metadata.host,
-              capturedAtUtc: capturedAtUtc,
-            ),
-      ),
-    );
+
+    if (pdfSnapshot != null) {
+      return _documentImportService.createStoredDocument(
+        bytes: pdfSnapshot.pdfBytes,
+        originalFileName: _buildFileName(resolvedTitle, 'pdf'),
+        mimeType: 'application/pdf',
+        title: resolvedTitle,
+        origin: DocumentOrigin.urlImport,
+        sourceUrl: normalizedSourceUrl,
+        snapshotStatus: DocumentSnapshotStatus.available,
+        capturedAtUtc: capturedAtUtc,
+        sourceDescription: metadata.description,
+        sourceHost: metadata.host,
+      );
+    }
 
     return _documentImportService.createStoredDocument(
-      bytes: bytes,
-      originalFileName: fileName,
-      mimeType: 'text/html',
+      bytes: Uint8List.fromList(
+        utf8.encode(
+          _buildLinkOnlyText(
+            title: resolvedTitle,
+            sourceUrl: normalizedSourceUrl,
+            description: metadata.description,
+            host: metadata.host,
+            capturedAtUtc: capturedAtUtc,
+          ),
+        ),
+      ),
+      originalFileName: _buildFileName(resolvedTitle, 'txt'),
+      mimeType: 'text/plain',
       title: resolvedTitle,
       origin: DocumentOrigin.urlImport,
       sourceUrl: normalizedSourceUrl,
-      snapshotStatus: snapshot == null
-          ? DocumentSnapshotStatus.linkOnly
-          : DocumentSnapshotStatus.available,
+      snapshotStatus: DocumentSnapshotStatus.linkOnly,
       capturedAtUtc: capturedAtUtc,
       sourceDescription: metadata.description,
       sourceHost: metadata.host,
     );
   }
 
-  Future<_SnapshotCapture?> _captureSnapshot(Uri sourceUri) async {
+  Future<_MetadataSnapshot?> _fetchPageMetadata(Uri sourceUri) async {
     try {
       final response = await _httpClient.get(sourceUri);
       if (response.statusCode < 200 || response.statusCode >= 300) {
@@ -81,110 +103,71 @@ class UrlSnapshotImportService {
 
       final contentType = response.headers['content-type'] ?? '';
       if (!_isHtmlContentType(contentType)) {
-        return null;
+        return _MetadataSnapshot(
+          effectiveUri: response.request?.url ?? sourceUri,
+          metadata: _UrlPageMetadata(
+            host: _hostLabel(response.request?.url ?? sourceUri),
+          ),
+        );
       }
 
       final effectiveUri = response.request?.url ?? sourceUri;
       final html = _decodeBody(response.bodyBytes, contentType);
       if (html.trim().isEmpty) {
-        return null;
+        return _MetadataSnapshot(
+          effectiveUri: effectiveUri,
+          metadata: _UrlPageMetadata(
+            host: _hostLabel(effectiveUri),
+          ),
+        );
       }
 
-      final metadata = _extractMetadata(html, effectiveUri);
-      final embeddedHtml = await _embedImages(
-        html: html,
-        pageUri: effectiveUri,
-      );
-
-      return _SnapshotCapture(
-        html: _injectSnapshotMetadata(
-          html: embeddedHtml,
-          sourceUrl: effectiveUri.toString(),
-          capturedAtUtc: DateTime.now().toUtc(),
-        ),
+      return _MetadataSnapshot(
         effectiveUri: effectiveUri,
-        metadata: metadata,
+        metadata: _extractMetadata(html, effectiveUri),
       );
     } catch (_) {
       return null;
     }
   }
 
-  Future<String> _embedImages({
-    required String html,
-    required Uri pageUri,
-  }) async {
-    final replacements = <String, String>{};
-    final imgTagPattern = RegExp(r'<img\b[^>]*>', caseSensitive: false);
-    final srcPattern = RegExp(
-      "\\bsrc\\s*=\\s*(\"([^\"]*)\"|'([^']*)'|([^\"'\\s>]+))",
-      caseSensitive: false,
-    );
-
-    for (final match in imgTagPattern.allMatches(html)) {
-      final tag = match.group(0);
-      if (tag == null || replacements.containsKey(tag)) {
-        continue;
-      }
-
-      final srcMatch = srcPattern.firstMatch(tag);
-      if (srcMatch == null) {
-        continue;
-      }
-
-      final originalSrc =
-          srcMatch.group(2) ?? srcMatch.group(3) ?? srcMatch.group(4) ?? '';
-      final trimmedSrc = originalSrc.trim();
-      if (trimmedSrc.isEmpty ||
-          trimmedSrc.startsWith('data:') ||
-          trimmedSrc.startsWith('javascript:')) {
-        continue;
-      }
-
-      final imageUri = Uri.tryParse(trimmedSrc);
-      final resolvedUri = imageUri == null ? null : pageUri.resolveUri(imageUri);
-      if (resolvedUri == null ||
-          !(resolvedUri.isScheme('http') || resolvedUri.isScheme('https'))) {
-        continue;
-      }
-
-      final dataUrl = await _downloadImageAsDataUrl(resolvedUri);
-      if (dataUrl == null) {
-        continue;
-      }
-
-      replacements[tag] = tag.replaceFirst(originalSrc, dataUrl);
+  Uri _resolveEffectiveUri({
+    required Uri originalUri,
+    Uri? metadataUri,
+    String? pdfUrl,
+  }) {
+    final parsedPdfUri = Uri.tryParse(pdfUrl?.trim() ?? '');
+    if (parsedPdfUri != null &&
+        (parsedPdfUri.isScheme('http') || parsedPdfUri.isScheme('https'))) {
+      return parsedPdfUri;
     }
-
-    if (replacements.isEmpty) {
-      return html;
+    if (metadataUri != null) {
+      return metadataUri;
     }
-
-    var result = html;
-    for (final entry in replacements.entries) {
-      result = result.replaceAll(entry.key, entry.value);
-    }
-    return result;
+    return originalUri;
   }
 
-  Future<String?> _downloadImageAsDataUrl(Uri uri) async {
-    try {
-      final response = await _httpClient.get(uri);
-      if (response.statusCode < 200 || response.statusCode >= 300) {
-        return null;
-      }
+  _UrlPageMetadata _resolveMetadata({
+    required String? explicitTitle,
+    required _MetadataSnapshot? metadataSnapshot,
+    required UrlPdfSnapshotCaptureResult? pdfSnapshot,
+    required Uri effectiveUri,
+  }) {
+    final metadata = metadataSnapshot?.metadata;
+    final pdfTitle = pdfSnapshot?.pageTitle?.trim();
 
-      final contentTypeHeader = response.headers['content-type'] ?? '';
-      final mimeType = _normalizeMimeType(contentTypeHeader);
-      if (!mimeType.startsWith('image/')) {
-        return null;
-      }
-
-      final encoded = base64Encode(response.bodyBytes);
-      return 'data:$mimeType;base64,$encoded';
-    } catch (_) {
-      return null;
-    }
+    return _UrlPageMetadata(
+      title: _firstNonEmpty(
+        explicitTitle,
+        metadata?.title,
+        pdfTitle,
+      ),
+      description: metadata?.description,
+      host: _firstNonEmpty(
+        metadata?.host,
+        _hostLabel(effectiveUri),
+      ),
+    );
   }
 
   _UrlPageMetadata _extractMetadata(String html, Uri effectiveUri) {
@@ -204,62 +187,24 @@ class UrlSnapshotImportService {
     );
   }
 
-  String _injectSnapshotMetadata({
-    required String html,
-    required String sourceUrl,
-    required DateTime capturedAtUtc,
-  }) {
-    final metadataTags =
-        '<meta name="cruiseplanner-source-url" content="${_escapeHtmlAttribute(sourceUrl)}">\n'
-        '<meta name="cruiseplanner-captured-at-utc" content="${capturedAtUtc.toIso8601String()}">\n';
-    final headPattern = RegExp(r'<head\b[^>]*>', caseSensitive: false);
-    final headMatch = headPattern.firstMatch(html);
-    if (headMatch == null) {
-      return '<head>\n$metadataTags</head>\n$html';
-    }
-
-    final insertAt = headMatch.end;
-    return '${html.substring(0, insertAt)}\n$metadataTags${html.substring(insertAt)}';
-  }
-
-  String _buildLinkOnlyHtml({
+  String _buildLinkOnlyText({
     required String title,
     required String sourceUrl,
     String? description,
     String? host,
     required DateTime capturedAtUtc,
   }) {
-    final escapedTitle = _escapeHtmlText(title);
-    final escapedUrl = _escapeHtmlAttribute(sourceUrl);
-    final escapedHost = host == null ? '' : _escapeHtmlText(host);
-    final escapedDescription =
-        description == null ? '' : _escapeHtmlText(description);
-    final descriptionBlock = escapedDescription.isEmpty
-        ? ''
-        : '<p>$escapedDescription</p>';
-    final hostBlock = escapedHost.isEmpty ? '' : '<p><strong>Host:</strong> $escapedHost</p>';
-
-    return '''
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="cruiseplanner-source-url" content="$escapedUrl">
-  <meta name="cruiseplanner-captured-at-utc" content="${capturedAtUtc.toIso8601String()}">
-  <title>$escapedTitle</title>
-</head>
-<body>
-  <main>
-    <h1>$escapedTitle</h1>
-    <p>An offline page snapshot was not available for this shared URL.</p>
-    <p><a href="$escapedUrl">$escapedUrl</a></p>
-    $hostBlock
-    $descriptionBlock
-  </main>
-</body>
-</html>
-''';
+    final lines = <String>[
+      title,
+      '',
+      'Offline PDF snapshot unavailable for this shared URL.',
+      'Source URL: $sourceUrl',
+      'Captured at (UTC): ${capturedAtUtc.toIso8601String()}',
+      if (host != null && host.trim().isNotEmpty) 'Host: ${host.trim()}',
+      if (description != null && description.trim().isNotEmpty)
+        'Description: ${description.trim()}',
+    ];
+    return lines.join('\n');
   }
 
   String _resolveTitle({
@@ -285,13 +230,13 @@ class UrlSnapshotImportService {
     return uri.toString();
   }
 
-  String _buildFileName(String title) {
+  String _buildFileName(String title, String extension) {
     final sanitized = title
         .trim()
-        .replaceAll(RegExp(r'[^\w\s-]'), '')
+        .replaceAll(RegExp(r'[^\w\s-]'), ' ')
         .replaceAll(RegExp(r'\s+'), '_');
     final baseName = sanitized.isEmpty ? 'shared_url' : sanitized;
-    return '${p.basenameWithoutExtension(baseName)}.html';
+    return '${p.basenameWithoutExtension(baseName)}.$extension';
   }
 
   bool _isHtmlContentType(String contentType) {
@@ -312,11 +257,6 @@ class UrlSnapshotImportService {
     }
 
     return utf8.decode(bodyBytes, allowMalformed: true);
-  }
-
-  String _normalizeMimeType(String contentTypeHeader) {
-    final normalized = contentTypeHeader.split(';').first.trim().toLowerCase();
-    return normalized.isEmpty ? 'application/octet-stream' : normalized;
   }
 
   String? _extractMetaContent(String html, String name) {
@@ -362,17 +302,14 @@ class UrlSnapshotImportService {
         .replaceAll('&nbsp;', ' ');
   }
 
-  String _escapeHtmlText(String value) {
-    return value
-        .replaceAll('&', '&amp;')
-        .replaceAll('<', '&lt;')
-        .replaceAll('>', '&gt;');
-  }
-
-  String _escapeHtmlAttribute(String value) {
-    return _escapeHtmlText(value)
-        .replaceAll('"', '&quot;')
-        .replaceAll('\'', '&#39;');
+  String? _firstNonEmpty(String? first, [String? second, String? third]) {
+    for (final value in [first, second, third]) {
+      final normalized = value?.trim();
+      if (normalized != null && normalized.isNotEmpty) {
+        return normalized;
+      }
+    }
+    return null;
   }
 
   static String _hostLabel(Uri uri) {
@@ -381,14 +318,12 @@ class UrlSnapshotImportService {
   }
 }
 
-class _SnapshotCapture {
-  const _SnapshotCapture({
-    required this.html,
+class _MetadataSnapshot {
+  const _MetadataSnapshot({
     required this.effectiveUri,
     required this.metadata,
   });
 
-  final String html;
   final Uri effectiveUri;
   final _UrlPageMetadata metadata;
 }
