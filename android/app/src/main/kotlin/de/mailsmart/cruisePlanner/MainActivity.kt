@@ -2,15 +2,13 @@ package de.mailsmart.cruiseplanner
 
 import android.content.Intent
 import android.database.Cursor
+import android.graphics.Canvas
+import android.graphics.pdf.PdfDocument
 import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
-import android.os.ParcelFileDescriptor
 import android.provider.OpenableColumns
-import android.print.PageRange
-import android.print.PrintAttributes
-import android.print.PrintDocumentAdapter
 import android.webkit.MimeTypeMap
 import android.webkit.WebChromeClient
 import android.webkit.WebResourceError
@@ -353,8 +351,6 @@ class MainActivity : FlutterActivity(), EventChannel.StreamHandler, MethodChanne
             fun cleanup() {
                 timeoutHandler.removeCallbacksAndMessages(null)
                 webView.stopLoading()
-                webView.webViewClient = null
-                webView.webChromeClient = null
                 webView.destroy()
             }
 
@@ -422,100 +418,48 @@ class MainActivity : FlutterActivity(), EventChannel.StreamHandler, MethodChanne
         onSuccess: (ByteArray) -> Unit,
         onError: (String, String) -> Unit,
     ) {
-        val outputDirectory = File(cacheDir, "url_snapshot_pdf")
-        if (!outputDirectory.exists()) {
-            outputDirectory.mkdirs()
-        }
-
-        val outputFile = File(outputDirectory, "snapshot_${UUID.randomUUID()}.pdf")
-        val attributes = PrintAttributes.Builder()
-            .setMediaSize(PrintAttributes.MediaSize.ISO_A4)
-            .setResolution(PrintAttributes.Resolution("pdf", "pdf", 300, 300))
-            .setMinMargins(PrintAttributes.Margins.NO_MARGINS)
-            .build()
-        val adapter = webView.createPrintDocumentAdapter("url_snapshot")
-
-        adapter.onLayout(
-            null,
-            attributes,
-            null,
-            object : PrintDocumentAdapter.LayoutResultCallback() {
-                override fun onLayoutFinished(info: android.print.PrintDocumentInfo?, changed: Boolean) {
-                    writePdfFile(
-                        adapter = adapter,
-                        outputFile = outputFile,
-                        onSuccess = onSuccess,
-                        onError = onError,
-                    )
-                }
-
-                override fun onLayoutFailed(error: CharSequence?) {
-                    onError(
-                        "layout_failed",
-                        error?.toString() ?: "Failed to layout PDF document.",
-                    )
-                }
-            },
-            null,
-        )
-    }
-
-    private fun writePdfFile(
-        adapter: PrintDocumentAdapter,
-        outputFile: File,
-        onSuccess: (ByteArray) -> Unit,
-        onError: (String, String) -> Unit,
-    ) {
         try {
-            val parcelFileDescriptor = ParcelFileDescriptor.open(
-                outputFile,
-                ParcelFileDescriptor.MODE_READ_WRITE or
-                    ParcelFileDescriptor.MODE_CREATE or
-                    ParcelFileDescriptor.MODE_TRUNCATE,
-            )
+            val pdfDocument = PdfDocument()
+            val pageWidth = 595
+            val pageHeight = 842
+            val contentWidth = webView.width.takeIf { it > 0 } ?: 1080
+            val contentHeight = (webView.contentHeight * webView.scale).toInt()
+                .takeIf { it > 0 }
+                ?: webView.height.takeIf { it > 0 }
+                ?: 1920
+            val totalPages = maxOf(1, (contentHeight + pageHeight - 1) / pageHeight)
 
-            adapter.onWrite(
-                arrayOf(PageRange.ALL_PAGES),
-                parcelFileDescriptor,
-                null,
-                object : PrintDocumentAdapter.WriteResultCallback() {
-                    override fun onWriteFinished(pages: Array<PageRange>) {
-                        try {
-                            parcelFileDescriptor.close()
-                            val pdfBytes = outputFile.readBytes()
-                            outputFile.delete()
-                            if (pdfBytes.isEmpty()) {
-                                onError("write_failed", "Generated PDF is empty.")
-                                return
-                            }
-                            onSuccess(pdfBytes)
-                        } catch (exception: Exception) {
-                            outputFile.delete()
-                            onError(
-                                "write_failed",
-                                exception.message ?: "Failed to read generated PDF.",
-                            )
-                        }
-                    }
+            for (pageIndex in 0 until totalPages) {
+                val pageInfo = PdfDocument.PageInfo.Builder(
+                    pageWidth,
+                    pageHeight,
+                    pageIndex + 1,
+                ).create()
+                val page = pdfDocument.startPage(pageInfo)
+                val canvas: Canvas = page.canvas
+                val scaleFactor = pageWidth.toFloat() / contentWidth.toFloat()
+                canvas.save()
+                canvas.scale(scaleFactor, scaleFactor)
+                canvas.translate(0f, -(pageIndex * pageHeight) / scaleFactor)
+                webView.draw(canvas)
+                canvas.restore()
+                pdfDocument.finishPage(page)
+            }
 
-                    override fun onWriteFailed(error: CharSequence?) {
-                        try {
-                            parcelFileDescriptor.close()
-                        } catch (_: Exception) {
-                        }
-                        outputFile.delete()
-                        onError(
-                            "write_failed",
-                            error?.toString() ?: "Failed to write PDF document.",
-                        )
-                    }
-                },
-            )
+            val outputStream = java.io.ByteArrayOutputStream()
+            pdfDocument.writeTo(outputStream)
+            pdfDocument.close()
+            val pdfBytes = outputStream.toByteArray()
+            outputStream.close()
+            if (pdfBytes.isEmpty()) {
+                onError("write_failed", "Generated PDF is empty.")
+                return
+            }
+            onSuccess(pdfBytes)
         } catch (exception: Exception) {
-            outputFile.delete()
             onError(
                 "write_failed",
-                exception.message ?: "Failed to prepare PDF output.",
+                exception.message ?: "Failed to generate PDF document.",
             )
         }
     }

@@ -359,7 +359,7 @@ import WebKit
 
   private func captureUrlAsPdf(sourceUrl: String, result: @escaping FlutterResult) {
     let captureId = UUID().uuidString
-    let capture = URLPdfSnapshotCapture(captureId: captureId, sourceUrl: sourceUrl) { [weak self] payload in
+    let capture = URLPdfSnapshotCapture.start(captureId: captureId, sourceUrl: sourceUrl) { [weak self] payload in
       guard let self else {
         return
       }
@@ -375,12 +375,11 @@ import WebKit
     }
 
     activeUrlSnapshotCaptures.append(capture)
-    capture.start()
   }
 }
 
 private final class URLPdfSnapshotCapture: NSObject, WKNavigationDelegate {
-  private enum Outcome {
+  enum Outcome {
     case success([String: Any])
     case failure(FlutterError)
   }
@@ -392,7 +391,7 @@ private final class URLPdfSnapshotCapture: NSObject, WKNavigationDelegate {
   private var timeoutWorkItem: DispatchWorkItem?
   private var completed = false
 
-  init(captureId: String, sourceUrl: String, completion: @escaping (Outcome) -> Void) {
+  private init(captureId: String, sourceUrl: String, completion: @escaping (Outcome) -> Void) {
     self.captureId = captureId
     self.sourceUrl = sourceUrl
     self.completion = completion
@@ -405,6 +404,20 @@ private final class URLPdfSnapshotCapture: NSObject, WKNavigationDelegate {
     super.init()
     webView.navigationDelegate = self
     webView.isHidden = true
+  }
+
+  static func start(
+    captureId: String,
+    sourceUrl: String,
+    completion: @escaping (Outcome) -> Void
+  ) -> URLPdfSnapshotCapture {
+    let capture = URLPdfSnapshotCapture(
+      captureId: captureId,
+      sourceUrl: sourceUrl,
+      completion: completion
+    )
+    capture.start()
+    return capture
   }
 
   func start() {
