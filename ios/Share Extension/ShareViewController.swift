@@ -5,6 +5,7 @@ final class ShareViewController: UIViewController {
   private var appGroupId = ""
   private let sharedKey = "ShareKey"
   private let sharedTypeKey = "ShareTypeKey"
+  private let sharedQueueKey = "ShareQueueKey"
   private let imageContentType = kUTTypeImage as String
   private let pdfContentType = kUTTypePDF as String
   private let dataContentType = kUTTypeData as String
@@ -404,31 +405,32 @@ final class ShareViewController: UIViewController {
     }
 
     if !sharedMedia.isEmpty {
-      guard let encodedMedia = try? JSONEncoder().encode(sharedMedia) else {
+      let batch = PersistedShareBatch.media(sharedMedia)
+      guard appendPersistedBatch(batch, to: userDefaults) else {
         dismissWithError()
         return
       }
 
-      userDefaults.set(encodedMedia, forKey: sharedKey)
-      userDefaults.set(RedirectType.media.rawValue, forKey: sharedTypeKey)
-      userDefaults.synchronize()
       updateStatus(
         title: "Imported",
         detail: "Open Cruise Planner to continue.",
-        debug: "saved \(sharedMedia.count) item(s) to \(appGroupId)"
+        debug: "queued \(sharedMedia.count) item(s) in \(appGroupId)"
       )
       finishAfterSuccess()
       return
     }
 
     if !sharedText.isEmpty {
-      userDefaults.set(sharedText, forKey: sharedKey)
-      userDefaults.set(RedirectType.text.rawValue, forKey: sharedTypeKey)
-      userDefaults.synchronize()
+      let batch = PersistedShareBatch.text(sharedText)
+      guard appendPersistedBatch(batch, to: userDefaults) else {
+        dismissWithError()
+        return
+      }
+
       updateStatus(
         title: "Imported",
         detail: "Open Cruise Planner to continue.",
-        debug: "saved \(sharedText.count) item(s) to \(appGroupId)"
+        debug: "queued \(sharedText.count) item(s) in \(appGroupId)"
       )
       finishAfterSuccess()
       return
@@ -646,6 +648,31 @@ final class ShareViewController: UIViewController {
 
     return scheme == "http" || scheme == "https"
   }
+
+  private func appendPersistedBatch(
+    _ batch: PersistedShareBatch,
+    to userDefaults: UserDefaults
+  ) -> Bool {
+    let decoder = JSONDecoder()
+    let encoder = JSONEncoder()
+
+    let existingQueue: [PersistedShareBatch]
+    if let queueData = userDefaults.data(forKey: sharedQueueKey) {
+      existingQueue = (try? decoder.decode([PersistedShareBatch].self, from: queueData)) ?? []
+    } else {
+      existingQueue = []
+    }
+
+    guard let encodedQueue = try? encoder.encode(existingQueue + [batch]) else {
+      return false
+    }
+
+    userDefaults.set(encodedQueue, forKey: sharedQueueKey)
+    userDefaults.removeObject(forKey: sharedKey)
+    userDefaults.removeObject(forKey: sharedTypeKey)
+    userDefaults.synchronize()
+    return true
+  }
 }
 
 private enum RedirectType: String {
@@ -663,4 +690,43 @@ private struct SharedMediaFile: Codable {
   let thumbnail: String?
   let duration: Double?
   let type: SharedMediaType
+}
+
+private enum PersistedShareBatch: Codable {
+  case media([SharedMediaFile])
+  case text([String])
+
+  private enum CodingKeys: String, CodingKey {
+    case type
+    case media
+    case text
+  }
+
+  init(from decoder: Decoder) throws {
+    let container = try decoder.container(keyedBy: CodingKeys.self)
+    switch try container.decode(String.self, forKey: .type) {
+    case RedirectType.media.rawValue:
+      self = .media(try container.decode([SharedMediaFile].self, forKey: .media))
+    case RedirectType.text.rawValue:
+      self = .text(try container.decode([String].self, forKey: .text))
+    default:
+      throw DecodingError.dataCorruptedError(
+        forKey: .type,
+        in: container,
+        debugDescription: "Unsupported persisted share batch type."
+      )
+    }
+  }
+
+  func encode(to encoder: Encoder) throws {
+    var container = encoder.container(keyedBy: CodingKeys.self)
+    switch self {
+    case let .media(items):
+      try container.encode(RedirectType.media.rawValue, forKey: .type)
+      try container.encode(items, forKey: .media)
+    case let .text(items):
+      try container.encode(RedirectType.text.rawValue, forKey: .type)
+      try container.encode(items, forKey: .text)
+    }
+  }
 }

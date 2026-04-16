@@ -7,8 +7,9 @@ import UIKit
   private let shareEventChannelName = "de.mailsmart.cruiseplanner/share_intake/events"
   private let shareKey = "ShareKey"
   private let shareTypeKey = "ShareTypeKey"
+  private let shareQueueKey = "ShareQueueKey"
 
-  private var pendingInitialShareItems: [[String: Any]]?
+  private var pendingInitialShareBatches: [[[String: Any]]] = []
   private var shareEventSink: FlutterEventSink?
   private var shareBridgeConfigured = false
 
@@ -17,9 +18,9 @@ import UIKit
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
   ) -> Bool {
     if let url = launchOptions?[.url] as? URL {
-      pendingInitialShareItems = readSharedItems(from: url)
+      pendingInitialShareBatches = readSharedBatches(from: url)
     } else {
-      pendingInitialShareItems = readPendingSharedItems()
+      pendingInitialShareBatches = readPendingSharedBatches()
     }
 
     GeneratedPluginRegistrant.register(with: self)
@@ -49,6 +50,7 @@ import UIKit
 
   func onListen(withArguments arguments: Any?, eventSink events: @escaping FlutterEventSink) -> FlutterError? {
     shareEventSink = events
+    flushPendingSharedBatchesIfNeeded()
     return nil
   }
 
@@ -76,9 +78,15 @@ import UIKit
 
       switch call.method {
       case "getInitialSharedItems":
-        let currentItems = self.pendingInitialShareItems ?? self.readPendingSharedItems() ?? []
+        if self.pendingInitialShareBatches.isEmpty {
+          self.pendingInitialShareBatches = self.readPendingSharedBatches()
+        }
+
+        let currentItems = self.pendingInitialShareBatches.isEmpty
+          ? []
+          : self.pendingInitialShareBatches.removeFirst()
         result(currentItems)
-        self.pendingInitialShareItems = nil
+        self.flushPendingSharedBatchesIfNeeded()
       default:
         result(FlutterMethodNotImplemented)
       }
@@ -92,39 +100,71 @@ import UIKit
   }
 
   private func handleShareURL(_ url: URL) -> Bool {
-    guard let sharedItems = readSharedItems(from: url) else {
+    let sharedBatches = readSharedBatches(from: url)
+    guard !sharedBatches.isEmpty else {
       return false
     }
 
-    dispatchSharedItems(sharedItems)
+    dispatchSharedBatches(sharedBatches)
     return true
   }
 
   private func publishPendingSharedItemsIfNeeded() {
-    guard let sharedItems = readPendingSharedItems(), !sharedItems.isEmpty else {
+    let sharedBatches = readPendingSharedBatches()
+    guard !sharedBatches.isEmpty else {
       return
     }
 
-    dispatchSharedItems(sharedItems)
+    dispatchSharedBatches(sharedBatches)
+  }
+
+  private func dispatchSharedBatches(_ sharedBatches: [[[String: Any]]]) {
+    guard !sharedBatches.isEmpty else {
+      return
+    }
+
+    if shareEventSink != nil {
+      for batch in sharedBatches {
+        dispatchSharedItems(batch)
+      }
+      return
+    }
+
+    pendingInitialShareBatches.append(contentsOf: sharedBatches)
   }
 
   private func dispatchSharedItems(_ sharedItems: [[String: Any]]) {
-    if let shareEventSink, !sharedItems.isEmpty {
-      shareEventSink(sharedItems)
-    } else {
-      pendingInitialShareItems = sharedItems
+    guard let shareEventSink, !sharedItems.isEmpty else {
+      if !sharedItems.isEmpty {
+        pendingInitialShareBatches.append(sharedItems)
+      }
+      return
+    }
+
+    shareEventSink(sharedItems)
+  }
+
+  private func flushPendingSharedBatchesIfNeeded() {
+    guard shareEventSink != nil, !pendingInitialShareBatches.isEmpty else {
+      return
+    }
+
+    let queuedBatches = pendingInitialShareBatches
+    pendingInitialShareBatches.removeAll(keepingCapacity: false)
+    for batch in queuedBatches {
+      dispatchSharedItems(batch)
     }
   }
 
-  private func readSharedItems(from url: URL) -> [[String: Any]]? {
+  private func readSharedBatches(from url: URL) -> [[[String: Any]]] {
     guard isShareURL(url) else {
-      return nil
+      return []
     }
 
-    return readPendingSharedItems(typeOverride: url.fragment?.lowercased())
+    return readPendingSharedBatches(typeOverride: url.fragment?.lowercased())
   }
 
-  private func readPendingSharedItems(typeOverride: String? = nil) -> [[String: Any]]? {
+  private func readPendingSharedBatches(typeOverride: String? = nil) -> [[[String: Any]]] {
     guard
       let appGroupId = Bundle.main.object(forInfoDictionaryKey: "AppGroupId") as? String,
       let userDefaults = UserDefaults(
@@ -132,6 +172,10 @@ import UIKit
       )
     else {
       return []
+    }
+
+    if let queuedBatches = readQueuedSharedBatches(from: userDefaults), !queuedBatches.isEmpty {
+      return queuedBatches
     }
 
     guard
@@ -147,6 +191,7 @@ import UIKit
       userDefaults.synchronize()
     }
 
+    let items: [[String: Any]]
     switch shareType {
     case "media":
       guard let data = userDefaults.data(forKey: shareKey) else {
@@ -155,13 +200,45 @@ import UIKit
 
       let decoder = JSONDecoder()
       let sharedMedia = (try? decoder.decode([SharedMediaFile].self, from: data)) ?? []
-      return sharedMedia.compactMap(normalizeSharedMediaFile)
+      items = sharedMedia.compactMap(normalizeSharedMediaFile)
     case "text":
       let sharedText = userDefaults.stringArray(forKey: shareKey) ?? []
-      return sharedText.compactMap(normalizeSharedText)
+      items = sharedText.compactMap(normalizeSharedText)
     default:
       return []
     }
+
+    return items.isEmpty ? [] : [items]
+  }
+
+  private func readQueuedSharedBatches(from userDefaults: UserDefaults) -> [[[String: Any]]]? {
+    guard let queueData = userDefaults.data(forKey: shareQueueKey) else {
+      return nil
+    }
+
+    defer {
+      userDefaults.removeObject(forKey: shareQueueKey)
+      userDefaults.removeObject(forKey: shareKey)
+      userDefaults.removeObject(forKey: shareTypeKey)
+      userDefaults.synchronize()
+    }
+
+    let decoder = JSONDecoder()
+    let queuedBatches = (try? decoder.decode([PersistedShareBatch].self, from: queueData)) ?? []
+    let normalizedBatches = queuedBatches.compactMap(normalizePersistedShareBatch)
+    return normalizedBatches.isEmpty ? [] : normalizedBatches
+  }
+
+  private func normalizePersistedShareBatch(_ batch: PersistedShareBatch) -> [[String: Any]]? {
+    let items: [[String: Any]]
+    switch batch {
+    case let .media(files):
+      items = files.compactMap(normalizeSharedMediaFile)
+    case let .text(values):
+      items = values.compactMap(normalizeSharedText)
+    }
+
+    return items.isEmpty ? nil : items
   }
 
   private func isShareURL(_ url: URL) -> Bool {
@@ -244,4 +321,43 @@ private struct SharedMediaFile: Codable {
   let thumbnail: String?
   let duration: Double?
   let type: SharedMediaType
+}
+
+private enum PersistedShareBatch: Codable {
+  case media([SharedMediaFile])
+  case text([String])
+
+  private enum CodingKeys: String, CodingKey {
+    case type
+    case media
+    case text
+  }
+
+  init(from decoder: Decoder) throws {
+    let container = try decoder.container(keyedBy: CodingKeys.self)
+    switch try container.decode(String.self, forKey: .type) {
+    case "media":
+      self = .media(try container.decode([SharedMediaFile].self, forKey: .media))
+    case "text":
+      self = .text(try container.decode([String].self, forKey: .text))
+    default:
+      throw DecodingError.dataCorruptedError(
+        forKey: .type,
+        in: container,
+        debugDescription: "Unsupported persisted share batch type."
+      )
+    }
+  }
+
+  func encode(to encoder: Encoder) throws {
+    var container = encoder.container(keyedBy: CodingKeys.self)
+    switch self {
+    case let .media(items):
+      try container.encode("media", forKey: .type)
+      try container.encode(items, forKey: .media)
+    case let .text(items):
+      try container.encode("text", forKey: .type)
+      try container.encode(items, forKey: .text)
+    }
+  }
 }
