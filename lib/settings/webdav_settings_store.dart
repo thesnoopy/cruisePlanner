@@ -10,7 +10,13 @@ class WebDavSettingsStore {
   final FlutterSecureStorage _storage;
 
   const WebDavSettingsStore({FlutterSecureStorage? storage})
-      : _storage = storage ?? const FlutterSecureStorage();
+      : _storage = storage ??
+            const FlutterSecureStorage(
+              aOptions: AndroidOptions(
+                migrateOnAlgorithmChange: true,
+                migrateWithBackup: true,
+              ),
+            );
 
   /// Lädt die gespeicherten Settings (oder null, wenn nichts gespeichert ist).
   Future<WebDavSettings?> load() async {
