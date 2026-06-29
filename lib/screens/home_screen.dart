@@ -14,6 +14,7 @@ import '../widgets/confirmation_dialog.dart';
 import 'cruise_hub_screen.dart';
 import 'share/pending_share_review_screen.dart';
 import 'settings/webdav_settings_screen.dart';
+import 'sync/sync_progress_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -24,7 +25,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   final ShareIntakeService _shareIntakeService = ShareIntakeService();
-  CruiseStore? _store;
+  final CruiseStore _store = CruiseStore();
   bool _loading = true;
 
   @override
@@ -40,6 +41,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    _store.dispose();
     super.dispose();
   }
 
@@ -51,64 +53,31 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   }
 
   Future<void> _triggerAutoSyncOnAppOpen() async {
-    final s = CruiseStore();
-    await s.load();
-    await s.triggerAutoSyncOnAppOpen();
+    if (!_store.isLoaded) {
+      await _store.load();
+    }
+    await _store.triggerAutoSyncOnAppOpen();
   }
 
   Future<void> _reload() async {
-    final s = CruiseStore();
-    await s.load();
+    await _store.load();
     if (!mounted) {
       return;
     }
     setState(() {
-      _store = s;
       _loading = false;
     });
   }
 
   Future<void> _runCloudSync() async {
-    final store = _store;
-
-    if (store == null) {
-      if (mounted) {
-        final loc = AppLocalizations.of(context)!;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(loc.homeCloudSyncNoStore)),
-        );
-      }
+    if (_loading) {
       return;
     }
 
-    final result = await store.runAppSync();
-    if (!mounted) {
-      return;
-    }
-
-    final loc = AppLocalizations.of(context)!;
-    if (result.wasSkipped) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(loc.homeCloudSyncNoWebdav)),
-      );
-      return;
-    }
-
-    setState(() {
-      _store = store;
-    });
-
-    if (result.hasFailures) {
-      final errorMessage =
-          result.failureMessage ?? 'App sync failed.';
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(loc.homeCloudSyncFailed(errorMessage))),
-      );
-      return;
-    }
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(loc.homeCloudSyncDone)),
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => SyncProgressScreen(store: _store),
+      ),
     );
   }
 
@@ -131,9 +100,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       travel: const [],
       route: const [],
     );
-    final s = CruiseStore();
-    await s.load();
-    await s.upsertCruise(cruise);
+    await _store.upsertCruise(cruise);
     if (!mounted) {
       return;
     }
@@ -151,7 +118,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     if (_loading) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
-    final cruises = _store?.activeCruises ?? const <Cruise>[];
+    final cruises = _store.activeCruises;
 
     return Scaffold(
       appBar: AppBar(
@@ -176,7 +143,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         ],
       ),
       body: AnimatedBuilder(
-        animation: _shareIntakeService,
+        animation: Listenable.merge(<Listenable>[_shareIntakeService, _store]),
         builder: (context, _) {
           final hasPendingShares = _shareIntakeService.hasPendingBatches;
 
@@ -232,9 +199,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                               if (!confirmed) {
                                 return;
                               }
-                              final s = CruiseStore();
-                              await s.load();
-                              await s.deleteCruise(c.id);
+                              await _store.deleteCruise(c.id);
                               await _reload();
                             },
                           );

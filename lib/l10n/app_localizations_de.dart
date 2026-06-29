@@ -520,4 +520,73 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get shareAssignNoTargets => 'Es sind noch keine zuweisbaren Ziele verfügbar.';
+  @override
+  String get syncProgressTitle => 'Synchronisationsfortschritt';
+
+  @override
+  String get syncProgressRunning => 'Synchronisierung l\u00e4uft';
+
+  @override
+  String get syncProgressRunningDescription =>
+      'Die aktuelle Synchronisierung l\u00e4uft im Hintergrund weiter.';
+
+  @override
+  String get syncProgressCompleted => 'Synchronisierung abgeschlossen';
+
+  @override
+  String get syncProgressCompletedDescription =>
+      'Alle Synchronisierungsschritte wurden erfolgreich abgeschlossen.';
+
+  @override
+  String get syncProgressSkipped => 'Synchronisierung \u00fcbersprungen';
+
+  @override
+  String get syncProgressSkippedDescription =>
+      'Die WebDAV-Einstellungen fehlen oder sind unvollst\u00e4ndig.';
+
+  @override
+  String get syncProgressFailed => 'Synchronisierung fehlgeschlagen';
+
+  @override
+  String get syncProgressFailedDescription =>
+      'Die Synchronisierung wurde mit Fehlern beendet.';
+
+  @override
+  String get syncProgressPreparing => 'Einstellungen pr\u00fcfen';
+
+  @override
+  String get syncProgressCruiseDataSync => 'Kreuzfahrtdaten synchronisieren';
+
+  @override
+  String get syncProgressDocumentMetadataAnalysis =>
+      'Dokument-Metadaten analysieren';
+
+  @override
+  String get syncProgressDocumentUploads => 'Dokumente hochladen';
+
+  @override
+  String get syncProgressDocumentDownloads => 'Dokumente herunterladen';
+
+  @override
+  String get syncProgressLocalDocumentRecovery =>
+      'Lokale Dokumentdateien wiederherstellen';
+
+  @override
+  String get syncProgressDeletionPropagation => 'L\u00f6schungen \u00fcbertragen';
+
+  @override
+  String get syncProgressCleanup => 'Gel\u00f6schte Dokumente bereinigen';
+
+  @override
+  String syncProgressItemCount(int count) {
+    return intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      one: '1 Element',
+      other: '$count Elemente',
+    );
+  }
+
+  @override
+  String get syncProgressClose => 'Schlie\u00dfen';
 }

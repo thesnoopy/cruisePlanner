@@ -6,6 +6,7 @@ import '../../models/documents/document_sync_analysis_result.dart';
 import '../../models/documents/document_sync_execution_result.dart';
 import '../../settings/webdav_settings.dart';
 import '../../store/document_store.dart';
+import '../../sync/app_sync_progress.dart';
 import 'document_file_store.dart';
 import 'document_remote_store.dart';
 import 'document_sync_orchestration_service.dart';
@@ -16,6 +17,7 @@ class DocumentSyncExecutionService {
     DocumentFileStore? documentFileStore,
     required DocumentRemoteStore remoteStore,
     DocumentSyncOrchestrationService? orchestrationService,
+    AppSyncProgressCallback? onProgress,
   })  : _documentStore = documentStore ?? DocumentStore(),
         _documentFileStore = documentFileStore ?? DocumentFileStore(),
         _remoteStore = remoteStore,
@@ -25,13 +27,15 @@ class DocumentSyncExecutionService {
               documentStore: documentStore,
               documentFileStore: documentFileStore,
               remoteStore: remoteStore,
-            );
+            ),
+        _onProgress = onProgress;
 
   factory DocumentSyncExecutionService.fromSettings({
     DocumentStore? documentStore,
     DocumentFileStore? documentFileStore,
     required WebDavSettings settings,
     DocumentSyncOrchestrationService? orchestrationService,
+    AppSyncProgressCallback? onProgress,
   }) {
     final remoteStore = DocumentRemoteStore(settings);
     return DocumentSyncExecutionService(
@@ -39,6 +43,7 @@ class DocumentSyncExecutionService {
       documentFileStore: documentFileStore,
       remoteStore: remoteStore,
       orchestrationService: orchestrationService,
+      onProgress: onProgress,
     );
   }
 
@@ -46,9 +51,11 @@ class DocumentSyncExecutionService {
   final DocumentFileStore _documentFileStore;
   final DocumentRemoteStore _remoteStore;
   final DocumentSyncOrchestrationService _orchestrationService;
+  final AppSyncProgressCallback? _onProgress;
 
   Future<DocumentFullSyncExecutionResult> executeFullSync() async {
     try {
+      _emitProgress(AppSyncProgress.documentMetadataAnalysis());
       final analysis = await _orchestrationService.analyze();
       final phase3Result = await _executeAnalyzedPhase3Actions(analysis);
       final phase4Result = await _executeAnalyzedPhase4LocalFileRecoveries(
@@ -88,6 +95,7 @@ class DocumentSyncExecutionService {
 
   Future<DocumentSyncExecutionResult> executePhase3Actions() async {
     try {
+      _emitProgress(AppSyncProgress.documentMetadataAnalysis());
       final analysis = await _orchestrationService.analyze();
       return _executeAnalyzedPhase3Actions(analysis);
     } catch (error) {
@@ -107,6 +115,7 @@ class DocumentSyncExecutionService {
 
   Future<DocumentSyncExecutionResult> executePhase4LocalFileRecoveries() async {
     try {
+      _emitProgress(AppSyncProgress.documentMetadataAnalysis());
       final analysis = await _orchestrationService.analyze();
       return _executeAnalyzedPhase4LocalFileRecoveries(analysis);
     } catch (error) {
@@ -126,6 +135,7 @@ class DocumentSyncExecutionService {
 
   Future<DocumentSyncExecutionResult> executePhase6Cleanup() async {
     try {
+      _emitProgress(AppSyncProgress.documentMetadataAnalysis());
       final analysis = await _orchestrationService.analyze();
       return _executeAnalyzedPhase6Cleanup(analysis);
     } catch (error) {
@@ -146,6 +156,11 @@ class DocumentSyncExecutionService {
   Future<DocumentSyncExecutionResult> _executeAnalyzedPhase3Actions(
     DocumentSyncAnalysisResult analysis,
   ) async {
+    _emitProgress(
+      AppSyncProgress.documentUploads(
+        totalItems: analysis.syncPlan.uploads.length,
+      ),
+    );
     final completedUploadDocumentIds = <String>[];
     final completedDownloadDocumentIds = <String>[];
     final failures = <DocumentSyncExecutionFailure>[];
@@ -153,6 +168,11 @@ class DocumentSyncExecutionService {
       analysis: analysis,
       completedUploadDocumentIds: completedUploadDocumentIds,
       failures: failures,
+    );
+    _emitProgress(
+      AppSyncProgress.documentDownloads(
+        totalItems: analysis.syncPlan.downloads.length,
+      ),
     );
     await _executeDownloads(
       analysis: analysis,
@@ -180,6 +200,11 @@ class DocumentSyncExecutionService {
   Future<DocumentSyncExecutionResult> _executeAnalyzedPhase4LocalFileRecoveries(
     DocumentSyncAnalysisResult analysis,
   ) async {
+    _emitProgress(
+      AppSyncProgress.localDocumentRecovery(
+        totalItems: analysis.localFileRecoveryPlan.recoveries.length,
+      ),
+    );
     final completedLocalFileRecoveryDocumentIds = <String>[];
     final failures = <DocumentSyncExecutionFailure>[];
     await _executeLocalFileRecoveries(
@@ -208,6 +233,13 @@ class DocumentSyncExecutionService {
   _executeAnalyzedPhase5SoftDeletePropagations(
     DocumentSyncAnalysisResult analysis,
   ) async {
+    _emitProgress(
+      AppSyncProgress.deletionPropagation(
+        totalItems:
+            analysis.deletePropagationPlan.plannedLocalSoftDeletes.length +
+            analysis.deletePropagationPlan.plannedRemoteSoftDeletes.length,
+      ),
+    );
     final completedLocalSoftDeleteDocumentIds = <String>[];
     final completedRemoteSoftDeleteDocumentIds = <String>[];
     final failures = <DocumentSyncExecutionFailure>[];
@@ -243,6 +275,11 @@ class DocumentSyncExecutionService {
   Future<DocumentSyncExecutionResult> _executeAnalyzedPhase6Cleanup(
     DocumentSyncAnalysisResult analysis,
   ) async {
+    _emitProgress(
+      AppSyncProgress.cleanup(
+        totalItems: analysis.cleanupPlan.plannedHardDeletes.length,
+      ),
+    );
     final completedHardDeleteDocumentIds = <String>[];
     final failures = <DocumentSyncExecutionFailure>[];
 
@@ -633,5 +670,9 @@ class DocumentSyncExecutionService {
         return left.id.compareTo(right.id);
       });
     return List<DocumentRecord>.unmodifiable(sorted);
+  }
+
+  void _emitProgress(AppSyncProgress progress) {
+    _onProgress?.call(progress);
   }
 }

@@ -520,4 +520,74 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get shareAssignNoTargets => 'No assignable targets are available yet.';
+
+  @override
+  String get syncProgressTitle => 'Sync progress';
+
+  @override
+  String get syncProgressRunning => 'Synchronization in progress';
+
+  @override
+  String get syncProgressRunningDescription =>
+      'The current synchronization is continuing in the background.';
+
+  @override
+  String get syncProgressCompleted => 'Synchronization completed';
+
+  @override
+  String get syncProgressCompletedDescription =>
+      'All synchronization steps completed successfully.';
+
+  @override
+  String get syncProgressSkipped => 'Synchronization skipped';
+
+  @override
+  String get syncProgressSkippedDescription =>
+      'WebDAV settings are missing or incomplete.';
+
+  @override
+  String get syncProgressFailed => 'Synchronization failed';
+
+  @override
+  String get syncProgressFailedDescription =>
+      'Synchronization ended with errors.';
+
+  @override
+  String get syncProgressPreparing => 'Checking settings';
+
+  @override
+  String get syncProgressCruiseDataSync => 'Synchronizing cruise data';
+
+  @override
+  String get syncProgressDocumentMetadataAnalysis =>
+      'Analyzing document metadata';
+
+  @override
+  String get syncProgressDocumentUploads => 'Uploading documents';
+
+  @override
+  String get syncProgressDocumentDownloads => 'Downloading documents';
+
+  @override
+  String get syncProgressLocalDocumentRecovery =>
+      'Recovering local document files';
+
+  @override
+  String get syncProgressDeletionPropagation => 'Propagating deletions';
+
+  @override
+  String get syncProgressCleanup => 'Cleaning up deleted documents';
+
+  @override
+  String syncProgressItemCount(int count) {
+    return intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      one: '1 item',
+      other: '$count items',
+    );
+  }
+
+  @override
+  String get syncProgressClose => 'Close';
 }

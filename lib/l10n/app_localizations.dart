@@ -1096,6 +1096,120 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No assignable targets are available yet.'**
   String get shareAssignNoTargets;
+
+  /// Title of the dedicated sync progress screen
+  ///
+  /// In en, this message translates to:
+  /// **'Sync progress'**
+  String get syncProgressTitle;
+
+  /// Headline while a sync is still running
+  ///
+  /// In en, this message translates to:
+  /// **'Synchronization in progress'**
+  String get syncProgressRunning;
+
+  /// Short helper text while sync is active
+  ///
+  /// In en, this message translates to:
+  /// **'The current synchronization is continuing in the background.'**
+  String get syncProgressRunningDescription;
+
+  /// Headline after sync finished successfully
+  ///
+  /// In en, this message translates to:
+  /// **'Synchronization completed'**
+  String get syncProgressCompleted;
+
+  /// Short helper text after successful sync
+  ///
+  /// In en, this message translates to:
+  /// **'All synchronization steps completed successfully.'**
+  String get syncProgressCompletedDescription;
+
+  /// Headline after sync was skipped
+  ///
+  /// In en, this message translates to:
+  /// **'Synchronization skipped'**
+  String get syncProgressSkipped;
+
+  /// Short helper text when sync was skipped because settings are not usable
+  ///
+  /// In en, this message translates to:
+  /// **'WebDAV settings are missing or incomplete.'**
+  String get syncProgressSkippedDescription;
+
+  /// Headline after sync finished with failures
+  ///
+  /// In en, this message translates to:
+  /// **'Synchronization failed'**
+  String get syncProgressFailed;
+
+  /// Short helper text after failed sync
+  ///
+  /// In en, this message translates to:
+  /// **'Synchronization ended with errors.'**
+  String get syncProgressFailedDescription;
+
+  /// Sync stage for preparing and validating settings
+  ///
+  /// In en, this message translates to:
+  /// **'Checking settings'**
+  String get syncProgressPreparing;
+
+  /// Sync stage for cruise JSON synchronization
+  ///
+  /// In en, this message translates to:
+  /// **'Synchronizing cruise data'**
+  String get syncProgressCruiseDataSync;
+
+  /// Sync stage for document analysis and metadata reconciliation
+  ///
+  /// In en, this message translates to:
+  /// **'Analyzing document metadata'**
+  String get syncProgressDocumentMetadataAnalysis;
+
+  /// Sync stage for document uploads
+  ///
+  /// In en, this message translates to:
+  /// **'Uploading documents'**
+  String get syncProgressDocumentUploads;
+
+  /// Sync stage for document downloads
+  ///
+  /// In en, this message translates to:
+  /// **'Downloading documents'**
+  String get syncProgressDocumentDownloads;
+
+  /// Sync stage for local document recovery
+  ///
+  /// In en, this message translates to:
+  /// **'Recovering local document files'**
+  String get syncProgressLocalDocumentRecovery;
+
+  /// Sync stage for deletion propagation
+  ///
+  /// In en, this message translates to:
+  /// **'Propagating deletions'**
+  String get syncProgressDeletionPropagation;
+
+  /// Sync stage for cleanup
+  ///
+  /// In en, this message translates to:
+  /// **'Cleaning up deleted documents'**
+  String get syncProgressCleanup;
+
+  /// Optional item count shown next to a sync stage
+  ///
+  /// In en, this message translates to:
+  /// **'{count} items'**
+  String syncProgressItemCount(int count);
+
+  /// Close button label on the sync progress screen
+  ///
+  /// In en, this message translates to:
+  /// **'Close'**
+  String get syncProgressClose;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

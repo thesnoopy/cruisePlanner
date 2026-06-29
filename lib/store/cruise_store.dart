@@ -20,6 +20,7 @@ import '../models/travel/train_item.dart';
 import '../models/travel/transfer_item.dart';
 import '../services/documents/document_reference_cleanup_service.dart';
 import '../sync/app_sync_service.dart';
+import '../sync/app_sync_progress.dart';
 import '../sync/cruise_persistence_migration.dart';
 
 class _IndexRef {
@@ -59,11 +60,14 @@ class CruiseStore extends ChangeNotifier {
 
   List<Cruise> _cruises = const [];
   bool _loaded = false;
+  bool _isDisposed = false;
   Timer? _autoSyncTimer;
   Future<AppSyncResult>? _inFlightAppSync;
+  AppSyncProgress? _appSyncProgress;
 
   bool get isLoaded => _loaded;
   List<Cruise> get cruises => _cruises;
+  AppSyncProgress? get appSyncProgress => _appSyncProgress;
   List<Cruise> get activeCruises => List<Cruise>.unmodifiable(
         _cruises.where((cruise) => !_isDeletedCruise(cruise)).map(_visibleCruise),
       );
@@ -624,17 +628,53 @@ class CruiseStore extends ChangeNotifier {
   }
 
   Future<AppSyncResult> _performAppSync() async {
-    final result = await _appSyncService.sync(localCruises: _cruises);
-    final mergedCruises = result.mergedCruises;
-    if (mergedCruises == null) {
+    try {
+      final result = await _appSyncService.sync(
+        localCruises: _cruises,
+        onProgress: _handleAppSyncProgress,
+      );
+      final mergedCruises = result.mergedCruises;
+      if (mergedCruises == null) {
+        return result;
+      }
+
+      _cruises = List<Cruise>.unmodifiable(mergedCruises);
+      _rebuildIndex();
+      await _persist();
+      if (!_isDisposed) {
+        notifyListeners();
+      }
       return result;
+    } catch (error) {
+      final lastActiveStage =
+          _appSyncProgress?.displayStage ?? AppSyncProgressStage.preparing;
+      _handleAppSyncProgress(
+        AppSyncProgress.failed(
+          lastActiveStage: lastActiveStage,
+        ),
+      );
+      rethrow;
+    }
+  }
+
+  void _handleAppSyncProgress(AppSyncProgress progress) {
+    if (_isDisposed) {
+      return;
     }
 
-    _cruises = List<Cruise>.unmodifiable(mergedCruises);
-    _rebuildIndex();
-    await _persist();
+    if (_appSyncProgress == progress) {
+      return;
+    }
+
+    _appSyncProgress = progress;
     notifyListeners();
-    return result;
+  }
+
+  @override
+  void dispose() {
+    _isDisposed = true;
+    _autoSyncTimer?.cancel();
+    super.dispose();
   }
 
   Cruise _visibleCruise(Cruise cruise) {

@@ -778,6 +778,88 @@
   "@shareAssignNoTargets": {
     "description": "Hinweis, wenn noch keine bestehenden Ziele für eine Zuweisung vorhanden sind"
   }
+,
+  "syncProgressTitle": "Synchronisationsfortschritt",
+  "@syncProgressTitle": {
+    "description": "Titel des dedizierten Screens fÃ¼r den Synchronisationsfortschritt"
+  },
+  "syncProgressRunning": "Synchronisierung l\u00e4uft",
+  "@syncProgressRunning": {
+    "description": "Ãœberschrift, solange eine Synchronisierung aktiv ist"
+  },
+  "syncProgressRunningDescription": "Die aktuelle Synchronisierung l\u00e4uft im Hintergrund weiter.",
+  "@syncProgressRunningDescription": {
+    "description": "Kurzer Hilfstext, solange der Sync aktiv ist"
+  },
+  "syncProgressCompleted": "Synchronisierung abgeschlossen",
+  "@syncProgressCompleted": {
+    "description": "Ãœberschrift nach erfolgreichem Abschluss"
+  },
+  "syncProgressCompletedDescription": "Alle Synchronisierungsschritte wurden erfolgreich abgeschlossen.",
+  "@syncProgressCompletedDescription": {
+    "description": "Kurzer Hilfstext nach erfolgreichem Sync"
+  },
+  "syncProgressSkipped": "Synchronisierung \u00fcbersprungen",
+  "@syncProgressSkipped": {
+    "description": "Ãœberschrift, wenn der Sync Ã¼bersprungen wurde"
+  },
+  "syncProgressSkippedDescription": "Die WebDAV-Einstellungen fehlen oder sind unvollst\u00e4ndig.",
+  "@syncProgressSkippedDescription": {
+    "description": "Kurzer Hilfstext, wenn der Sync wegen fehlender Einstellungen Ã¼bersprungen wurde"
+  },
+  "syncProgressFailed": "Synchronisierung fehlgeschlagen",
+  "@syncProgressFailed": {
+    "description": "Ãœberschrift nach fehlgeschlagenem Sync"
+  },
+  "syncProgressFailedDescription": "Die Synchronisierung wurde mit Fehlern beendet.",
+  "@syncProgressFailedDescription": {
+    "description": "Kurzer Hilfstext nach fehlgeschlagenem Sync"
+  },
+  "syncProgressPreparing": "Einstellungen pr\u00fcfen",
+  "@syncProgressPreparing": {
+    "description": "Sync-Phase fÃ¼r Vorbereitung und EinstellungsprÃ¼fung"
+  },
+  "syncProgressCruiseDataSync": "Kreuzfahrtdaten synchronisieren",
+  "@syncProgressCruiseDataSync": {
+    "description": "Sync-Phase fÃ¼r die Synchronisierung der Cruise-JSON"
+  },
+  "syncProgressDocumentMetadataAnalysis": "Dokument-Metadaten analysieren",
+  "@syncProgressDocumentMetadataAnalysis": {
+    "description": "Sync-Phase fÃ¼r Dokumentanalyse und Metadatenabgleich"
+  },
+  "syncProgressDocumentUploads": "Dokumente hochladen",
+  "@syncProgressDocumentUploads": {
+    "description": "Sync-Phase fÃ¼r Dokument-Uploads"
+  },
+  "syncProgressDocumentDownloads": "Dokumente herunterladen",
+  "@syncProgressDocumentDownloads": {
+    "description": "Sync-Phase fÃ¼r Dokument-Downloads"
+  },
+  "syncProgressLocalDocumentRecovery": "Lokale Dokumentdateien wiederherstellen",
+  "@syncProgressLocalDocumentRecovery": {
+    "description": "Sync-Phase fÃ¼r lokale Dokument-Wiederherstellung"
+  },
+  "syncProgressDeletionPropagation": "L\u00f6schungen \u00fcbertragen",
+  "@syncProgressDeletionPropagation": {
+    "description": "Sync-Phase fÃ¼r Delete-Propagation"
+  },
+  "syncProgressCleanup": "Gel\u00f6schte Dokumente bereinigen",
+  "@syncProgressCleanup": {
+    "description": "Sync-Phase fÃ¼r Cleanup"
+  },
+  "syncProgressItemCount": "{count, plural, one {1 Element} other {{count} Elemente}}",
+  "@syncProgressItemCount": {
+    "description": "Optionale Elementanzahl neben einer Sync-Phase",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "syncProgressClose": "Schlie\u00dfen",
+  "@syncProgressClose": {
+    "description": "Beschriftung des SchlieÃŸen-Buttons im Sync-Fortschrittsscreen"
+  }
 }
 
 

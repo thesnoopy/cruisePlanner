@@ -490,5 +490,86 @@
   "shareAssignNoTargets": "No assignable targets are available yet.",
   "@shareAssignNoTargets": {
     "description": "Message shown when there are no existing cruise targets to assign a shared item to"
+  },
+  "syncProgressTitle": "Sync progress",
+  "@syncProgressTitle": {
+    "description": "Title of the dedicated sync progress screen"
+  },
+  "syncProgressRunning": "Synchronization in progress",
+  "@syncProgressRunning": {
+    "description": "Headline while a sync is still running"
+  },
+  "syncProgressRunningDescription": "The current synchronization is continuing in the background.",
+  "@syncProgressRunningDescription": {
+    "description": "Short helper text while sync is active"
+  },
+  "syncProgressCompleted": "Synchronization completed",
+  "@syncProgressCompleted": {
+    "description": "Headline after sync finished successfully"
+  },
+  "syncProgressCompletedDescription": "All synchronization steps completed successfully.",
+  "@syncProgressCompletedDescription": {
+    "description": "Short helper text after successful sync"
+  },
+  "syncProgressSkipped": "Synchronization skipped",
+  "@syncProgressSkipped": {
+    "description": "Headline after sync was skipped"
+  },
+  "syncProgressSkippedDescription": "WebDAV settings are missing or incomplete.",
+  "@syncProgressSkippedDescription": {
+    "description": "Short helper text when sync was skipped because settings are not usable"
+  },
+  "syncProgressFailed": "Synchronization failed",
+  "@syncProgressFailed": {
+    "description": "Headline after sync finished with failures"
+  },
+  "syncProgressFailedDescription": "Synchronization ended with errors.",
+  "@syncProgressFailedDescription": {
+    "description": "Short helper text after failed sync"
+  },
+  "syncProgressPreparing": "Checking settings",
+  "@syncProgressPreparing": {
+    "description": "Sync stage for preparing and validating settings"
+  },
+  "syncProgressCruiseDataSync": "Synchronizing cruise data",
+  "@syncProgressCruiseDataSync": {
+    "description": "Sync stage for cruise JSON synchronization"
+  },
+  "syncProgressDocumentMetadataAnalysis": "Analyzing document metadata",
+  "@syncProgressDocumentMetadataAnalysis": {
+    "description": "Sync stage for document analysis and metadata reconciliation"
+  },
+  "syncProgressDocumentUploads": "Uploading documents",
+  "@syncProgressDocumentUploads": {
+    "description": "Sync stage for document uploads"
+  },
+  "syncProgressDocumentDownloads": "Downloading documents",
+  "@syncProgressDocumentDownloads": {
+    "description": "Sync stage for document downloads"
+  },
+  "syncProgressLocalDocumentRecovery": "Recovering local document files",
+  "@syncProgressLocalDocumentRecovery": {
+    "description": "Sync stage for local document recovery"
+  },
+  "syncProgressDeletionPropagation": "Propagating deletions",
+  "@syncProgressDeletionPropagation": {
+    "description": "Sync stage for deletion propagation"
+  },
+  "syncProgressCleanup": "Cleaning up deleted documents",
+  "@syncProgressCleanup": {
+    "description": "Sync stage for cleanup"
+  },
+  "syncProgressItemCount": "{count, plural, one {1 item} other {{count} items}}",
+  "@syncProgressItemCount": {
+    "description": "Optional item count shown next to a sync stage",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "syncProgressClose": "Close",
+  "@syncProgressClose": {
+    "description": "Close button label on the sync progress screen"
   }
 }
