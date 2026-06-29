@@ -5,6 +5,7 @@ import 'package:webdav_client/webdav_client.dart' as webdav;
 
 import '../models/cruise.dart';
 import '../settings/webdav_settings.dart';
+import 'webdav_client_factory.dart';
 
 /// Metadaten zur Remote-Datei (für spätere Erweiterungen wie ETag / mTime)
 class RemoteInfo {
@@ -45,21 +46,13 @@ class WebDavSync {
   const WebDavSync(this.settings);
 
   webdav.Client _createClient() {
-    final client = webdav.newClient(
-      settings.baseUrl,
-      user: settings.username,
-      password: settings.password,
-      debug: false,
+    return createConfiguredWebDavClient(
+      settings,
+      headers: const <String, String>{
+        'accept-charset': 'utf-8',
+        'content-type': 'application/json',
+      },
     );
-    client.setHeaders({
-      'accept-charset': 'utf-8',
-      'content-type': 'application/json',
-    });
-    // Timeouts optional; kannst du bei Bedarf anpassen
-    client.setConnectTimeout(8000);
-    client.setSendTimeout(8000);
-    client.setReceiveTimeout(8000);
-    return client;
   }
 
   /// Ließt die Properties der Remote-Datei (falls vorhanden).

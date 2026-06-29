@@ -6,6 +6,7 @@ import 'package:webdav_client/webdav_client.dart' as webdav;
 
 import '../../models/documents/document_record.dart';
 import '../../settings/webdav_settings.dart';
+import '../../sync/webdav_client_factory.dart';
 
 class DocumentRemoteStore {
   static const String _documentsFolderName = 'documents';
@@ -187,19 +188,12 @@ class DocumentRemoteStore {
       throw StateError('WebDAV settings are incomplete.');
     }
 
-    final client = webdav.newClient(
-      _settings.baseUrl,
-      user: _settings.username,
-      password: _settings.password,
-      debug: false,
+    return createConfiguredWebDavClient(
+      _settings,
+      headers: const <String, String>{
+        'accept-charset': 'utf-8',
+      },
     );
-    client.setHeaders({
-      'accept-charset': 'utf-8',
-    });
-    client.setConnectTimeout(8000);
-    client.setSendTimeout(8000);
-    client.setReceiveTimeout(8000);
-    return client;
   }
 
   Future<void> _ensureDirectory(webdav.Client client, String path) async {
