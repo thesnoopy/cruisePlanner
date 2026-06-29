@@ -11,6 +11,51 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  testWidgets(
+    'starts sync after first frame without build-phase notification exception',
+    (tester) async {
+      final completer = Completer<AppSyncResult>();
+      late final _FakeCruiseStore store;
+      store = _FakeCruiseStore(
+        runAppSyncHandler: () {
+          store.emitProgress(AppSyncProgress.preparing());
+          return completer.future;
+        },
+      );
+
+      await tester.pumpWidget(
+        _TestApp(
+          child: SyncProgressScreen(store: store),
+        ),
+      );
+
+      expect(tester.takeException(), isNull);
+      expect(store.runAppSyncCallCount, 1);
+      expect(find.byType(LinearProgressIndicator), findsOneWidget);
+      expect(find.text('Close'), findsNothing);
+
+      await tester.pump();
+
+      expect(tester.takeException(), isNull);
+      expect(store.runAppSyncCallCount, 1);
+      expect(find.byType(LinearProgressIndicator), findsOneWidget);
+      expect(find.text('Close'), findsNothing);
+
+      completer.complete(
+        const AppSyncResult.succeeded(
+          mergedCruises: <Cruise>[],
+          documentSyncResult: _SuccessfulDocumentSyncResult(),
+        ),
+      );
+      await tester.pump();
+
+      expect(tester.takeException(), isNull);
+      expect(store.runAppSyncCallCount, 1);
+      expect(find.byType(LinearProgressIndicator), findsNothing);
+      expect(find.text('Close'), findsOneWidget);
+    },
+  );
+
   testWidgets('keeps progress active until runAppSync future completes', (
     tester,
   ) async {
@@ -102,12 +147,16 @@ class _FakeCruiseStore extends CruiseStore {
 
   final Future<AppSyncResult> Function() _runAppSyncHandler;
   AppSyncProgress? _progress;
+  int runAppSyncCallCount = 0;
 
   @override
   AppSyncProgress? get appSyncProgress => _progress;
 
   @override
-  Future<AppSyncResult> runAppSync() => _runAppSyncHandler();
+  Future<AppSyncResult> runAppSync() {
+    runAppSyncCallCount += 1;
+    return _runAppSyncHandler();
+  }
 
   void emitProgress(AppSyncProgress progress) {
     _progress = progress;

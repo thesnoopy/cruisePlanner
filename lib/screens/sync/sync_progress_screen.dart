@@ -38,7 +38,12 @@ class _SyncProgressScreenState extends State<SyncProgressScreen> {
   @override
   void initState() {
     super.initState();
-    unawaited(_startSync());
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) {
+        return;
+      }
+      unawaited(_startSync());
+    });
   }
 
   Future<void> _startSync() async {
