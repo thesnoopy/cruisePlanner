@@ -459,7 +459,7 @@ class _ExcursionEditScreenState extends State<ExcursionEditScreen> {
             ),
             const SizedBox(height: 12),
             DropdownButtonFormField<ExcursionPaymentMode>(
-              value: _paymentMode,
+              initialValue: _paymentMode,
               decoration: InputDecoration(
                 labelText: loc.paymentType,
               ),
@@ -736,10 +736,7 @@ class _ExcursionEditScreenState extends State<ExcursionEditScreen> {
             if (_onSiteCash) ...[
               const SizedBox(height: 4),
               Text(loc.cashCurrency),
-              RadioListTile<CashCurrencyPreference>(
-                contentPadding: EdgeInsets.zero,
-                title: Text(loc.onlyLocalCurrency),
-                value: CashCurrencyPreference.localOnly,
+              RadioGroup<CashCurrencyPreference>(
                 groupValue: _cashPref,
                 onChanged: (v) {
                   if (v == null) {
@@ -747,18 +744,20 @@ class _ExcursionEditScreenState extends State<ExcursionEditScreen> {
                   }
                   setState(() => _cashPref = v);
                 },
-              ),
-              RadioListTile<CashCurrencyPreference>(
-                contentPadding: EdgeInsets.zero,
-                title: Text(loc.localCurrencyOrOwnCurrency),
-                value: CashCurrencyPreference.localOrHome,
-                groupValue: _cashPref,
-                onChanged: (v) {
-                  if (v == null) {
-                    return;
-                  }
-                  setState(() => _cashPref = v);
-                },
+                child: Column(
+                  children: [
+                    RadioListTile<CashCurrencyPreference>(
+                      contentPadding: EdgeInsets.zero,
+                      title: Text(loc.onlyLocalCurrency),
+                      value: CashCurrencyPreference.localOnly,
+                    ),
+                    RadioListTile<CashCurrencyPreference>(
+                      contentPadding: EdgeInsets.zero,
+                      title: Text(loc.localCurrencyOrOwnCurrency),
+                      value: CashCurrencyPreference.localOrHome,
+                    ),
+                  ],
+                ),
               ),
             ],
             CheckboxListTile(
@@ -801,10 +800,7 @@ class _ExcursionEditScreenState extends State<ExcursionEditScreen> {
             if (_onSiteCash) ...[
               const SizedBox(height: 4),
               Text(loc.cashCurrency),
-              RadioListTile<CashCurrencyPreference>(
-                contentPadding: EdgeInsets.zero,
-                title: Text(loc.onlyLocalCurrency),
-                value: CashCurrencyPreference.localOnly,
+              RadioGroup<CashCurrencyPreference>(
                 groupValue: _cashPref,
                 onChanged: (v) {
                   if (v == null) {
@@ -812,18 +808,20 @@ class _ExcursionEditScreenState extends State<ExcursionEditScreen> {
                   }
                   setState(() => _cashPref = v);
                 },
-              ),
-              RadioListTile<CashCurrencyPreference>(
-                contentPadding: EdgeInsets.zero,
-                title: Text(loc.localCurrencyOrOwnCurrency),
-                value: CashCurrencyPreference.localOrHome,
-                groupValue: _cashPref,
-                onChanged: (v) {
-                  if (v == null) {
-                    return;
-                  }
-                  setState(() => _cashPref = v);
-                },
+                child: Column(
+                  children: [
+                    RadioListTile<CashCurrencyPreference>(
+                      contentPadding: EdgeInsets.zero,
+                      title: Text(loc.onlyLocalCurrency),
+                      value: CashCurrencyPreference.localOnly,
+                    ),
+                    RadioListTile<CashCurrencyPreference>(
+                      contentPadding: EdgeInsets.zero,
+                      title: Text(loc.localCurrencyOrOwnCurrency),
+                      value: CashCurrencyPreference.localOrHome,
+                    ),
+                  ],
+                ),
               ),
             ],
             CheckboxListTile(

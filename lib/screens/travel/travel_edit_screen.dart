@@ -318,7 +318,7 @@ _pickDateTime(bool start) async {
       if(transferMode != ""){
         collection.add(
           DropdownButtonFormField<TransferMode>(
-                value: _transferMode,
+                initialValue: _transferMode,
                 items: [for (final m in TransferMode.values) DropdownMenuItem(value: m, child: Text(m.name))],
                 onChanged: (v) => setState(() => _transferMode = v),
                 decoration: InputDecoration(labelText: transferMode),
