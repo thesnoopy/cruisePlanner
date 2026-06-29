@@ -171,7 +171,7 @@ class _CruiseDocumentsSectionState extends State<CruiseDocumentsSection> {
 
   Future<void> _importDocument() async {
     final loc = AppLocalizations.of(context)!;
-    final result = await FilePicker.platform.pickFiles(
+    final result = await FilePicker.pickFiles(
       allowMultiple: false,
       withData: false,
     );

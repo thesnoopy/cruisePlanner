@@ -48,7 +48,7 @@ dependencies:
   flutter_staggered_grid_view: ^0.7.0
   url_launcher: ^6.3.0
   map_launcher: ^4.4.3
-  file_picker: ^8.1.7
+  file_picker: 11.0.2
   open_filex: ^4.7.0
 
   crypto: ^3.0.0
