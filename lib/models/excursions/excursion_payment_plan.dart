@@ -6,7 +6,7 @@ class ExcursionPaymentPlan extends Equatable {
   final ExcursionPaymentMode mode;
   final List<ExcursionPaymentPart> parts;
 
-  ExcursionPaymentPlan({
+  const ExcursionPaymentPlan({
     required this.mode,
     required this.parts,
   });

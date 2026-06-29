@@ -212,7 +212,7 @@ class WebDavSync {
     final hh = two(dt.hour);
     final mm = two(dt.minute);
     final ss = two(dt.second);
-    return '${y}${m}${d}_${hh}${mm}${ss}';
+    return '$y$m${d}_$hh$mm$ss';
   }
 
   String _normalizePath(String p) {
@@ -273,7 +273,7 @@ class WebDavSync {
     return merged;
   }
   */
-   Future<List<Cruise>> CruiseSyncService(List<Cruise> local) async {
+   Future<List<Cruise>> cruiseSyncService(List<Cruise> local) async {
     final remote = await downloadCruises();
     final byId = {for (final c in remote) c.id: c};
     for (final c in local) {

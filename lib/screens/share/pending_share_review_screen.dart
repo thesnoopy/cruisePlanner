@@ -53,7 +53,7 @@ class PendingShareReviewScreen extends StatelessWidget {
           return ListView.separated(
             padding: const EdgeInsets.all(12),
             itemCount: batches.length,
-            separatorBuilder: (_, __) => const SizedBox(height: 12),
+            separatorBuilder: (_, index) => const SizedBox(height: 12),
             itemBuilder: (context, index) {
               final batch = batches[index];
               return _PendingShareBatchCard(

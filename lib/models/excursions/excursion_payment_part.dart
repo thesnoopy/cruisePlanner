@@ -15,7 +15,7 @@ class ExcursionPaymentPart extends Equatable {
   final Set<ExcursionPaymentMethod> paymentMethods;
   final CashCurrencyPreference? cashCurrencyPreference;
 
-  ExcursionPaymentPart({
+  const ExcursionPaymentPart({
     required this.trigger,
     required this.amount,
     this.dueDate,

@@ -137,7 +137,6 @@ class _CruiseHubScreenState extends State<CruiseHubScreen> {
 
 class _HubTile extends StatelessWidget {
   final String title;
-  final String? subtitle;          // klassischer Text-Subtitle
   final Widget? subtitleWidget;    // NEU: Rich-Subtitle (Icons etc.)
   final IconData icon;
   final Color color;
@@ -145,7 +144,6 @@ class _HubTile extends StatelessWidget {
 
   const _HubTile({
     required this.title,
-    this.subtitle,
     this.subtitleWidget,
     required this.icon,
     required this.color,
@@ -176,16 +174,7 @@ class _HubTile extends StatelessWidget {
                   children: [
                     Text(title, style: Theme.of(context).textTheme.titleMedium),
                     const SizedBox(height: 6),
-                    if (subtitleWidget != null) ...[
-                      subtitleWidget!,
-                    ] else if (subtitle != null && subtitle!.isNotEmpty) ...[
-                      Text(
-                        subtitle!,
-                        style: Theme.of(context).textTheme.bodyMedium,
-                        maxLines: 3,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
+                    if (subtitleWidget != null) ...[subtitleWidget!],
                   ],
                 ),
               ),
