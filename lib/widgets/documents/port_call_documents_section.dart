@@ -228,10 +228,9 @@ class _PortCallDocumentsSectionState extends State<PortCallDocumentsSection> {
         SnackBar(content: Text(loc.documentImportFailed)),
       );
     } finally {
-      if (!mounted) {
-        return;
+      if (mounted) {
+        setState(() => _isMutating = false);
       }
-      setState(() => _isMutating = false);
     }
   }
 

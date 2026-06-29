@@ -105,13 +105,11 @@ class _ExcursionDetailScreenState extends State<ExcursionDetailScreen> {
 
       await _load();
     } finally {
-      if (!mounted) {
-        return;
+      if (mounted) {
+        setState(() {
+          _updatingStopIds.remove(stop.id);
+        });
       }
-
-      setState(() {
-        _updatingStopIds.remove(stop.id);
-      });
     }
   }
 

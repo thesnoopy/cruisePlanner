@@ -228,10 +228,9 @@ class _ExcursionDocumentsSectionState extends State<ExcursionDocumentsSection> {
         SnackBar(content: Text(loc.documentImportFailed)),
       );
     } finally {
-      if (!mounted) {
-        return;
+      if (mounted) {
+        setState(() => _isMutating = false);
       }
-      setState(() => _isMutating = false);
     }
   }
 
