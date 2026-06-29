@@ -175,9 +175,12 @@ class _RouteListScreenState extends State<RouteListScreen> {
                               icon: const Icon(Icons.delete_outline),
                               onPressed: () async {
 
+                                final loc = AppLocalizations.of(context)!;
                                 final s = CruiseStore();
                                 await s.load();
-                                final loc = AppLocalizations.of(context)!;
+                                if (!context.mounted) {
+                                  return;
+                                }
                                 final confirmed = await showConfirmationDialog(
                                   context: context,
                                   title: loc.deleteRouteItemTitle,              // optional
@@ -250,9 +253,12 @@ class _RouteListScreenState extends State<RouteListScreen> {
                             IconButton(
                               icon: const Icon(Icons.delete_outline),
                               onPressed: () async {
+                                final loc = AppLocalizations.of(context)!;
                                 final s = CruiseStore();
                                 await s.load();
-                                final loc = AppLocalizations.of(context)!;
+                                if (!context.mounted) {
+                                  return;
+                                }
                                 final confirmed = await showConfirmationDialog(
                                   context: context,
                                   title: loc.deleteRouteItemTitle,              // optional

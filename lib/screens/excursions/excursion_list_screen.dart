@@ -90,6 +90,9 @@ class _ExcursionListScreenState extends State<ExcursionListScreen> {
       cruiseId: cruise.id,
       excursion: newExc,
     );
+    if (!mounted) {
+      return;
+    }
 
     await Navigator.of(context).push(
       MaterialPageRoute(

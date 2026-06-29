@@ -170,22 +170,25 @@ class _TravelListScreenState extends State<TravelListScreen> {
                           IconButton(
                             icon: const Icon(Icons.delete_outline),
                             onPressed: () async {
+                              final loc = AppLocalizations.of(context)!;
                               final s = CruiseStore();
                               await s.load();
-                                final loc = AppLocalizations.of(context)!;
-                                final confirmed = await showConfirmationDialog(
-                                  context: context,
-                                  title: loc.deleteTravelItemTitle,              // optional
-                                  message: loc.deleteTravelItemQuestionmark, // optional
-                                  okText: loc.delete,                     // optional
-                                  cancelText: loc.confirmCancel,               // optional
-                                  icon: Icons.warning_amber_rounded,     // optional
-                                  destructive: true,                     // optional (OK Button rot)
-                                );
+                              if (!context.mounted) {
+                                return;
+                              }
+                              final confirmed = await showConfirmationDialog(
+                                context: context,
+                                title: loc.deleteTravelItemTitle,              // optional
+                                message: loc.deleteTravelItemQuestionmark, // optional
+                                okText: loc.delete,                     // optional
+                                cancelText: loc.confirmCancel,               // optional
+                                icon: Icons.warning_amber_rounded,     // optional
+                                destructive: true,                     // optional (OK Button rot)
+                              );
 
-                                if (!confirmed) {
-                                  return;
-                                }
+                              if (!confirmed) {
+                                return;
+                              }
                               await s.deleteTravelItem(t.id);
                               await _load();
                             },

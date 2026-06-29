@@ -117,6 +117,9 @@ _pickDateTime(bool start) async {
   if (date == null) {
     return;
   }
+  if (!mounted) {
+    return;
+  }
 
   final time = await showTimePicker(
     context: context,
@@ -149,6 +152,8 @@ _pickDateTime(bool start) async {
     if (!_formKey.currentState!.validate()) {
       return;
     }
+    final parsedPrice =
+        _price.text.isEmpty ? null : parseLocalizedNumber(context, _price.text);
     final s = CruiseStore();
     await s.load();
     final latest = s.getById<TravelItem>(widget.travelItemId) ?? item;
@@ -161,7 +166,7 @@ _pickDateTime(bool start) async {
           from: _from.text,
           to: _to.text,
           notes: _notes.text.isEmpty ? null : _notes.text,
-          price: _price.text.isEmpty ? null : parseLocalizedNumber(context, _price.text),
+          price: parsedPrice,
           currency: _currency.text.isEmpty ? null : _currency.text,
           carrier: _carrier.text.isEmpty ? null : _carrier.text,
           flightNo: _flightNo.text.isEmpty ? null : _flightNo.text,
@@ -175,7 +180,7 @@ _pickDateTime(bool start) async {
           from: _from.text,
           to: _to.text,
           notes: _notes.text.isEmpty ? null : _notes.text,
-          price: _price.text.isEmpty ? null : parseLocalizedNumber(context, _price.text),
+          price: parsedPrice,
           currency: _currency.text.isEmpty ? null : _currency.text,
           recordLocator: _recordLocator.text.isEmpty ? null : _recordLocator.text,
         );
@@ -187,7 +192,7 @@ _pickDateTime(bool start) async {
           from: _from.text,
           to: _to.text,
           notes: _notes.text.isEmpty ? null : _notes.text,
-          price: _price.text.isEmpty ? null : parseLocalizedNumber(context, _price.text),
+          price: parsedPrice,
           currency: _currency.text.isEmpty ? null : _currency.text,
           mode: _transferMode,
           recordLocator: _recordLocator.text.isEmpty ? null : _recordLocator.text,
@@ -200,7 +205,7 @@ _pickDateTime(bool start) async {
           from: _from.text,
           to: _to.text,
           notes: _notes.text.isEmpty ? null : _notes.text,
-          price: _price.text.isEmpty ? null : parseLocalizedNumber(context, _price.text),
+          price: parsedPrice,
           currency: _currency.text.isEmpty ? null : _currency.text,
           company: _company.text.isEmpty ? null : _company.text,
           recordLocator: _recordLocator.text.isEmpty ? null : _recordLocator.text,
@@ -211,7 +216,7 @@ _pickDateTime(bool start) async {
           start: _start ?? latest.start,
           end: _end,
           notes: _notes.text.isEmpty ? null : _notes.text,
-          price: _price.text.isEmpty ? null : parseLocalizedNumber(context, _price.text),
+          price: parsedPrice,
           currency: _currency.text.isEmpty ? null : _currency.text,
           company: _company.text.isEmpty ? null : _company.text,
           name: _name.text.isEmpty ? null : _name.text,

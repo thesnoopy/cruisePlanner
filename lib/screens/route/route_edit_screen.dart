@@ -120,6 +120,9 @@ class _RouteEditScreenState extends State<RouteEditScreen> {
     if (d == null) {
       return;
     }
+    if (!mounted) {
+      return;
+    }
 
     final t = await showTimePicker(
       context: context,

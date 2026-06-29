@@ -115,7 +115,6 @@ class _ExcursionEditScreenState extends State<ExcursionEditScreen> {
       return;
     }
 
-    final context = this.context;
     _title.text = ex.title;
     _date = ex.date;
     _port.text = ex.port ?? '';
@@ -247,6 +246,9 @@ class _ExcursionEditScreenState extends State<ExcursionEditScreen> {
       lastDate: DateTime(2100),
     );
     if (d == null) {
+      return;
+    }
+    if (!mounted) {
       return;
     }
 
