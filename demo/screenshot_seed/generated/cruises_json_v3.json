@@ -208,7 +208,7 @@
                                            "flightNo":  "SB417",
                                            "recordLocator":  "M8Q4P2",
                                            "documentIds":  [
-                                                               "demo-doc-flight-itinerary"
+
                                                            ],
                                            "updatedAtUtc":  "2026-04-15T10:30:00.000Z",
                                            "deletedAtUtc":  null

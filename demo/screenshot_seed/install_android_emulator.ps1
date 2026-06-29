@@ -57,7 +57,6 @@ function New-DocumentRecord {
 
 $documents = @(
   (New-DocumentRecord -Id 'demo-doc-voyage-overview' -Kind 'pdf' -Title 'Voyage Overview' -SourceFileName 'voyage-overview.pdf' -MimeType 'application/pdf' -FileExtension 'pdf'),
-  (New-DocumentRecord -Id 'demo-doc-flight-itinerary' -Kind 'pdf' -Title 'Flight Itinerary' -SourceFileName 'flight-itinerary.pdf' -MimeType 'application/pdf' -FileExtension 'pdf'),
   (New-DocumentRecord -Id 'demo-doc-hotel-voucher' -Kind 'pdf' -Title 'Hotel Voucher' -SourceFileName 'hotel-voucher.pdf' -MimeType 'application/pdf' -FileExtension 'pdf'),
   (New-DocumentRecord -Id 'demo-doc-monaco-confirmation' -Kind 'email' -Title 'Monaco Highlights Confirmation' -SourceFileName 'monaco-confirmation.eml' -MimeType 'message/rfc822' -FileExtension 'eml'),
   (New-DocumentRecord -Id 'demo-doc-palma-day-pass' -Kind 'image' -Title 'Palma Day Pass' -SourceFileName 'palma-day-pass.svg' -MimeType 'image/svg+xml' -FileExtension 'svg')
@@ -210,7 +209,7 @@ $cruisesPayload = [ordered]@{
           carrier = 'Skybridge Air'
           flightNo = 'SB417'
           recordLocator = 'M8Q4P2'
-          documentIds = @('demo-doc-flight-itinerary')
+          documentIds = @()
           updatedAtUtc = $generatedAtUtc
           deletedAtUtc = $null
         },
@@ -475,7 +474,7 @@ function Invoke-Adb {
   }
 }
 
-$tempDeviceRoot = '/sdcard/Download/cruise_app_screenshot_seed'
+$tempDeviceRoot = '/data/local/tmp/cruise_app_screenshot_seed'
 $tempDeviceFiles = "$tempDeviceRoot/files"
 
 Invoke-Adb -Arguments @('shell', 'am', 'force-stop', $packageName)
@@ -497,6 +496,7 @@ foreach ($document in $documents) {
 }
 
 Invoke-Adb -Arguments @('shell', 'am', 'force-stop', $packageName)
+Invoke-Adb -Arguments @('shell', 'rm', '-rf', $tempDeviceRoot)
 
 Write-Host ''
 Write-Host 'Demo data installed into the emulator.'
