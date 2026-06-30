@@ -367,7 +367,7 @@ class AppSyncService {
         final prefix = match.group(1)!;
         final candidate = match.group(2)!;
         if (_isBasicCredentialCandidate(candidate)) {
-          return '${prefix}***';
+          return '$prefix***';
         }
         return match.group(0)!;
       },

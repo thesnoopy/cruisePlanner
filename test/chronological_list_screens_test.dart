@@ -8,11 +8,13 @@ import 'package:cruiseplanner/models/route/port_call_item.dart';
 import 'package:cruiseplanner/models/route/route_item.dart';
 import 'package:cruiseplanner/models/route/sea_day_item.dart';
 import 'package:cruiseplanner/models/ship.dart';
+import 'package:cruiseplanner/models/temporal_list_item.dart';
 import 'package:cruiseplanner/models/travel/base_travel.dart';
 import 'package:cruiseplanner/models/travel/flight_item.dart';
 import 'package:cruiseplanner/screens/excursions/excursion_list_screen.dart';
 import 'package:cruiseplanner/screens/route/route_list_screen.dart';
 import 'package:cruiseplanner/screens/travel/travel_list_screen.dart';
+import 'package:cruiseplanner/widgets/temporal_list_item_style.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -63,6 +65,22 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
+
+    _expectTemporalCardStyle(
+      tester,
+      titleFinder: find.text('Past Port'),
+      status: TemporalListItemStatus.past,
+    );
+    _expectTemporalCardStyle(
+      tester,
+      titleFinder: find.text('Current Port'),
+      status: TemporalListItemStatus.current,
+    );
+    _expectTemporalCardStyle(
+      tester,
+      titleFinder: find.text('Port 6'),
+      status: TemporalListItemStatus.upcoming,
+    );
 
     final currentDy = tester.getTopLeft(find.text('Current Port')).dy;
     expect(currentDy, lessThan(220));
@@ -164,8 +182,11 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.bySemanticsLabel(RegExp(r'Past item')), findsWidgets);
-      final pastTitle = tester.widget<Text>(find.text('Past 0'));
-      expect(pastTitle.style?.color, isNotNull);
+      _expectTemporalCardStyle(
+        tester,
+        titleFinder: find.text('Past 0'),
+        status: TemporalListItemStatus.past,
+      );
       final scrollable = tester.state<ScrollableState>(find.byType(Scrollable));
       final scrollPosition = scrollable.position.pixels;
       expect(
@@ -206,6 +227,18 @@ void main() {
             date: DateTime(2026, 7, 4),
             port: 'Palma',
           ),
+          Excursion(
+            id: 'exc-2',
+            title: 'Current Excursion',
+            date: DateTime(2026, 7, 5, 10, 0),
+            port: 'Barcelona',
+          ),
+          Excursion(
+            id: 'exc-3',
+            title: 'Upcoming Excursion',
+            date: DateTime(2026, 7, 6, 10, 0),
+            port: 'Marseille',
+          ),
         ],
       );
       await _seedCruise(cruise);
@@ -214,15 +247,28 @@ void main() {
         _TestApp(
           child: ExcursionListScreen(
             cruiseId: cruise.id,
-            nowProvider: () => DateTime(2026, 7, 5, 0, 0),
+            nowProvider: () => DateTime(2026, 7, 5, 12, 0),
           ),
         ),
       );
       await tester.pumpAndSettle();
 
       expect(find.bySemanticsLabel(RegExp(r'Past item')), findsOneWidget);
-      final title = tester.widget<Text>(find.text('Past Excursion'));
-      expect(title.style?.color, isNotNull);
+      _expectTemporalCardStyle(
+        tester,
+        titleFinder: find.text('Past Excursion'),
+        status: TemporalListItemStatus.past,
+      );
+      _expectTemporalCardStyle(
+        tester,
+        titleFinder: find.text('Current Excursion'),
+        status: TemporalListItemStatus.current,
+      );
+      _expectTemporalCardStyle(
+        tester,
+        titleFinder: find.text('Upcoming Excursion'),
+        status: TemporalListItemStatus.upcoming,
+      );
     } finally {
       semantics.dispose();
     }
@@ -240,6 +286,20 @@ void main() {
             from: 'HAM',
             to: 'BCN',
           ),
+          FlightItem(
+            id: 'flight-2',
+            start: DateTime(2026, 7, 5, 9, 0),
+            end: DateTime(2026, 7, 5, 12, 0),
+            from: 'BCN',
+            to: 'PMI',
+          ),
+          FlightItem(
+            id: 'flight-3',
+            start: DateTime(2026, 7, 6, 9, 0),
+            end: DateTime(2026, 7, 6, 12, 0),
+            from: 'PMI',
+            to: 'FCO',
+          ),
         ],
       );
       await _seedCruise(cruise);
@@ -248,15 +308,28 @@ void main() {
         _TestApp(
           child: TravelListScreen(
             cruiseId: cruise.id,
-            nowProvider: () => DateTime(2026, 7, 4, 12, 0),
+            nowProvider: () => DateTime(2026, 7, 5, 10, 0),
           ),
         ),
       );
       await tester.pumpAndSettle();
 
       expect(find.bySemanticsLabel(RegExp(r'Past item')), findsOneWidget);
-      final routeText = tester.widget<Text>(find.textContaining('HAM'));
-      expect(routeText.style?.color, isNotNull);
+      _expectTemporalCardStyle(
+        tester,
+        titleFinder: find.text('HAM -> BCN'),
+        status: TemporalListItemStatus.past,
+      );
+      _expectTemporalCardStyle(
+        tester,
+        titleFinder: find.text('BCN -> PMI'),
+        status: TemporalListItemStatus.current,
+      );
+      _expectTemporalCardStyle(
+        tester,
+        titleFinder: find.text('PMI -> FCO'),
+        status: TemporalListItemStatus.upcoming,
+      );
     } finally {
       semantics.dispose();
     }
@@ -330,6 +403,23 @@ void main() {
       expect(rebuiltPosition, manualPosition);
     },
   );
+}
+
+void _expectTemporalCardStyle(
+  WidgetTester tester, {
+  required Finder titleFinder,
+  required TemporalListItemStatus status,
+}) {
+  final titleContext = tester.element(titleFinder);
+  final card = tester.widget<Card>(
+    find.ancestor(
+      of: titleFinder,
+      matching: find.byType(Card),
+    ).first,
+  );
+
+  expect(card.color, temporalListItemCardColor(titleContext, status));
+  expect(card.shape, temporalListItemCardShape(titleContext, status));
 }
 
 class _TestApp extends StatelessWidget {

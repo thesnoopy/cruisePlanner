@@ -223,17 +223,18 @@ class _ExcursionListScreenState extends State<ExcursionListScreen> {
 
   Widget _buildExcursionCard(BuildContext context, Excursion ex) {
     final status = ex.temporalStatusAt(_now());
+    final cardColor = temporalListItemCardColor(context, status);
+    final cardShape = temporalListItemCardShape(context, status);
     final contentColor = temporalListItemContentColor(context, status);
     final itemKey = _itemKeys.putIfAbsent(ex.id, GlobalKey.new);
 
     return Card(
       key: itemKey,
+      color: cardColor,
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-      ),
+      shape: cardShape,
       child: InkWell(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: temporalListItemCardBorderRadius,
         onTap: () => _openDetail(ex),
         child: Padding(
           padding: const EdgeInsets.all(16),

@@ -185,19 +185,20 @@ class _RouteListScreenState extends State<RouteListScreen> {
 
   Widget _buildRouteItemCard(BuildContext context, RouteItem r) {
     final status = r.temporalStatusAt(_now());
+    final cardColor = temporalListItemCardColor(context, status);
+    final cardShape = temporalListItemCardShape(context, status);
     final contentColor = temporalListItemContentColor(context, status);
     final itemKey = _itemKeys.putIfAbsent(r.id, GlobalKey.new);
 
     if (r is PortCallItem) {
       return Card(
         key: itemKey,
+        color: cardColor,
         margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
+        shape: cardShape,
         elevation: 2,
         child: InkWell(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: temporalListItemCardBorderRadius,
           onTap: () async {
             await Navigator.of(context).push(
               MaterialPageRoute(
@@ -282,13 +283,12 @@ class _RouteListScreenState extends State<RouteListScreen> {
       final loc = AppLocalizations.of(context)!;
       return Card(
         key: itemKey,
+        color: cardColor,
         margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
+        shape: cardShape,
         elevation: 2,
         child: InkWell(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: temporalListItemCardBorderRadius,
           onTap: () async {
             await Navigator.of(context).push(
               MaterialPageRoute(

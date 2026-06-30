@@ -310,6 +310,8 @@ class _TravelListScreenState extends State<TravelListScreen> {
 
   Widget _buildTravelItemCard(BuildContext context, TravelItem t) {
     final status = t.temporalStatusAt(_now());
+    final cardColor = temporalListItemCardColor(context, status);
+    final cardShape = temporalListItemCardShape(context, status);
     final contentColor = temporalListItemContentColor(context, status);
     final itemKey = _itemKeys.putIfAbsent(t.id, GlobalKey.new);
     var address = '';
@@ -320,13 +322,12 @@ class _TravelListScreenState extends State<TravelListScreen> {
 
     return Card(
       key: itemKey,
+      color: cardColor,
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-      ),
+      shape: cardShape,
       elevation: 2,
       child: InkWell(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: temporalListItemCardBorderRadius,
         onTap: () async {
           await Navigator.of(context).push(
             MaterialPageRoute(
