@@ -9,8 +9,8 @@
                                      "operatorName":  "Blue Horizon Cruises"
                                  },
                         "period":  {
-                                       "start":  "2026-05-18T00:00:00.000",
-                                       "end":  "2026-05-25T00:00:00.000"
+                                       "start":  "2026-06-26T00:00:00.000",
+                                       "end":  "2026-07-04T00:00:00.000"
                                    },
                         "cabinNumber":  "1208",
                         "deckNumber":  "12",
@@ -19,7 +19,7 @@
                                            {
                                                "id":  "demo-exc-provence-market",
                                                "title":  "Provence Market and Coastal Tasting",
-                                               "date":  "2026-05-19T09:00:00.000",
+                                               "date":  "2026-06-27T09:00:00.000",
                                                "port":  "Marseille",
                                                "meetingPoint":  "Pier shuttle stop",
                                                "notes":  "Small-group drive with a relaxed market visit and seaside tasting.",
@@ -48,7 +48,7 @@
                                                "documentIds":  [
 
                                                                ],
-                                               "updatedAtUtc":  "2026-04-15T10:30:00.000Z",
+                                               "updatedAtUtc":  "2026-06-30T13:11:59.813Z",
                                                "deletedAtUtc":  null,
                                                "paymentPlan":  {
                                                                    "mode":  "fullOnBooking",
@@ -58,7 +58,7 @@
                                                                                      "amount":  89,
                                                                                      "dueDate":  null,
                                                                                      "isPaid":  true,
-                                                                                     "paidOn":  "2026-04-01T10:15:00.000",
+                                                                                     "paidOn":  "2026-06-09T10:15:00.000",
                                                                                      "paymentMethods":  [
                                                                                                             "creditCard"
                                                                                                         ],
@@ -70,7 +70,7 @@
                                            {
                                                "id":  "demo-exc-monaco-highlights",
                                                "title":  "Monaco Highlights and Garden Terraces",
-                                               "date":  "2026-05-20T10:15:00.000",
+                                               "date":  "2026-06-30T10:15:00.000",
                                                "port":  "Villefranche",
                                                "meetingPoint":  "Tender welcome desk",
                                                "notes":  "Elegant city highlights with time for the hilltop terraces.",
@@ -99,7 +99,7 @@
                                                "documentIds":  [
                                                                    "demo-doc-monaco-confirmation"
                                                                ],
-                                               "updatedAtUtc":  "2026-04-15T10:30:00.000Z",
+                                               "updatedAtUtc":  "2026-06-30T13:11:59.813Z",
                                                "deletedAtUtc":  null,
                                                "paymentPlan":  {
                                                                    "mode":  "depositAndRestOnSite",
@@ -109,7 +109,7 @@
                                                                                      "amount":  40,
                                                                                      "dueDate":  null,
                                                                                      "isPaid":  true,
-                                                                                     "paidOn":  "2026-04-03T08:00:00.000",
+                                                                                     "paidOn":  "2026-06-11T08:00:00.000",
                                                                                      "paymentMethods":  [
                                                                                                             "creditCard"
                                                                                                         ],
@@ -133,7 +133,7 @@
                                            {
                                                "id":  "demo-exc-tuscan-winery",
                                                "title":  "Tuscan Countryside and Winery Lunch",
-                                               "date":  "2026-05-21T08:30:00.000",
+                                               "date":  "2026-07-01T08:30:00.000",
                                                "port":  "Livorno",
                                                "meetingPoint":  "Shore excursion lounge",
                                                "notes":  "Scenic drive through rolling vineyards with a light tasting menu.",
@@ -162,7 +162,7 @@
                                                "documentIds":  [
 
                                                                ],
-                                               "updatedAtUtc":  "2026-04-15T10:30:00.000Z",
+                                               "updatedAtUtc":  "2026-06-30T13:11:59.813Z",
                                                "deletedAtUtc":  null,
                                                "paymentPlan":  {
                                                                    "mode":  "depositAndRestDate",
@@ -172,7 +172,7 @@
                                                                                      "amount":  50,
                                                                                      "dueDate":  null,
                                                                                      "isPaid":  true,
-                                                                                     "paidOn":  "2026-04-05T09:30:00.000",
+                                                                                     "paidOn":  "2026-06-13T09:30:00.000",
                                                                                      "paymentMethods":  [
                                                                                                             "creditCard"
                                                                                                         ],
@@ -181,7 +181,7 @@
                                                                                  {
                                                                                      "trigger":  "beforeDate",
                                                                                      "amount":  99,
-                                                                                     "dueDate":  "2026-05-01T00:00:00.000",
+                                                                                     "dueDate":  "2026-06-30T00:00:00.000",
                                                                                      "isPaid":  false,
                                                                                      "paidOn":  null,
                                                                                      "paymentMethods":  [
@@ -197,8 +197,8 @@
                                        {
                                            "type":  "flight",
                                            "id":  "demo-travel-flight-outbound",
-                                           "start":  "2026-05-17T09:15:00.000",
-                                           "end":  "2026-05-17T11:20:00.000",
+                                           "start":  "2026-06-25T09:15:00.000",
+                                           "end":  "2026-06-25T11:20:00.000",
                                            "from":  "Berlin (BER)",
                                            "to":  "Barcelona (BCN)",
                                            "notes":  "Window seats selected and one checked bag included.",
@@ -210,14 +210,14 @@
                                            "documentIds":  [
 
                                                            ],
-                                           "updatedAtUtc":  "2026-04-15T10:30:00.000Z",
+                                           "updatedAtUtc":  "2026-06-30T13:11:59.813Z",
                                            "deletedAtUtc":  null
                                        },
                                        {
                                            "type":  "transfer",
                                            "id":  "demo-travel-transfer-hotel",
-                                           "start":  "2026-05-17T12:00:00.000",
-                                           "end":  "2026-05-17T12:45:00.000",
+                                           "start":  "2026-06-25T12:00:00.000",
+                                           "end":  "2026-06-25T12:45:00.000",
                                            "from":  "Barcelona Airport",
                                            "to":  "Hotel Mirador Azul",
                                            "notes":  "Shared transfer reserved with luggage assistance.",
@@ -228,14 +228,14 @@
                                            "documentIds":  [
 
                                                            ],
-                                           "updatedAtUtc":  "2026-04-15T10:30:00.000Z",
+                                           "updatedAtUtc":  "2026-06-30T13:11:59.813Z",
                                            "deletedAtUtc":  null
                                        },
                                        {
                                            "type":  "hotel",
                                            "id":  "demo-travel-hotel-barcelona",
-                                           "start":  "2026-05-17T15:00:00.000",
-                                           "end":  "2026-05-18T11:00:00.000",
+                                           "start":  "2026-06-25T15:00:00.000",
+                                           "end":  "2026-06-26T11:00:00.000",
                                            "from":  "Check-in",
                                            "to":  "Check-out",
                                            "notes":  "Sea-view room reserved for a calm pre-cruise evening.",
@@ -249,14 +249,14 @@
                                            "documentIds":  [
                                                                "demo-doc-hotel-voucher"
                                                            ],
-                                           "updatedAtUtc":  "2026-04-15T10:30:00.000Z",
+                                           "updatedAtUtc":  "2026-06-30T13:11:59.813Z",
                                            "deletedAtUtc":  null
                                        },
                                        {
                                            "type":  "cruisecheckin",
                                            "id":  "demo-travel-cruise-checkin",
-                                           "start":  "2026-05-18T12:30:00.000",
-                                           "end":  "2026-05-18T14:00:00.000",
+                                           "start":  "2026-06-26T12:30:00.000",
+                                           "end":  "2026-06-26T14:00:00.000",
                                            "from":  "Barcelona Cruise Terminal",
                                            "to":  "Aurora Vista",
                                            "notes":  "Priority boarding window with relaxed arrival buffer.",
@@ -266,14 +266,14 @@
                                            "documentIds":  [
 
                                                            ],
-                                           "updatedAtUtc":  "2026-04-15T10:30:00.000Z",
+                                           "updatedAtUtc":  "2026-06-30T13:11:59.813Z",
                                            "deletedAtUtc":  null
                                        },
                                        {
                                            "type":  "cruisecheckout",
                                            "id":  "demo-travel-cruise-checkout",
-                                           "start":  "2026-05-25T07:30:00.000",
-                                           "end":  "2026-05-25T08:30:00.000",
+                                           "start":  "2026-07-04T07:30:00.000",
+                                           "end":  "2026-07-04T08:30:00.000",
                                            "from":  "Aurora Vista",
                                            "to":  "Barcelona Cruise Terminal",
                                            "notes":  "Self-assist disembarkation planned for an easy airport transfer.",
@@ -283,14 +283,14 @@
                                            "documentIds":  [
 
                                                            ],
-                                           "updatedAtUtc":  "2026-04-15T10:30:00.000Z",
+                                           "updatedAtUtc":  "2026-06-30T13:11:59.813Z",
                                            "deletedAtUtc":  null
                                        },
                                        {
                                            "type":  "transfer",
                                            "id":  "demo-travel-transfer-airport",
-                                           "start":  "2026-05-25T09:00:00.000",
-                                           "end":  "2026-05-25T09:40:00.000",
+                                           "start":  "2026-07-04T09:00:00.000",
+                                           "end":  "2026-07-04T09:40:00.000",
                                            "from":  "Barcelona Cruise Terminal",
                                            "to":  "Barcelona Airport",
                                            "notes":  "Direct ride with generous check-in time at the airport.",
@@ -301,14 +301,14 @@
                                            "documentIds":  [
 
                                                            ],
-                                           "updatedAtUtc":  "2026-04-15T10:30:00.000Z",
+                                           "updatedAtUtc":  "2026-06-30T13:11:59.813Z",
                                            "deletedAtUtc":  null
                                        },
                                        {
                                            "type":  "flight",
                                            "id":  "demo-travel-flight-return",
-                                           "start":  "2026-05-25T13:10:00.000",
-                                           "end":  "2026-05-25T15:25:00.000",
+                                           "start":  "2026-07-04T13:10:00.000",
+                                           "end":  "2026-07-04T15:25:00.000",
                                            "from":  "Barcelona (BCN)",
                                            "to":  "Berlin (BER)",
                                            "notes":  "Afternoon return with lounge access included.",
@@ -320,7 +320,7 @@
                                            "documentIds":  [
 
                                                            ],
-                                           "updatedAtUtc":  "2026-04-15T10:30:00.000Z",
+                                           "updatedAtUtc":  "2026-06-30T13:11:59.813Z",
                                            "deletedAtUtc":  null
                                        }
                                    ],
@@ -328,121 +328,121 @@
                                       {
                                           "type":  "port",
                                           "id":  "demo-route-barcelona-embark",
-                                          "date":  "2026-05-18T00:00:00.000",
+                                          "date":  "2026-06-26T00:00:00.000",
                                           "portName":  "Barcelona",
                                           "arrival":  null,
-                                          "departure":  "2026-05-18T18:00:00.000",
-                                          "allAboard":  "2026-05-18T17:30:00.000",
+                                          "departure":  "2026-06-26T18:00:00.000",
+                                          "allAboard":  "2026-06-26T17:30:00.000",
                                           "notes":  "Embarkation at the waterfront terminal.",
                                           "documentIds":  [
 
                                                           ],
-                                          "updatedAtUtc":  "2026-04-15T10:30:00.000Z",
+                                          "updatedAtUtc":  "2026-06-30T13:11:59.813Z",
                                           "deletedAtUtc":  null
                                       },
                                       {
                                           "type":  "port",
                                           "id":  "demo-route-marseille",
-                                          "date":  "2026-05-19T00:00:00.000",
+                                          "date":  "2026-06-27T00:00:00.000",
                                           "portName":  "Marseille",
-                                          "arrival":  "2026-05-19T08:00:00.000",
-                                          "departure":  "2026-05-19T18:00:00.000",
-                                          "allAboard":  "2026-05-19T17:30:00.000",
+                                          "arrival":  "2026-06-27T08:00:00.000",
+                                          "departure":  "2026-06-27T18:00:00.000",
+                                          "allAboard":  "2026-06-27T17:30:00.000",
                                           "notes":  "Old Port promenade and bright market colors.",
                                           "documentIds":  [
 
                                                           ],
-                                          "updatedAtUtc":  "2026-04-15T10:30:00.000Z",
-                                          "deletedAtUtc":  null
-                                      },
-                                      {
-                                          "type":  "port",
-                                          "id":  "demo-route-villefranche",
-                                          "date":  "2026-05-20T00:00:00.000",
-                                          "portName":  "Villefranche",
-                                          "arrival":  "2026-05-20T07:30:00.000",
-                                          "departure":  "2026-05-20T20:00:00.000",
-                                          "allAboard":  "2026-05-20T19:30:00.000",
-                                          "notes":  "Tender day with Riviera views throughout the bay.",
-                                          "documentIds":  [
-
-                                                          ],
-                                          "updatedAtUtc":  "2026-04-15T10:30:00.000Z",
-                                          "deletedAtUtc":  null
-                                      },
-                                      {
-                                          "type":  "port",
-                                          "id":  "demo-route-livorno",
-                                          "date":  "2026-05-21T00:00:00.000",
-                                          "portName":  "Livorno",
-                                          "arrival":  "2026-05-21T07:00:00.000",
-                                          "departure":  "2026-05-21T19:00:00.000",
-                                          "allAboard":  "2026-05-21T18:30:00.000",
-                                          "notes":  "Gateway to rolling Tuscan countryside.",
-                                          "documentIds":  [
-
-                                                          ],
-                                          "updatedAtUtc":  "2026-04-15T10:30:00.000Z",
-                                          "deletedAtUtc":  null
-                                      },
-                                      {
-                                          "type":  "port",
-                                          "id":  "demo-route-civitavecchia",
-                                          "date":  "2026-05-22T00:00:00.000",
-                                          "portName":  "Civitavecchia",
-                                          "arrival":  "2026-05-22T07:00:00.000",
-                                          "departure":  "2026-05-22T20:00:00.000",
-                                          "allAboard":  "2026-05-22T19:30:00.000",
-                                          "notes":  "Classic Rome day with a gentle evening sail-away.",
-                                          "documentIds":  [
-
-                                                          ],
-                                          "updatedAtUtc":  "2026-04-15T10:30:00.000Z",
+                                          "updatedAtUtc":  "2026-06-30T13:11:59.813Z",
                                           "deletedAtUtc":  null
                                       },
                                       {
                                           "type":  "sea",
                                           "id":  "demo-route-sea-day",
-                                          "date":  "2026-05-23T00:00:00.000",
+                                          "date":  "2026-06-28T00:00:00.000",
                                           "notes":  "Spa morning, open decks, and a long sunset at sea.",
-                                          "updatedAtUtc":  "2026-04-15T10:30:00.000Z",
+                                          "updatedAtUtc":  "2026-06-30T13:11:59.813Z",
+                                          "deletedAtUtc":  null
+                                      },
+                                      {
+                                          "type":  "port",
+                                          "id":  "demo-route-villefranche",
+                                          "date":  "2026-06-30T00:00:00.000",
+                                          "portName":  "Villefranche",
+                                          "arrival":  "2026-06-30T07:30:00.000",
+                                          "departure":  null,
+                                          "allAboard":  null,
+                                          "notes":  "Tender day with Riviera views throughout the bay.",
+                                          "documentIds":  [
+
+                                                          ],
+                                          "updatedAtUtc":  "2026-06-30T13:11:59.813Z",
+                                          "deletedAtUtc":  null
+                                      },
+                                      {
+                                          "type":  "port",
+                                          "id":  "demo-route-livorno",
+                                          "date":  "2026-07-01T00:00:00.000",
+                                          "portName":  "Livorno",
+                                          "arrival":  "2026-07-01T07:00:00.000",
+                                          "departure":  "2026-07-01T19:00:00.000",
+                                          "allAboard":  "2026-07-01T18:30:00.000",
+                                          "notes":  "Gateway to rolling Tuscan countryside.",
+                                          "documentIds":  [
+
+                                                          ],
+                                          "updatedAtUtc":  "2026-06-30T13:11:59.813Z",
+                                          "deletedAtUtc":  null
+                                      },
+                                      {
+                                          "type":  "port",
+                                          "id":  "demo-route-civitavecchia",
+                                          "date":  "2026-07-02T00:00:00.000",
+                                          "portName":  "Civitavecchia",
+                                          "arrival":  "2026-07-02T07:00:00.000",
+                                          "departure":  "2026-07-02T20:00:00.000",
+                                          "allAboard":  "2026-07-02T19:30:00.000",
+                                          "notes":  "Classic Rome day with a gentle evening sail-away.",
+                                          "documentIds":  [
+
+                                                          ],
+                                          "updatedAtUtc":  "2026-06-30T13:11:59.813Z",
                                           "deletedAtUtc":  null
                                       },
                                       {
                                           "type":  "port",
                                           "id":  "demo-route-palma",
-                                          "date":  "2026-05-24T00:00:00.000",
+                                          "date":  "2026-07-03T00:00:00.000",
                                           "portName":  "Palma de Mallorca",
-                                          "arrival":  "2026-05-24T09:00:00.000",
-                                          "departure":  "2026-05-24T19:00:00.000",
-                                          "allAboard":  "2026-05-24T18:30:00.000",
+                                          "arrival":  "2026-07-03T09:00:00.000",
+                                          "departure":  "2026-07-03T19:00:00.000",
+                                          "allAboard":  "2026-07-03T18:30:00.000",
                                           "notes":  "Bright cathedral views and an easy old-town stroll.",
                                           "documentIds":  [
                                                               "demo-doc-palma-day-pass"
                                                           ],
-                                          "updatedAtUtc":  "2026-04-15T10:30:00.000Z",
+                                          "updatedAtUtc":  "2026-06-30T13:11:59.813Z",
                                           "deletedAtUtc":  null
                                       },
                                       {
                                           "type":  "port",
                                           "id":  "demo-route-barcelona-return",
-                                          "date":  "2026-05-25T00:00:00.000",
+                                          "date":  "2026-07-04T00:00:00.000",
                                           "portName":  "Barcelona",
-                                          "arrival":  "2026-05-25T06:30:00.000",
+                                          "arrival":  "2026-07-04T06:30:00.000",
                                           "departure":  null,
                                           "allAboard":  null,
                                           "notes":  "Arrival morning with self-assist disembarkation.",
                                           "documentIds":  [
 
                                                           ],
-                                          "updatedAtUtc":  "2026-04-15T10:30:00.000Z",
+                                          "updatedAtUtc":  "2026-06-30T13:11:59.813Z",
                                           "deletedAtUtc":  null
                                       }
                                   ],
                         "documentIds":  [
                                             "demo-doc-voyage-overview"
                                         ],
-                        "updatedAtUtc":  "2026-04-15T10:30:00.000Z",
+                        "updatedAtUtc":  "2026-06-30T13:11:59.813Z",
                         "deletedAtUtc":  null
                     }
                 ]

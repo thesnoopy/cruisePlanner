@@ -9,8 +9,95 @@ $scriptRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
 $filesDir = Join-Path $scriptRoot 'files'
 $generatedDir = Join-Path $scriptRoot 'generated'
 $packageName = 'de.mailsmart.cruiseplanner'
-$generatedAtUtc = '2026-04-15T10:30:00.000Z'
 $shareQueue = @()
+
+$now = Get-Date
+$anchorDay = Get-Date -Date $now.Date
+
+function Format-LocalTimestamp {
+  param([datetime]$Value)
+
+  return $Value.ToString('yyyy-MM-ddTHH:mm:ss.fff', [System.Globalization.CultureInfo]::InvariantCulture)
+}
+
+function Format-UtcTimestamp {
+  param([datetime]$Value)
+
+  return $Value.ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ss.fffZ', [System.Globalization.CultureInfo]::InvariantCulture)
+}
+
+function Get-AnchorTime {
+  param(
+    [int]$Days = 0,
+    [int]$Hours = 0,
+    [int]$Minutes = 0
+  )
+
+  return $anchorDay.AddDays($Days).AddHours($Hours).AddMinutes($Minutes)
+}
+
+$generatedAtUtc = Format-UtcTimestamp $now
+
+$periodStart = Format-LocalTimestamp (Get-AnchorTime -Days -4)
+$periodEnd = Format-LocalTimestamp (Get-AnchorTime -Days 4)
+
+$excursionProvenceDate = Format-LocalTimestamp (Get-AnchorTime -Days -3 -Hours 9)
+$excursionMonacoDate = Format-LocalTimestamp (Get-AnchorTime -Hours 10 -Minutes 15)
+$excursionTuscanDate = Format-LocalTimestamp (Get-AnchorTime -Days 1 -Hours 8 -Minutes 30)
+
+$paymentProvencePaidOn = Format-LocalTimestamp (Get-AnchorTime -Days -21 -Hours 10 -Minutes 15)
+$paymentMonacoPaidOn = Format-LocalTimestamp (Get-AnchorTime -Days -19 -Hours 8)
+$paymentTuscanPaidOn = Format-LocalTimestamp (Get-AnchorTime -Days -17 -Hours 9 -Minutes 30)
+$paymentTuscanDueDate = Format-LocalTimestamp (Get-AnchorTime)
+
+$travelOutboundFlightStart = Format-LocalTimestamp (Get-AnchorTime -Days -5 -Hours 9 -Minutes 15)
+$travelOutboundFlightEnd = Format-LocalTimestamp (Get-AnchorTime -Days -5 -Hours 11 -Minutes 20)
+$travelTransferHotelStart = Format-LocalTimestamp (Get-AnchorTime -Days -5 -Hours 12)
+$travelTransferHotelEnd = Format-LocalTimestamp (Get-AnchorTime -Days -5 -Hours 12 -Minutes 45)
+$travelHotelStart = Format-LocalTimestamp (Get-AnchorTime -Days -5 -Hours 15)
+$travelHotelEnd = Format-LocalTimestamp (Get-AnchorTime -Days -4 -Hours 11)
+$travelCruiseCheckInStart = Format-LocalTimestamp (Get-AnchorTime -Days -4 -Hours 12 -Minutes 30)
+$travelCruiseCheckInEnd = Format-LocalTimestamp (Get-AnchorTime -Days -4 -Hours 14)
+$travelCruiseCheckOutStart = Format-LocalTimestamp (Get-AnchorTime -Days 4 -Hours 7 -Minutes 30)
+$travelCruiseCheckOutEnd = Format-LocalTimestamp (Get-AnchorTime -Days 4 -Hours 8 -Minutes 30)
+$travelTransferAirportStart = Format-LocalTimestamp (Get-AnchorTime -Days 4 -Hours 9)
+$travelTransferAirportEnd = Format-LocalTimestamp (Get-AnchorTime -Days 4 -Hours 9 -Minutes 40)
+$travelReturnFlightStart = Format-LocalTimestamp (Get-AnchorTime -Days 4 -Hours 13 -Minutes 10)
+$travelReturnFlightEnd = Format-LocalTimestamp (Get-AnchorTime -Days 4 -Hours 15 -Minutes 25)
+
+$routeBarcelonaEmbarkDate = Format-LocalTimestamp (Get-AnchorTime -Days -4)
+$routeBarcelonaEmbarkDeparture = Format-LocalTimestamp (Get-AnchorTime -Days -4 -Hours 18)
+$routeBarcelonaEmbarkAllAboard = Format-LocalTimestamp (Get-AnchorTime -Days -4 -Hours 17 -Minutes 30)
+
+$routeMarseilleDate = Format-LocalTimestamp (Get-AnchorTime -Days -3)
+$routeMarseilleArrival = Format-LocalTimestamp (Get-AnchorTime -Days -3 -Hours 8)
+$routeMarseilleDeparture = Format-LocalTimestamp (Get-AnchorTime -Days -3 -Hours 18)
+$routeMarseilleAllAboard = Format-LocalTimestamp (Get-AnchorTime -Days -3 -Hours 17 -Minutes 30)
+
+$routeSeaDayDate = Format-LocalTimestamp (Get-AnchorTime -Days -2)
+
+$routeVillefrancheDate = Format-LocalTimestamp (Get-AnchorTime)
+$routeVillefrancheArrival = Format-LocalTimestamp (Get-AnchorTime -Hours 7 -Minutes 30)
+$routeVillefrancheDeparture = $null
+$routeVillefrancheAllAboard = $null
+
+$routeLivornoDate = Format-LocalTimestamp (Get-AnchorTime -Days 1)
+$routeLivornoArrival = Format-LocalTimestamp (Get-AnchorTime -Days 1 -Hours 7)
+$routeLivornoDeparture = Format-LocalTimestamp (Get-AnchorTime -Days 1 -Hours 19)
+$routeLivornoAllAboard = Format-LocalTimestamp (Get-AnchorTime -Days 1 -Hours 18 -Minutes 30)
+
+$routeCivitavecchiaDate = Format-LocalTimestamp (Get-AnchorTime -Days 2)
+$routeCivitavecchiaArrival = Format-LocalTimestamp (Get-AnchorTime -Days 2 -Hours 7)
+$routeCivitavecchiaDeparture = Format-LocalTimestamp (Get-AnchorTime -Days 2 -Hours 20)
+$routeCivitavecchiaAllAboard = Format-LocalTimestamp (Get-AnchorTime -Days 2 -Hours 19 -Minutes 30)
+
+$routePalmaDate = Format-LocalTimestamp (Get-AnchorTime -Days 3)
+$routePalmaArrival = Format-LocalTimestamp (Get-AnchorTime -Days 3 -Hours 9)
+$routePalmaDeparture = Format-LocalTimestamp (Get-AnchorTime -Days 3 -Hours 19)
+$routePalmaAllAboard = Format-LocalTimestamp (Get-AnchorTime -Days 3 -Hours 18 -Minutes 30)
+
+$routeBarcelonaReturnDate = Format-LocalTimestamp (Get-AnchorTime -Days 4)
+$routeBarcelonaReturnArrival = Format-LocalTimestamp (Get-AnchorTime -Days 4 -Hours 6 -Minutes 30)
 
 New-Item -ItemType Directory -Force -Path $generatedDir | Out-Null
 
@@ -73,8 +160,8 @@ $cruisesPayload = [ordered]@{
         operatorName = 'Blue Horizon Cruises'
       }
       period = [ordered]@{
-        start = '2026-05-18T00:00:00.000'
-        end = '2026-05-25T00:00:00.000'
+        start = $periodStart
+        end = $periodEnd
       }
       cabinNumber = '1208'
       deckNumber = '12'
@@ -83,7 +170,7 @@ $cruisesPayload = [ordered]@{
         [ordered]@{
           id = 'demo-exc-provence-market'
           title = 'Provence Market and Coastal Tasting'
-          date = '2026-05-19T09:00:00.000'
+          date = $excursionProvenceDate
           port = 'Marseille'
           meetingPoint = 'Pier shuttle stop'
           notes = 'Small-group drive with a relaxed market visit and seaside tasting.'
@@ -105,7 +192,7 @@ $cruisesPayload = [ordered]@{
                 amount = 89.0
                 dueDate = $null
                 isPaid = $true
-                paidOn = '2026-04-01T10:15:00.000'
+                paidOn = $paymentProvencePaidOn
                 paymentMethods = @('creditCard')
                 cashCurrencyPreference = $null
               }
@@ -115,7 +202,7 @@ $cruisesPayload = [ordered]@{
         [ordered]@{
           id = 'demo-exc-monaco-highlights'
           title = 'Monaco Highlights and Garden Terraces'
-          date = '2026-05-20T10:15:00.000'
+          date = $excursionMonacoDate
           port = 'Villefranche'
           meetingPoint = 'Tender welcome desk'
           notes = 'Elegant city highlights with time for the hilltop terraces.'
@@ -137,7 +224,7 @@ $cruisesPayload = [ordered]@{
                 amount = 40.0
                 dueDate = $null
                 isPaid = $true
-                paidOn = '2026-04-03T08:00:00.000'
+                paidOn = $paymentMonacoPaidOn
                 paymentMethods = @('creditCard')
                 cashCurrencyPreference = $null
               },
@@ -156,7 +243,7 @@ $cruisesPayload = [ordered]@{
         [ordered]@{
           id = 'demo-exc-tuscan-winery'
           title = 'Tuscan Countryside and Winery Lunch'
-          date = '2026-05-21T08:30:00.000'
+          date = $excursionTuscanDate
           port = 'Livorno'
           meetingPoint = 'Shore excursion lounge'
           notes = 'Scenic drive through rolling vineyards with a light tasting menu.'
@@ -178,14 +265,14 @@ $cruisesPayload = [ordered]@{
                 amount = 50.0
                 dueDate = $null
                 isPaid = $true
-                paidOn = '2026-04-05T09:30:00.000'
+                paidOn = $paymentTuscanPaidOn
                 paymentMethods = @('creditCard')
                 cashCurrencyPreference = $null
               },
               [ordered]@{
                 trigger = 'beforeDate'
                 amount = 99.0
-                dueDate = '2026-05-01T00:00:00.000'
+                dueDate = $paymentTuscanDueDate
                 isPaid = $false
                 paidOn = $null
                 paymentMethods = @('creditCard')
@@ -199,8 +286,8 @@ $cruisesPayload = [ordered]@{
         [ordered]@{
           type = 'flight'
           id = 'demo-travel-flight-outbound'
-          start = '2026-05-17T09:15:00.000'
-          end = '2026-05-17T11:20:00.000'
+          start = $travelOutboundFlightStart
+          end = $travelOutboundFlightEnd
           from = 'Berlin (BER)'
           to = 'Barcelona (BCN)'
           notes = 'Window seats selected and one checked bag included.'
@@ -216,8 +303,8 @@ $cruisesPayload = [ordered]@{
         [ordered]@{
           type = 'transfer'
           id = 'demo-travel-transfer-hotel'
-          start = '2026-05-17T12:00:00.000'
-          end = '2026-05-17T12:45:00.000'
+          start = $travelTransferHotelStart
+          end = $travelTransferHotelEnd
           from = 'Barcelona Airport'
           to = 'Hotel Mirador Azul'
           notes = 'Shared transfer reserved with luggage assistance.'
@@ -232,8 +319,8 @@ $cruisesPayload = [ordered]@{
         [ordered]@{
           type = 'hotel'
           id = 'demo-travel-hotel-barcelona'
-          start = '2026-05-17T15:00:00.000'
-          end = '2026-05-18T11:00:00.000'
+          start = $travelHotelStart
+          end = $travelHotelEnd
           from = 'Check-in'
           to = 'Check-out'
           notes = 'Sea-view room reserved for a calm pre-cruise evening.'
@@ -251,8 +338,8 @@ $cruisesPayload = [ordered]@{
         [ordered]@{
           type = 'cruisecheckin'
           id = 'demo-travel-cruise-checkin'
-          start = '2026-05-18T12:30:00.000'
-          end = '2026-05-18T14:00:00.000'
+          start = $travelCruiseCheckInStart
+          end = $travelCruiseCheckInEnd
           from = 'Barcelona Cruise Terminal'
           to = 'Aurora Vista'
           notes = 'Priority boarding window with relaxed arrival buffer.'
@@ -266,8 +353,8 @@ $cruisesPayload = [ordered]@{
         [ordered]@{
           type = 'cruisecheckout'
           id = 'demo-travel-cruise-checkout'
-          start = '2026-05-25T07:30:00.000'
-          end = '2026-05-25T08:30:00.000'
+          start = $travelCruiseCheckOutStart
+          end = $travelCruiseCheckOutEnd
           from = 'Aurora Vista'
           to = 'Barcelona Cruise Terminal'
           notes = 'Self-assist disembarkation planned for an easy airport transfer.'
@@ -281,8 +368,8 @@ $cruisesPayload = [ordered]@{
         [ordered]@{
           type = 'transfer'
           id = 'demo-travel-transfer-airport'
-          start = '2026-05-25T09:00:00.000'
-          end = '2026-05-25T09:40:00.000'
+          start = $travelTransferAirportStart
+          end = $travelTransferAirportEnd
           from = 'Barcelona Cruise Terminal'
           to = 'Barcelona Airport'
           notes = 'Direct ride with generous check-in time at the airport.'
@@ -297,8 +384,8 @@ $cruisesPayload = [ordered]@{
         [ordered]@{
           type = 'flight'
           id = 'demo-travel-flight-return'
-          start = '2026-05-25T13:10:00.000'
-          end = '2026-05-25T15:25:00.000'
+          start = $travelReturnFlightStart
+          end = $travelReturnFlightEnd
           from = 'Barcelona (BCN)'
           to = 'Berlin (BER)'
           notes = 'Afternoon return with lounge access included.'
@@ -316,11 +403,11 @@ $cruisesPayload = [ordered]@{
         [ordered]@{
           type = 'port'
           id = 'demo-route-barcelona-embark'
-          date = '2026-05-18T00:00:00.000'
+          date = $routeBarcelonaEmbarkDate
           portName = 'Barcelona'
           arrival = $null
-          departure = '2026-05-18T18:00:00.000'
-          allAboard = '2026-05-18T17:30:00.000'
+          departure = $routeBarcelonaEmbarkDeparture
+          allAboard = $routeBarcelonaEmbarkAllAboard
           notes = 'Embarkation at the waterfront terminal.'
           documentIds = @()
           updatedAtUtc = $generatedAtUtc
@@ -329,24 +416,32 @@ $cruisesPayload = [ordered]@{
         [ordered]@{
           type = 'port'
           id = 'demo-route-marseille'
-          date = '2026-05-19T00:00:00.000'
+          date = $routeMarseilleDate
           portName = 'Marseille'
-          arrival = '2026-05-19T08:00:00.000'
-          departure = '2026-05-19T18:00:00.000'
-          allAboard = '2026-05-19T17:30:00.000'
+          arrival = $routeMarseilleArrival
+          departure = $routeMarseilleDeparture
+          allAboard = $routeMarseilleAllAboard
           notes = 'Old Port promenade and bright market colors.'
           documentIds = @()
           updatedAtUtc = $generatedAtUtc
           deletedAtUtc = $null
         },
         [ordered]@{
+          type = 'sea'
+          id = 'demo-route-sea-day'
+          date = $routeSeaDayDate
+          notes = 'Spa morning, open decks, and a long sunset at sea.'
+          updatedAtUtc = $generatedAtUtc
+          deletedAtUtc = $null
+        },
+        [ordered]@{
           type = 'port'
           id = 'demo-route-villefranche'
-          date = '2026-05-20T00:00:00.000'
+          date = $routeVillefrancheDate
           portName = 'Villefranche'
-          arrival = '2026-05-20T07:30:00.000'
-          departure = '2026-05-20T20:00:00.000'
-          allAboard = '2026-05-20T19:30:00.000'
+          arrival = $routeVillefrancheArrival
+          departure = $routeVillefrancheDeparture
+          allAboard = $routeVillefrancheAllAboard
           notes = 'Tender day with Riviera views throughout the bay.'
           documentIds = @()
           updatedAtUtc = $generatedAtUtc
@@ -355,11 +450,11 @@ $cruisesPayload = [ordered]@{
         [ordered]@{
           type = 'port'
           id = 'demo-route-livorno'
-          date = '2026-05-21T00:00:00.000'
+          date = $routeLivornoDate
           portName = 'Livorno'
-          arrival = '2026-05-21T07:00:00.000'
-          departure = '2026-05-21T19:00:00.000'
-          allAboard = '2026-05-21T18:30:00.000'
+          arrival = $routeLivornoArrival
+          departure = $routeLivornoDeparture
+          allAboard = $routeLivornoAllAboard
           notes = 'Gateway to rolling Tuscan countryside.'
           documentIds = @()
           updatedAtUtc = $generatedAtUtc
@@ -368,32 +463,24 @@ $cruisesPayload = [ordered]@{
         [ordered]@{
           type = 'port'
           id = 'demo-route-civitavecchia'
-          date = '2026-05-22T00:00:00.000'
+          date = $routeCivitavecchiaDate
           portName = 'Civitavecchia'
-          arrival = '2026-05-22T07:00:00.000'
-          departure = '2026-05-22T20:00:00.000'
-          allAboard = '2026-05-22T19:30:00.000'
+          arrival = $routeCivitavecchiaArrival
+          departure = $routeCivitavecchiaDeparture
+          allAboard = $routeCivitavecchiaAllAboard
           notes = 'Classic Rome day with a gentle evening sail-away.'
           documentIds = @()
           updatedAtUtc = $generatedAtUtc
           deletedAtUtc = $null
         },
         [ordered]@{
-          type = 'sea'
-          id = 'demo-route-sea-day'
-          date = '2026-05-23T00:00:00.000'
-          notes = 'Spa morning, open decks, and a long sunset at sea.'
-          updatedAtUtc = $generatedAtUtc
-          deletedAtUtc = $null
-        },
-        [ordered]@{
           type = 'port'
           id = 'demo-route-palma'
-          date = '2026-05-24T00:00:00.000'
+          date = $routePalmaDate
           portName = 'Palma de Mallorca'
-          arrival = '2026-05-24T09:00:00.000'
-          departure = '2026-05-24T19:00:00.000'
-          allAboard = '2026-05-24T18:30:00.000'
+          arrival = $routePalmaArrival
+          departure = $routePalmaDeparture
+          allAboard = $routePalmaAllAboard
           notes = 'Bright cathedral views and an easy old-town stroll.'
           documentIds = @('demo-doc-palma-day-pass')
           updatedAtUtc = $generatedAtUtc
@@ -402,9 +489,9 @@ $cruisesPayload = [ordered]@{
         [ordered]@{
           type = 'port'
           id = 'demo-route-barcelona-return'
-          date = '2026-05-25T00:00:00.000'
+          date = $routeBarcelonaReturnDate
           portName = 'Barcelona'
-          arrival = '2026-05-25T06:30:00.000'
+          arrival = $routeBarcelonaReturnArrival
           departure = $null
           allAboard = $null
           notes = 'Arrival morning with self-assist disembarkation.'
@@ -474,26 +561,67 @@ function Invoke-Adb {
   }
 }
 
+function Invoke-AdbCapture {
+  param([string[]]$Arguments)
+
+  $fullArguments = @()
+  if ($Serial) {
+    $fullArguments += @('-s', $Serial)
+  }
+  $fullArguments += $Arguments
+
+  $output = & adb @fullArguments 2>&1
+  if ($LASTEXITCODE -ne 0) {
+    throw "adb command failed: adb $($fullArguments -join ' ')`n$output"
+  }
+
+  return ($output -join [Environment]::NewLine)
+}
+
 $tempDeviceRoot = '/data/local/tmp/cruise_app_screenshot_seed'
 $tempDeviceFiles = "$tempDeviceRoot/files"
+$tempPrefsDevicePath = '/data/local/tmp/FlutterSharedPreferences.xml'
 
 Invoke-Adb -Arguments @('shell', 'am', 'force-stop', $packageName)
 Invoke-Adb -Arguments @('shell', 'mkdir', '-p', $tempDeviceFiles)
-Invoke-Adb -Arguments @('push', $prefsXmlPath, "$tempDeviceRoot/FlutterSharedPreferences.xml")
+$appRoot = (Invoke-AdbCapture -Arguments @('shell', 'run-as', $packageName, 'pwd')).Trim()
+if ([string]::IsNullOrWhiteSpace($appRoot)) {
+  throw "Unable to determine app data directory for $packageName via run-as."
+}
+$appSharedPrefsDir = "$appRoot/shared_prefs"
+$appPrefsPath = "$appSharedPrefsDir/FlutterSharedPreferences.xml"
+$prefsCopyCommand = "run-as $packageName sh -c 'mkdir -p $appSharedPrefsDir && cp $tempPrefsDevicePath $appPrefsPath && chmod 660 $appPrefsPath'"
+
+Write-Host "Resolved app root: $appRoot"
+Write-Host "Resolved shared prefs dir: $appSharedPrefsDir"
+Write-Host "Resolved prefs path: $appPrefsPath"
+Write-Host "Prefs temp push path: $tempPrefsDevicePath"
+Write-Host "Prefs copy shell command: $prefsCopyCommand"
+
+Invoke-Adb -Arguments @('push', $prefsXmlPath, $tempPrefsDevicePath)
+Invoke-Adb -Arguments @('shell', 'chmod', '644', $tempPrefsDevicePath)
 
 foreach ($document in $documents) {
   $sourcePath = Join-Path $filesDir $document.originalFileName
   Invoke-Adb -Arguments @('push', $sourcePath, "$tempDeviceFiles/$($document.originalFileName)")
 }
 
-Invoke-Adb -Arguments @('shell', 'run-as', $packageName, 'mkdir', '-p', 'shared_prefs')
 Invoke-Adb -Arguments @('shell', 'run-as', $packageName, 'mkdir', '-p', 'app_flutter/documents')
-Invoke-Adb -Arguments @('shell', 'run-as', $packageName, 'cp', "$tempDeviceRoot/FlutterSharedPreferences.xml", 'shared_prefs/FlutterSharedPreferences.xml')
+Invoke-Adb -Arguments @('shell', $prefsCopyCommand)
 
 foreach ($document in $documents) {
   Invoke-Adb -Arguments @('shell', 'run-as', $packageName, 'mkdir', '-p', "app_flutter/documents/$($document.id)")
   Invoke-Adb -Arguments @('shell', 'run-as', $packageName, 'cp', "$tempDeviceFiles/$($document.originalFileName)", "app_flutter/$($document.localRelativePath)")
 }
+
+Invoke-AdbCapture -Arguments @('shell', 'run-as', $packageName, 'ls', '-l', $appPrefsPath) | Out-Null
+$prefsVerificationCommand = "run-as $packageName sh -c 'if [ -f $appPrefsPath ] && grep -q flutter.cruises_json_v3 $appPrefsPath; then echo VERIFIED; else exit 1; fi'"
+$prefsVerification = Invoke-AdbCapture -Arguments @('shell', $prefsVerificationCommand)
+if ($prefsVerification -notmatch 'VERIFIED') {
+  throw "Verification failed: $appPrefsPath was not installed correctly for $packageName."
+}
+
+Invoke-Adb -Arguments @('shell', 'rm', '-f', $tempPrefsDevicePath)
 
 Invoke-Adb -Arguments @('shell', 'am', 'force-stop', $packageName)
 Invoke-Adb -Arguments @('shell', 'rm', '-rf', $tempDeviceRoot)
