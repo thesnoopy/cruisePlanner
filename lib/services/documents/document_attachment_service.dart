@@ -3,6 +3,7 @@ import '../../models/documents/document_ids.dart';
 import '../../models/documents/document_record.dart';
 import '../../models/excursion.dart';
 import '../../models/route/port_call_item.dart';
+import '../../models/route/sea_day_item.dart';
 import '../../models/travel/base_travel.dart';
 import '../../models/travel/cruise_check_in_item.dart';
 import '../../models/travel/cruise_check_out_item.dart';
@@ -314,6 +315,78 @@ class DocumentAttachmentService {
     return _resolveDocuments(portCall.documentIds);
   }
 
+  Future<bool> attachDocumentToSeaDay({
+    required String seaDayId,
+    required String documentId,
+  }) async {
+    await _ensureCruisesLoaded();
+
+    final cruise = _findCruiseWithSeaDay(seaDayId);
+    final seaDay = cruise?.route.whereType<SeaDayItem>().firstWhereOrNull(
+      (item) => item.id == seaDayId,
+    );
+    if (cruise == null || seaDay == null) {
+      return false;
+    }
+
+    final nextDocumentIds = DocumentIds.appendUnique(
+      seaDay.documentIds,
+      documentId,
+    );
+    if (_sameDocumentIds(seaDay.documentIds, nextDocumentIds)) {
+      return false;
+    }
+
+    await _cruiseStore.upsertRouteItem(
+      cruiseId: cruise.id,
+      item: seaDay.copyWith(documentIds: nextDocumentIds),
+    );
+    await _softDeleteDocumentIfUnreferenced(documentId);
+    return true;
+  }
+
+  Future<bool> detachDocumentFromSeaDay({
+    required String seaDayId,
+    required String documentId,
+  }) async {
+    await _ensureCruisesLoaded();
+
+    final cruise = _findCruiseWithSeaDay(seaDayId);
+    final seaDay = cruise?.route.whereType<SeaDayItem>().firstWhereOrNull(
+      (item) => item.id == seaDayId,
+    );
+    if (cruise == null || seaDay == null) {
+      return false;
+    }
+
+    final nextDocumentIds = DocumentIds.remove(
+      seaDay.documentIds,
+      documentId,
+    );
+    if (_sameDocumentIds(seaDay.documentIds, nextDocumentIds)) {
+      return false;
+    }
+
+    await _cruiseStore.upsertRouteItem(
+      cruiseId: cruise.id,
+      item: seaDay.copyWith(documentIds: nextDocumentIds),
+    );
+    return true;
+  }
+
+  Future<List<DocumentRecord>> getDocumentsForSeaDay({
+    required String seaDayId,
+  }) async {
+    await _ensureCruisesLoaded();
+
+    final seaDay = _findSeaDay(seaDayId);
+    if (seaDay == null) {
+      return const <DocumentRecord>[];
+    }
+
+    return _resolveDocuments(seaDay.documentIds);
+  }
+
   Future<int> countDocumentReferences(String documentId) async {
     return _referenceCleanupService.countDocumentReferences(documentId);
   }
@@ -368,6 +441,12 @@ class DocumentAttachmentService {
     );
   }
 
+  Cruise? _findCruiseWithSeaDay(String seaDayId) {
+    return _cruiseStore.activeCruises.firstWhereOrNull(
+      (cruise) => cruise.route.whereType<SeaDayItem>().any((seaDay) => seaDay.id == seaDayId),
+    );
+  }
+
   Excursion? _findExcursion(String excursionId) {
     final cruise = _findCruiseWithExcursion(excursionId);
     return cruise?.excursions.firstWhereOrNull(
@@ -386,6 +465,13 @@ class DocumentAttachmentService {
     final cruise = _findCruiseWithPortCall(portCallId);
     return cruise?.route.whereType<PortCallItem>().firstWhereOrNull(
       (portCall) => portCall.id == portCallId,
+    );
+  }
+
+  SeaDayItem? _findSeaDay(String seaDayId) {
+    final cruise = _findCruiseWithSeaDay(seaDayId);
+    return cruise?.route.whereType<SeaDayItem>().firstWhereOrNull(
+      (seaDay) => seaDay.id == seaDayId,
     );
   }
 
@@ -417,6 +503,7 @@ class DocumentAttachmentService {
 
     throw ArgumentError.value(item, 'item', 'Unsupported travel item type.');
   }
+
   bool _sameDocumentIds(List<String> left, List<String> right) {
     if (identical(left, right)) {
       return true;

@@ -353,6 +353,21 @@ class _CruiseTargetGroup extends StatelessWidget {
                   onTap: onSelect,
                 ),
             ],
+            if (group.seaDays.isNotEmpty) ...[
+              const SizedBox(height: 12),
+              Text(
+                loc.seaDay,
+                style: Theme.of(context).textTheme.labelLarge,
+              ),
+              const SizedBox(height: 4),
+              for (final target in group.seaDays)
+                _TargetTile(
+                  target: target,
+                  icon: Icons.waves_outlined,
+                  enabled: !isMutating,
+                  onTap: onSelect,
+                ),
+            ],
           ],
         ),
       ),

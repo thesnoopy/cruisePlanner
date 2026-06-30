@@ -7,6 +7,7 @@ import '../../models/route/sea_day_item.dart';
 import '../../utils/format.dart';
 import '../../l10n/app_localizations.dart';
 import '../../widgets/documents/port_call_documents_section.dart';
+import '../../widgets/documents/sea_day_documents_section.dart';
 
 class RouteEditScreen extends StatefulWidget {
   final String routeItemId;
@@ -201,6 +202,12 @@ class _RouteEditScreenState extends State<RouteEditScreen> {
           if (it is PortCallItem) ...[
             const SizedBox(height: 24),
             PortCallDocumentsSection(portCallId: it.id),
+          ] else if (it is SeaDayItem) ...[
+            const SizedBox(height: 24),
+            SeaDayDocumentsSection(
+              key: ValueKey('sea-day-docs-${it.id}-${it.documentIds.join('|')}'),
+              seaDayId: it.id,
+            ),
           ],
           const SizedBox(height: 24),
           FilledButton.icon(onPressed: _save, icon: const Icon(Icons.save), label: Text(loc.save)),

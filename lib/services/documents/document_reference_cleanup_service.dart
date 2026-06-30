@@ -1,6 +1,7 @@
 import '../../models/cruise.dart';
 import '../../models/documents/document_ids.dart';
 import '../../models/route/port_call_item.dart';
+import '../../models/route/sea_day_item.dart';
 import '../../store/cruise_store.dart';
 import '../../store/document_store.dart';
 
@@ -55,7 +56,17 @@ class DocumentReferenceCleanupService {
       }
 
       for (final portCall in cruise.route.whereType<PortCallItem>()) {
-        references += _countDocumentId(portCall.documentIds, normalizedDocumentId);
+        references += _countDocumentId(
+          portCall.documentIds,
+          normalizedDocumentId,
+        );
+      }
+
+      for (final seaDay in cruise.route.whereType<SeaDayItem>()) {
+        references += _countDocumentId(
+          seaDay.documentIds,
+          normalizedDocumentId,
+        );
       }
     }
 
@@ -73,6 +84,8 @@ class DocumentReferenceCleanupService {
       for (final travelItem in cruise.travel) ...travelItem.documentIds,
       for (final portCall in cruise.route.whereType<PortCallItem>())
         ...portCall.documentIds,
+      for (final seaDay in cruise.route.whereType<SeaDayItem>())
+        ...seaDay.documentIds,
     ];
 
     return List.unmodifiable(_normalizeDocumentIds(documentIds));

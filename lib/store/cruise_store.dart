@@ -514,7 +514,9 @@ class CruiseStore extends ChangeNotifier {
     }
     final affectedDocumentIds = routeItem is PortCallItem
         ? routeItem.documentIds
-        : const <String>[];
+        : routeItem is SeaDayItem
+            ? routeItem.documentIds
+            : const <String>[];
     final nowUtc = _nowUtc();
     final updatedRoute = cruise.route
         .map(
@@ -766,6 +768,7 @@ class CruiseStore extends ChangeNotifier {
       return item.copyWith(
         updatedAtUtc: updatedAtUtc,
         deletedAtUtc: deletedAtUtc,
+        documentIds: documentIds,
       );
     }
     if (item is PortCallItem) {

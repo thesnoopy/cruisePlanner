@@ -2,6 +2,7 @@ import '../../l10n/app_localizations.dart';
 import '../../models/cruise.dart';
 import '../../models/excursion.dart';
 import '../../models/route/port_call_item.dart';
+import '../../models/route/sea_day_item.dart';
 import '../../models/share/share_intake_payload.dart';
 import '../../models/travel/base_travel.dart';
 import '../../models/travel/flight_item.dart';
@@ -12,6 +13,7 @@ import '../../store/cruise_store.dart';
 import '../documents/cruise_document_section_service.dart';
 import '../documents/excursion_document_section_service.dart';
 import '../documents/port_call_document_section_service.dart';
+import '../documents/sea_day_document_section_service.dart';
 import '../documents/travel_document_section_service.dart';
 import 'share_intake_service.dart';
 
@@ -20,6 +22,7 @@ enum PendingShareAssignmentTargetType {
   excursion,
   travelItem,
   portCall,
+  seaDay,
 }
 
 enum PendingShareAssignmentOutcome {
@@ -50,6 +53,7 @@ class PendingShareAssignmentCruiseGroup {
     required this.excursions,
     required this.travelItems,
     required this.portCalls,
+    required this.seaDays,
   });
 
   final String cruiseId;
@@ -58,6 +62,7 @@ class PendingShareAssignmentCruiseGroup {
   final List<PendingShareAssignmentTarget> excursions;
   final List<PendingShareAssignmentTarget> travelItems;
   final List<PendingShareAssignmentTarget> portCalls;
+  final List<PendingShareAssignmentTarget> seaDays;
 }
 
 class PendingShareAssignmentSelectionData {
@@ -80,6 +85,7 @@ class PendingShareAssignmentService {
     ExcursionDocumentSectionService? excursionDocumentSectionService,
     TravelDocumentSectionService? travelDocumentSectionService,
     PortCallDocumentSectionService? portCallDocumentSectionService,
+    SeaDayDocumentSectionService? seaDayDocumentSectionService,
   })  : _shareIntakeService = shareIntakeService ?? ShareIntakeService(),
         _cruiseStore = cruiseStore ?? CruiseStore(),
         _cruiseDocumentSectionService =
@@ -89,7 +95,9 @@ class PendingShareAssignmentService {
         _travelDocumentSectionService =
             travelDocumentSectionService ?? TravelDocumentSectionService(),
         _portCallDocumentSectionService =
-            portCallDocumentSectionService ?? PortCallDocumentSectionService();
+            portCallDocumentSectionService ?? PortCallDocumentSectionService(),
+        _seaDayDocumentSectionService =
+            seaDayDocumentSectionService ?? SeaDayDocumentSectionService();
 
   final ShareIntakeService _shareIntakeService;
   final CruiseStore _cruiseStore;
@@ -97,6 +105,7 @@ class PendingShareAssignmentService {
   final ExcursionDocumentSectionService _excursionDocumentSectionService;
   final TravelDocumentSectionService _travelDocumentSectionService;
   final PortCallDocumentSectionService _portCallDocumentSectionService;
+  final SeaDayDocumentSectionService _seaDayDocumentSectionService;
 
   bool canAssignItem({
     required String batchId,
@@ -236,6 +245,13 @@ class PendingShareAssignmentService {
             title: title,
           ),
         ),
+      PendingShareAssignmentTargetType.seaDay => _mapSeaDayOutcome(
+          await _seaDayDocumentSectionService.importDocument(
+            seaDayId: target.id,
+            sourcePath: normalizedPath,
+            title: title,
+          ),
+        ),
     };
   }
 
@@ -278,6 +294,13 @@ class PendingShareAssignmentService {
             title: title,
           ),
         ),
+      PendingShareAssignmentTargetType.seaDay => _mapSeaDayOutcome(
+          await _seaDayDocumentSectionService.importUrlDocument(
+            seaDayId: target.id,
+            sourceUrl: normalizedUrl,
+            title: title,
+          ),
+        ),
     };
   }
 
@@ -306,6 +329,10 @@ class PendingShareAssignmentService {
       portCalls: cruise.route
           .whereType<PortCallItem>()
           .map((portCall) => _buildPortCallTarget(portCall, loc))
+          .toList(growable: false),
+      seaDays: cruise.route
+          .whereType<SeaDayItem>()
+          .map((seaDay) => _buildSeaDayTarget(seaDay, loc))
           .toList(growable: false),
     );
   }
@@ -349,6 +376,19 @@ class PendingShareAssignmentService {
       type: PendingShareAssignmentTargetType.portCall,
       id: portCall.id,
       title: portName.isEmpty ? loc.harbour : portName,
+    );
+  }
+
+  PendingShareAssignmentTarget _buildSeaDayTarget(
+    SeaDayItem seaDay,
+    AppLocalizations loc,
+  ) {
+    final subtitle = seaDay.notes?.trim();
+    return PendingShareAssignmentTarget(
+      type: PendingShareAssignmentTargetType.seaDay,
+      id: seaDay.id,
+      title: loc.seaDay,
+      subtitle: subtitle == null || subtitle.isEmpty ? null : subtitle,
     );
   }
 
@@ -400,6 +440,19 @@ class PendingShareAssignmentService {
       case PortCallDocumentImportOutcome.existingLinked:
         return PendingShareAssignmentOutcome.existingLinked;
       case PortCallDocumentImportOutcome.alreadyLinked:
+        return PendingShareAssignmentOutcome.alreadyLinked;
+    }
+  }
+
+  PendingShareAssignmentOutcome _mapSeaDayOutcome(
+    SeaDayDocumentImportResult result,
+  ) {
+    switch (result.outcome) {
+      case SeaDayDocumentImportOutcome.importedAndLinked:
+        return PendingShareAssignmentOutcome.importedAndLinked;
+      case SeaDayDocumentImportOutcome.existingLinked:
+        return PendingShareAssignmentOutcome.existingLinked;
+      case SeaDayDocumentImportOutcome.alreadyLinked:
         return PendingShareAssignmentOutcome.alreadyLinked;
     }
   }
