@@ -1,27 +1,36 @@
-// Regenerated screens v2 – ID-only navigation, aligned with current models.
+// Regenerated screens v2 â€“ ID-only navigation, aligned with current models.
 
 import 'package:cruiseplanner/models/travel/cruise_check_in_item.dart';
 import 'package:cruiseplanner/models/travel/cruise_check_out_item.dart';
 import 'package:cruiseplanner/models/travel/hotel_item.dart';
 import 'package:flutter/material.dart';
-import '../../store/cruise_store.dart';
+
+import '../../l10n/app_localizations.dart';
 import '../../models/cruise.dart';
+import '../../models/identifiable.dart';
+import '../../models/temporal_list_item.dart';
 import '../../models/travel/base_travel.dart';
 import '../../models/travel/flight_item.dart';
+import '../../models/travel/rental_car_item.dart';
 import '../../models/travel/train_item.dart';
 import '../../models/travel/transfer_item.dart';
-import '../../models/travel/rental_car_item.dart';
-import '../../models/identifiable.dart';
+import '../../store/cruise_store.dart';
 import '../../utils/format.dart';
-import 'travel_detail_screen.dart';
-import 'travel_edit_screen.dart';
-import '../../l10n/app_localizations.dart';
 import '../../widgets/confirmation_dialog.dart';
 import '../../widgets/show_map_app_picker.dart';
+import '../../widgets/temporal_list_item_style.dart';
+import 'travel_detail_screen.dart';
+import 'travel_edit_screen.dart';
 
 class TravelListScreen extends StatefulWidget {
   final String cruiseId;
-  const TravelListScreen({super.key, required this.cruiseId});
+  final DateTime Function()? nowProvider;
+
+  const TravelListScreen({
+    super.key,
+    required this.cruiseId,
+    this.nowProvider,
+  });
 
   @override
   State<TravelListScreen> createState() => _TravelListScreenState();
@@ -29,6 +38,8 @@ class TravelListScreen extends StatefulWidget {
 
 class _TravelListScreenState extends State<TravelListScreen> {
   Cruise? _cruise;
+  final Map<String, GlobalKey> _itemKeys = <String, GlobalKey>{};
+  bool _didAttemptInitialAutoScroll = false;
 
   @override
   void initState() {
@@ -40,6 +51,9 @@ class _TravelListScreenState extends State<TravelListScreen> {
     final s = CruiseStore();
     await s.load();
     setState(() => _cruise = s.getCruise(widget.cruiseId));
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _scrollToInitialTargetIfNeeded();
+    });
   }
 
   Future<void> _create(TravelKind kind) async {
@@ -51,38 +65,112 @@ class _TravelListScreenState extends State<TravelListScreen> {
       return;
     }
     TravelItem item;
-    debugPrint("kind = $kind");
+    debugPrint('kind = $kind');
     switch (kind) {
       case TravelKind.flight:
-        item = FlightItem(id: id, start: c.period.start, end: c.period.start, from: '', to: '', notes: null, price: null, currency: null, carrier: null, flightNo: null, recordLocator: null);
+        item = FlightItem(
+          id: id,
+          start: c.period.start,
+          end: c.period.start,
+          from: '',
+          to: '',
+          notes: null,
+          price: null,
+          currency: null,
+          carrier: null,
+          flightNo: null,
+          recordLocator: null,
+        );
         break;
       case TravelKind.train:
-        item = TrainItem(id: id, start: c.period.start, end: c.period.start, from: '', to: '', notes: null, price: null, currency: null);
+        item = TrainItem(
+          id: id,
+          start: c.period.start,
+          end: c.period.start,
+          from: '',
+          to: '',
+          notes: null,
+          price: null,
+          currency: null,
+        );
         break;
       case TravelKind.transfer:
-        item = TransferItem(id: id, start: c.period.start, end: c.period.start, from: '', to: '', notes: null, price: null, currency: null, mode: null);
+        item = TransferItem(
+          id: id,
+          start: c.period.start,
+          end: c.period.start,
+          from: '',
+          to: '',
+          notes: null,
+          price: null,
+          currency: null,
+          mode: null,
+        );
         break;
       case TravelKind.rentalCar:
-        item = RentalCarItem(id: id, start: c.period.start, end: c.period.start.add(const Duration(days: 1)), from: '', to: '', notes: null, price: null, currency: null, company: null, recordLocator: null);
+        item = RentalCarItem(
+          id: id,
+          start: c.period.start,
+          end: c.period.start.add(const Duration(days: 1)),
+          from: '',
+          to: '',
+          notes: null,
+          price: null,
+          currency: null,
+          company: null,
+          recordLocator: null,
+        );
         break;
       case TravelKind.hotel:
-        item = HotelItem(id: id, start: c.period.start, end: c.period.start, from: '', to: '', notes: null, price: null, currency: null, name: '',recordLocator: '', location: '');
-        debugPrint("$item");
+        item = HotelItem(
+          id: id,
+          start: c.period.start,
+          end: c.period.start,
+          from: '',
+          to: '',
+          notes: null,
+          price: null,
+          currency: null,
+          name: '',
+          recordLocator: '',
+          location: '',
+        );
+        debugPrint('$item');
         break;
       case TravelKind.cruiseCheckIn:
-        item = CruiseCheckIn(id: id, start: c.period.start, end: c.period.start, from: '', to: '', notes: null, price: null, currency: null);
+        item = CruiseCheckIn(
+          id: id,
+          start: c.period.start,
+          end: c.period.start,
+          from: '',
+          to: '',
+          notes: null,
+          price: null,
+          currency: null,
+        );
         break;
       case TravelKind.cruiseCheckOut:
-        item = CruiseCheckOut(id: id, start: c.period.start, end: c.period.start, from: '', to: '', notes: null, price: null, currency: null);
+        item = CruiseCheckOut(
+          id: id,
+          start: c.period.start,
+          end: c.period.start,
+          from: '',
+          to: '',
+          notes: null,
+          price: null,
+          currency: null,
+        );
         break;
     }
-    debugPrint("Before upsert");
+    debugPrint('Before upsert');
     await s.upsertTravelItem(cruiseId: widget.cruiseId, item: item);
-    debugPrint("After upsert");
+    debugPrint('After upsert');
     if (!mounted) {
       return;
     }
-    await Navigator.of(context).push(MaterialPageRoute(builder: (_) => TravelEditScreen(travelItemId: id)));
+    await Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => TravelEditScreen(travelItemId: id)),
+    );
     await _load();
   }
 
@@ -91,15 +179,66 @@ class _TravelListScreenState extends State<TravelListScreen> {
     showModalBottomSheet(
       context: context,
       builder: (ctx) => SafeArea(
-        child: Wrap(children: [
-          ListTile(leading: const Icon(Icons.flight), title: Text(loc.flight), onTap: () { Navigator.pop(ctx); _create(TravelKind.flight); }),
-          ListTile(leading: const Icon(Icons.train), title: Text(loc.train), onTap: () { Navigator.pop(ctx); _create(TravelKind.train); }),
-          ListTile(leading: const Icon(Icons.directions_bus), title: Text(loc.transfer), onTap: () { Navigator.pop(ctx); _create(TravelKind.transfer); }),
-          ListTile(leading: const Icon(Icons.directions_car), title: Text(loc.rentalCar), onTap: () { Navigator.pop(ctx); _create(TravelKind.rentalCar); }),
-          ListTile(leading: const Icon(Icons.hotel), title: Text(loc.hotel), onTap: () { Navigator.pop(ctx); _create(TravelKind.hotel); }),
-          ListTile(leading: const Icon(Icons.sailing), title: Text(loc.cruiseCheckIn), onTap: () { Navigator.pop(ctx); _create(TravelKind.cruiseCheckIn); }),
-          ListTile(leading: const Icon(Icons.directions_boat), title: Text(loc.cruiseCheckOut), onTap: () { Navigator.pop(ctx); _create(TravelKind.cruiseCheckOut); }),
-        ]),
+        child: Wrap(
+          children: [
+            ListTile(
+              leading: const Icon(Icons.flight),
+              title: Text(loc.flight),
+              onTap: () {
+                Navigator.pop(ctx);
+                _create(TravelKind.flight);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.train),
+              title: Text(loc.train),
+              onTap: () {
+                Navigator.pop(ctx);
+                _create(TravelKind.train);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.directions_bus),
+              title: Text(loc.transfer),
+              onTap: () {
+                Navigator.pop(ctx);
+                _create(TravelKind.transfer);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.directions_car),
+              title: Text(loc.rentalCar),
+              onTap: () {
+                Navigator.pop(ctx);
+                _create(TravelKind.rentalCar);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.hotel),
+              title: Text(loc.hotel),
+              onTap: () {
+                Navigator.pop(ctx);
+                _create(TravelKind.hotel);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.sailing),
+              title: Text(loc.cruiseCheckIn),
+              onTap: () {
+                Navigator.pop(ctx);
+                _create(TravelKind.cruiseCheckIn);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.directions_boat),
+              title: Text(loc.cruiseCheckOut),
+              onTap: () {
+                Navigator.pop(ctx);
+                _create(TravelKind.cruiseCheckOut);
+              },
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -116,89 +255,13 @@ class _TravelListScreenState extends State<TravelListScreen> {
       appBar: AppBar(title: Text(loc.travel)),
       body: travelItems.isEmpty
           ? Center(child: Text(loc.noTravelItem))
-          : ListView.builder(
-              itemCount: travelItems.length,
-              itemBuilder: (_, i) {
-                final t = travelItems[i];
-                String address = "";
-                if (t.kind == TravelKind.hotel) {
-                  final hotel = t as HotelItem;
-                  address = hotel.location ?? '';
-                }
-                return Card(
-                  margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  elevation: 2,
-                  child: InkWell(
-                    borderRadius: BorderRadius.circular(16),
-                    onTap: () async {
-                      await Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (_) => TravelDetailScreen(travelItemId: t.id),
-                        ),
-                      );
-                      await _load();
-                    },
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Row(
-                        children: [
-                          CircleAvatar(
-                            radius: 18,
-                            backgroundColor: Colors.indigo.withValues(alpha: 0.12),
-                            child: Icon(
-                              _travelKindIcon(t.kind), // gibt es schon im cruise_hub_screen.dart
-                              color: Colors.indigo,
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: _subtitleTravelitemPerKind(context, t, widget.cruiseId),
-                          ),
-                          if (address != '')   
-                            IconButton(
-                              icon: const Icon(Icons.navigation_outlined),
-                              onPressed: () => showMapAppPicker(
-                                        context: context,
-                                        address: address,
-                                        title: loc.startNavigation,
-                                      ),
-                            ),
-                          // neuer Lösch-Button
-                          IconButton(
-                            icon: const Icon(Icons.delete_outline),
-                            onPressed: () async {
-                              final loc = AppLocalizations.of(context)!;
-                              final s = CruiseStore();
-                              await s.load();
-                              if (!context.mounted) {
-                                return;
-                              }
-                              final confirmed = await showConfirmationDialog(
-                                context: context,
-                                title: loc.deleteTravelItemTitle,              // optional
-                                message: loc.deleteTravelItemQuestionmark, // optional
-                                okText: loc.delete,                     // optional
-                                cancelText: loc.confirmCancel,               // optional
-                                icon: Icons.warning_amber_rounded,     // optional
-                                destructive: true,                     // optional (OK Button rot)
-                              );
-
-                              if (!confirmed) {
-                                return;
-                              }
-                              await s.deleteTravelItem(t.id);
-                              await _load();
-                            },
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                );
-              },
+          : SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: travelItems
+                    .map((item) => _buildTravelItemCard(context, item))
+                    .toList(growable: false),
+              ),
             ),
       floatingActionButton: FloatingActionButton(
         onPressed: _showCreateMenu,
@@ -207,147 +270,306 @@ class _TravelListScreenState extends State<TravelListScreen> {
     );
   }
 
+  void _scrollToInitialTargetIfNeeded() {
+    if (_didAttemptInitialAutoScroll || !mounted) {
+      return;
+    }
 
-  Widget _subtitleTravelitemPerKind(BuildContext context, TravelItem t, String cruiseId) {
-    final CruiseStore cs = CruiseStore();
+    _didAttemptInitialAutoScroll = true;
+    final cruise = _cruise;
+    if (cruise == null) {
+      return;
+    }
+
+    final travelItems = [...cruise.travel]
+      ..sort((a, b) => a.start.compareTo(b.start));
+    final now = _now();
+    final targetIndex = temporalScrollTargetIndex<TravelItem>(
+      travelItems,
+      now,
+      (item, currentNow) => item.temporalStatusAt(currentNow),
+    );
+    if (targetIndex == null) {
+      return;
+    }
+
+    final contextForTarget =
+        _itemKeys[travelItems[targetIndex].id]?.currentContext;
+    if (contextForTarget == null) {
+      return;
+    }
+
+    Scrollable.ensureVisible(
+      contextForTarget,
+      alignment: 0.05,
+      duration: Duration.zero,
+    );
+  }
+
+  DateTime _now() => widget.nowProvider?.call() ?? DateTime.now();
+
+  Widget _buildTravelItemCard(BuildContext context, TravelItem t) {
+    final status = t.temporalStatusAt(_now());
+    final contentColor = temporalListItemContentColor(context, status);
+    final itemKey = _itemKeys.putIfAbsent(t.id, GlobalKey.new);
+    var address = '';
+    if (t.kind == TravelKind.hotel) {
+      final hotel = t as HotelItem;
+      address = hotel.location ?? '';
+    }
+
+    return Card(
+      key: itemKey,
+      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+      ),
+      elevation: 2,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(16),
+        onTap: () async {
+          await Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (_) => TravelDetailScreen(travelItemId: t.id),
+            ),
+          );
+          await _load();
+        },
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            children: [
+              CircleAvatar(
+                radius: 18,
+                backgroundColor: Colors.indigo.withValues(alpha: 0.12),
+                child: Icon(
+                  _travelKindIcon(t.kind),
+                  color: Colors.indigo,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _subtitleTravelitemPerKind(
+                  context,
+                  t,
+                  widget.cruiseId,
+                  contentColor: contentColor,
+                ),
+              ),
+              if (status == TemporalListItemStatus.past) ...[
+                buildTemporalListItemStatusIcon(context, status),
+                const SizedBox(width: 4),
+              ],
+              if (address != '')
+                IconButton(
+                  icon: const Icon(Icons.navigation_outlined),
+                  onPressed: () => showMapAppPicker(
+                    context: context,
+                    address: address,
+                    title: AppLocalizations.of(context)!.startNavigation,
+                  ),
+                ),
+              IconButton(
+                icon: const Icon(Icons.delete_outline),
+                onPressed: () async {
+                  final loc = AppLocalizations.of(context)!;
+                  final s = CruiseStore();
+                  await s.load();
+                  if (!context.mounted) {
+                    return;
+                  }
+                  final confirmed = await showConfirmationDialog(
+                    context: context,
+                    title: loc.deleteTravelItemTitle,
+                    message: loc.deleteTravelItemQuestionmark,
+                    okText: loc.delete,
+                    cancelText: loc.confirmCancel,
+                    icon: Icons.warning_amber_rounded,
+                    destructive: true,
+                  );
+
+                  if (!confirmed) {
+                    return;
+                  }
+                  await s.deleteTravelItem(t.id);
+                  await _load();
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _subtitleTravelitemPerKind(
+    BuildContext context,
+    TravelItem t,
+    String cruiseId, {
+    Color? contentColor,
+  }) {
+    final cs = CruiseStore();
     final c = cs.getCruise(cruiseId);
-    List<Widget> childs = [];
-    if(t.from != '' || t.to != '') {
+    final childs = <Widget>[];
+    if (t.from != '' || t.to != '') {
       childs.add(
         Row(
           children: [
-            const Icon(Icons.location_on, size: 14),
+            Icon(Icons.location_on, size: 14, color: contentColor),
             const SizedBox(width: 4),
             Flexible(
               child: Text(
-                '${t.from} → ${t.to}',
+                '${t.from} -> ${t.to}',
+                style: TextStyle(color: contentColor),
                 overflow: TextOverflow.ellipsis,
               ),
             ),
           ],
-        )
+        ),
       );
     }
-    if(t.start != c?.period.start){
+    if (t.start != c?.period.start) {
       childs.add(
         Row(
           children: [
-            const Icon(Icons.event, size: 14),
+            Icon(Icons.event, size: 14, color: contentColor),
             const SizedBox(width: 4),
             Flexible(
               child: Text(
                 fmtDate(context, t.start),
+                style: TextStyle(color: contentColor),
                 overflow: TextOverflow.ellipsis,
               ),
             ),
           ],
-        )
+        ),
       );
     }
-    if(t.start != c?.period.start){
-      final startTimeStr = 
-          fmtDate(context, t.start, timeOnly: true);
+    if (t.start != c?.period.start) {
+      final startTimeStr = fmtDate(context, t.start, timeOnly: true);
       final endTimeStr =
           t.end != null ? fmtDate(context, t.end, timeOnly: true) : null;
       final timeText =
-          endTimeStr != null ? '$startTimeStr – $endTimeStr' : startTimeStr;
+          endTimeStr != null ? '$startTimeStr - $endTimeStr' : startTimeStr;
       childs.add(
-        // Zeile 3: Zeit / Zeitraum
         Row(
           children: [
-            const Icon(Icons.schedule, size: 14),
+            Icon(Icons.schedule, size: 14, color: contentColor),
             const SizedBox(width: 4),
             Flexible(
               child: Text(
                 timeText,
+                style: TextStyle(color: contentColor),
                 overflow: TextOverflow.ellipsis,
               ),
             ),
           ],
-        )
+        ),
       );
     }
-    if(t.price != null){
-      // Row 4: Price
+    if (t.price != null) {
       childs.add(
         Row(
           children: [
-            const Icon(Icons.money, size: 14,),
+            Icon(Icons.money, size: 14, color: contentColor),
             const SizedBox(width: 4),
             Flexible(
-              child: Text(fmtMoney(context, t.price, currency: t.currency), overflow: TextOverflow.ellipsis),
-              )
-          ],)
+              child: Text(
+                fmtMoney(context, t.price, currency: t.currency),
+                style: TextStyle(color: contentColor),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
+        ),
       );
     }
-    /////
-    //Special handling for sub items
-    /////
-    switch (t.kind){
+
+    switch (t.kind) {
       case TravelKind.flight:
         final flight = t as FlightItem;
         if (flight.carrier != null) {
           childs.add(
             Row(
               children: [
-                const Icon(Icons.airlines, size: 14,),
+                Icon(Icons.airlines, size: 14, color: contentColor),
                 const SizedBox(width: 4),
                 Flexible(
-                  child: Text(flight.carrier ?? '', overflow: TextOverflow.ellipsis),
-                  )
+                  child: Text(
+                    flight.carrier ?? '',
+                    style: TextStyle(color: contentColor),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
               ],
-            )
+            ),
           );
         }
         if (flight.flightNo != null) {
           childs.add(
             Row(
               children: [
-                const Icon(Icons.flight, size: 14,),
+                Icon(Icons.flight, size: 14, color: contentColor),
                 const SizedBox(width: 4),
                 Flexible(
-                  child: Text(flight.flightNo ?? '', overflow: TextOverflow.ellipsis),
-                  )
+                  child: Text(
+                    flight.flightNo ?? '',
+                    style: TextStyle(color: contentColor),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
               ],
-            )
+            ),
           );
         }
         if (flight.recordLocator != null) {
           childs.add(
             Row(
               children: [
-                const Icon(Icons.receipt, size: 14,),
+                Icon(Icons.receipt, size: 14, color: contentColor),
                 const SizedBox(width: 4),
                 Flexible(
-                  child: Text(flight.recordLocator ?? '', overflow: TextOverflow.ellipsis),
-                  )
+                  child: Text(
+                    flight.recordLocator ?? '',
+                    style: TextStyle(color: contentColor),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
               ],
-            )
+            ),
           );
         }
       case TravelKind.hotel:
         final hotel = t as HotelItem;
-          childs.add(
+        childs.add(
           Row(
             children: [
-              const Icon(Icons.location_city, size: 14,),
+              Icon(Icons.location_city, size: 14, color: contentColor),
               const SizedBox(width: 4),
               Flexible(
-                child: Text(hotel.name, overflow: TextOverflow.ellipsis),
-                )
+                child: Text(
+                  hotel.name,
+                  style: TextStyle(color: contentColor),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
             ],
-          )
+          ),
         );
-          childs.add(
+        childs.add(
           Row(
             children: [
-              const Icon(Icons.location_pin, size: 14,),
+              Icon(Icons.location_pin, size: 14, color: contentColor),
               const SizedBox(width: 4),
               Flexible(
-                child: Text(hotel.location ?? '', overflow: TextOverflow.ellipsis),
-                )
+                child: Text(
+                  hotel.location ?? '',
+                  style: TextStyle(color: contentColor),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
             ],
-          )
+          ),
         );
         break;
       case TravelKind.rentalCar:
@@ -356,26 +578,26 @@ class _TravelListScreenState extends State<TravelListScreen> {
           childs.add(
             Row(
               children: [
-                const Icon(Icons.receipt, size: 14,),
+                Icon(Icons.receipt, size: 14, color: contentColor),
                 const SizedBox(width: 4),
                 Flexible(
-                  child: Text(rentalCar.recordLocator ?? '', overflow: TextOverflow.ellipsis),
-                  )
+                  child: Text(
+                    rentalCar.recordLocator ?? '',
+                    style: TextStyle(color: contentColor),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
               ],
-            )
+            ),
           );
         }
       default:
         break;
     }
 
-
-    return ListTile(
-      //leading: Icon(_travelKindIcon(t.kind)),
-      subtitle: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: childs
-      )
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: childs,
     );
   }
 }

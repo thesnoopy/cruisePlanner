@@ -86,6 +86,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get today => 'Heute';
 
   @override
+  String get pastStatusIconSemanticLabel => 'Vergangener Eintrag';
+
+  @override
   String get harbour => 'Hafen';
 
   @override

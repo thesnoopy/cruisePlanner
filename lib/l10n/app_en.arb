@@ -63,6 +63,7 @@
   "allOnBoard": "All on Board",
   "noFutureExcursions": "No Excursion",
   "today": "Today",
+  "pastStatusIconSemanticLabel": "Past item",
   "harbour": "Port",
   "meetingPoint": "Meeting Point",
   "price": "Price",

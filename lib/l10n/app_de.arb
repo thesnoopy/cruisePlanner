@@ -125,6 +125,7 @@
   },
 
   "today": "Heute",
+  "pastStatusIconSemanticLabel": "Vergangener Eintrag",
   "@homeDeleteTooltip": {
     "description": "Heute"
   },

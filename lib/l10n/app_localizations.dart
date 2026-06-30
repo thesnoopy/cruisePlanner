@@ -245,6 +245,12 @@ abstract class AppLocalizations {
   /// **'Today'**
   String get today;
 
+  /// No description provided for @pastStatusIconSemanticLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Past item'**
+  String get pastStatusIconSemanticLabel;
+
   /// No description provided for @harbour.
   ///
   /// In en, this message translates to:
