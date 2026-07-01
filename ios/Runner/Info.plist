@@ -64,5 +64,7 @@
 	<true/>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Cruise Planner uses your location to show your position on maps and help you find nearby places during trip planning.</string>
 </dict>
 </plist>

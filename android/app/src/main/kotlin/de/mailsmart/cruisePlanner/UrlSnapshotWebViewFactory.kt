@@ -38,6 +38,91 @@ class UrlSnapshotWebViewFactory(
         private const val capturePageBuffer = 12
         private const val maxCapturePagesSafetyLimit = 100
         private const val whiteCaptureThreshold = 0.0015
+        private const val hideCaptureOverlaysScript =
+            """
+            (function() {
+              const body = document.body;
+              if (!body) {
+                return 0;
+              }
+              const overlayAttr = 'data-url-snapshot-overlay-hidden';
+              const visibilityAttr = 'data-url-snapshot-overlay-visibility';
+              const displayAttr = 'data-url-snapshot-overlay-display';
+              const pointerAttr = 'data-url-snapshot-overlay-pointer-events';
+              const nodes = body.querySelectorAll('*');
+              const viewportHeight = window.innerHeight || document.documentElement.clientHeight || 0;
+              const edgeThreshold = Math.max(24, viewportHeight * 0.12);
+              let hiddenCount = 0;
+              for (const node of nodes) {
+                if (!(node instanceof HTMLElement)) {
+                  continue;
+                }
+                if (node.getAttribute(overlayAttr) === '1') {
+                  continue;
+                }
+                const style = window.getComputedStyle(node);
+                if (style.position !== 'fixed' && style.position !== 'sticky') {
+                  continue;
+                }
+                if (style.display === 'none' || style.visibility === 'hidden') {
+                  continue;
+                }
+                const opacity = parseFloat(style.opacity || '1');
+                if (!Number.isFinite(opacity) || opacity <= 0.01) {
+                  continue;
+                }
+                const rect = node.getBoundingClientRect();
+                if (rect.width <= 0 || rect.height <= 0) {
+                  continue;
+                }
+                if (viewportHeight <= 0 || rect.height > viewportHeight * 0.35) {
+                  continue;
+                }
+                const nearTop = rect.top <= edgeThreshold;
+                const nearBottom = rect.bottom >= (viewportHeight - edgeThreshold);
+                if (!nearTop && !nearBottom) {
+                  continue;
+                }
+                node.setAttribute(overlayAttr, '1');
+                node.setAttribute(visibilityAttr, node.style.visibility || '');
+                node.setAttribute(displayAttr, node.style.display || '');
+                node.setAttribute(pointerAttr, node.style.pointerEvents || '');
+                node.style.visibility = 'hidden';
+                node.style.pointerEvents = 'none';
+                hiddenCount += 1;
+              }
+              return hiddenCount;
+            })();
+            """
+        private const val restoreCaptureOverlaysScript =
+            """
+            (function() {
+              const body = document.body;
+              if (!body) {
+                return 0;
+              }
+              const overlayAttr = 'data-url-snapshot-overlay-hidden';
+              const visibilityAttr = 'data-url-snapshot-overlay-visibility';
+              const displayAttr = 'data-url-snapshot-overlay-display';
+              const pointerAttr = 'data-url-snapshot-overlay-pointer-events';
+              const nodes = body.querySelectorAll('[' + overlayAttr + '="1"]');
+              let restoredCount = 0;
+              for (const node of nodes) {
+                if (!(node instanceof HTMLElement)) {
+                  continue;
+                }
+                node.style.visibility = node.getAttribute(visibilityAttr) || '';
+                node.style.display = node.getAttribute(displayAttr) || '';
+                node.style.pointerEvents = node.getAttribute(pointerAttr) || '';
+                node.removeAttribute(overlayAttr);
+                node.removeAttribute(visibilityAttr);
+                node.removeAttribute(displayAttr);
+                node.removeAttribute(pointerAttr);
+                restoredCount += 1;
+              }
+              return restoredCount;
+            })();
+            """
     }
 
     override fun create(context: Context, viewId: Int, args: Any?): PlatformView {
@@ -242,29 +327,39 @@ class UrlSnapshotWebViewFactory(
                 pdfDocumentClosed = true
             }
 
+            fun restoreCaptureOverlayState(onRestored: () -> Unit) {
+                restoreCaptureOverlays {
+                    onRestored()
+                }
+            }
+
             fun finishWithError(code: String, message: String) {
-                restoreScrollPosition(originalScrollX, originalScrollY)
-                closePdfDocument()
-                isCapturing = false
-                result.error(code, message, null)
+                restoreCaptureOverlayState {
+                    restoreScrollPosition(originalScrollX, originalScrollY)
+                    closePdfDocument()
+                    isCapturing = false
+                    result.error(code, message, null)
+                }
             }
 
             fun finishWithSuccess(pdfFile: File, pageCount: Int) {
-                restoreScrollPosition(originalScrollX, originalScrollY)
-                isCapturing = false
-                Log.d(
-                    logTag,
-                    "capture complete pageCount=$pageCount fileSizeBytes=${pdfFile.length()} filePath=${pdfFile.absolutePath}",
-                )
-                result.success(
-                    hashMapOf<String, Any?>(
-                        "filePath" to pdfFile.absolutePath,
-                        "title" to webView.title,
-                        "url" to (webView.url ?: sourceUrl),
-                        "pageCount" to pageCount,
-                        "fileSizeBytes" to pdfFile.length(),
-                    ),
-                )
+                restoreCaptureOverlayState {
+                    restoreScrollPosition(originalScrollX, originalScrollY)
+                    isCapturing = false
+                    Log.d(
+                        logTag,
+                        "capture complete pageCount=$pageCount fileSizeBytes=${pdfFile.length()} filePath=${pdfFile.absolutePath}",
+                    )
+                    result.success(
+                        hashMapOf<String, Any?>(
+                            "filePath" to pdfFile.absolutePath,
+                            "title" to webView.title,
+                            "url" to (webView.url ?: sourceUrl),
+                            "pageCount" to pageCount,
+                            "fileSizeBytes" to pdfFile.length(),
+                        ),
+                    )
+                }
             }
 
             val initialScrollExtent = webView.verticalScrollExtentPx().takeIf { it > 0 } ?: viewportHeight
@@ -284,163 +379,165 @@ class UrlSnapshotWebViewFactory(
             )
 
             fun captureStep() {
-                val currentOffset = webView.verticalScrollOffsetPx()
-                webView.invalidate()
-                val captureResult = try {
-                    captureVisibleBitmap(
-                        webView = webView,
-                        width = viewportWidth,
-                        height = viewportHeight,
-                        pageIndex = nonWhiteRatios.size + 1,
-                    )
-                } catch (exception: Exception) {
-                    finishWithError(
-                        "write_failed",
-                        exception.message ?: "Failed to capture the visible webpage area.",
+                hideCaptureOverlays {
+                    val currentOffset = webView.verticalScrollOffsetPx()
+                    webView.invalidate()
+                    val captureResult = try {
+                        captureVisibleBitmap(
+                            webView = webView,
+                            width = viewportWidth,
+                            height = viewportHeight,
+                            pageIndex = nonWhiteRatios.size + 1,
                         )
-                    return
-                }
-                val bitmap = captureResult.bitmap
-                val nonWhiteRatio = captureResult.nonWhiteRatio
-                val sampleHash = captureResult.sampleHash
-                nonWhiteRatios.add(nonWhiteRatio)
-                sampleHashes.add(sampleHash)
-                val pageIndex = nonWhiteRatios.size
+                    } catch (exception: Exception) {
+                        finishWithError(
+                            "write_failed",
+                            exception.message ?: "Failed to capture the visible webpage area.",
+                            )
+                        return@hideCaptureOverlays
+                    }
+                    val bitmap = captureResult.bitmap
+                    val nonWhiteRatio = captureResult.nonWhiteRatio
+                    val sampleHash = captureResult.sampleHash
+                    nonWhiteRatios.add(nonWhiteRatio)
+                    sampleHashes.add(sampleHash)
+                    val pageIndex = nonWhiteRatios.size
 
-                val scrollOffset = webView.verticalScrollOffsetPx()
-                val scrollExtent = webView.verticalScrollExtentPx().takeIf { it > 0 } ?: viewportHeight
-                val scrollRange = webView.verticalScrollRangePx().takeIf { it > 0 }
-                    ?: (webView.contentHeight * webView.scale).toInt().coerceAtLeast(viewportHeight)
-                val pdfPageSize = pdfPageSizeForBitmap(bitmap)
-                val estimatedPages = estimateRequiredPages(
-                    scrollRange = scrollRange,
-                    scrollExtent = scrollExtent,
-                    stepPx = (scrollExtent - overlapPx).coerceAtLeast(1),
-                )
-                val maxPages = determineMaxCapturePages(estimatedPages)
-                val maxOffset = (scrollRange - scrollExtent).coerceAtLeast(0)
-                val isLastPage = currentOffset >= maxOffset
-                writeDebugBitmapIfNeeded(
-                    bitmap = bitmap,
-                    pageIndex = pageIndex,
-                    isLastPage = isLastPage,
-                )
-                Log.d(
-                    logTag,
-                    "capture page=$pageIndex " +
-                        "view=${webView.width}x${webView.height} " +
-                        "scrollY=${webView.scrollY} offset=$scrollOffset extent=$scrollExtent range=$scrollRange " +
-                        "bitmap=${bitmap.width}x${bitmap.height} " +
-                        "pdf=${pdfPageSize.first}x${pdfPageSize.second} " +
-                        "nonWhiteRatio=$nonWhiteRatio " +
-                        "sampleHash=$sampleHash " +
-                        "strategy=${captureResult.strategy.logName}",
-                )
-                logRepeatedSampleHashIfNeeded(sampleHashes, captureResult.strategy)
-                if (nonWhiteRatio <= whiteCaptureThreshold) {
-                    Log.d(
-                        logTag,
-                        "capture page=$pageIndex flagged as near-white strategy=${captureResult.strategy.logName}",
+                    val scrollOffset = webView.verticalScrollOffsetPx()
+                    val scrollExtent = webView.verticalScrollExtentPx().takeIf { it > 0 } ?: viewportHeight
+                    val scrollRange = webView.verticalScrollRangePx().takeIf { it > 0 }
+                        ?: (webView.contentHeight * webView.scale).toInt().coerceAtLeast(viewportHeight)
+                    val pdfPageSize = pdfPageSizeForBitmap(bitmap)
+                    val estimatedPages = estimateRequiredPages(
+                        scrollRange = scrollRange,
+                        scrollExtent = scrollExtent,
+                        stepPx = (scrollExtent - overlapPx).coerceAtLeast(1),
                     )
-                }
-
-                try {
-                    appendBitmapPageToPdfDocument(
-                        pdfDocument = pdfDocument,
+                    val maxPages = determineMaxCapturePages(estimatedPages)
+                    val maxOffset = (scrollRange - scrollExtent).coerceAtLeast(0)
+                    val isLastPage = currentOffset >= maxOffset
+                    writeDebugBitmapIfNeeded(
                         bitmap = bitmap,
                         pageIndex = pageIndex,
+                        isLastPage = isLastPage,
                     )
-                } catch (exception: Exception) {
+                    Log.d(
+                        logTag,
+                        "capture page=$pageIndex " +
+                            "view=${webView.width}x${webView.height} " +
+                            "scrollY=${webView.scrollY} offset=$scrollOffset extent=$scrollExtent range=$scrollRange " +
+                            "bitmap=${bitmap.width}x${bitmap.height} " +
+                            "pdf=${pdfPageSize.first}x${pdfPageSize.second} " +
+                            "nonWhiteRatio=$nonWhiteRatio " +
+                            "sampleHash=$sampleHash " +
+                            "strategy=${captureResult.strategy.logName}",
+                    )
+                    logRepeatedSampleHashIfNeeded(sampleHashes, captureResult.strategy)
+                    if (nonWhiteRatio <= whiteCaptureThreshold) {
+                        Log.d(
+                            logTag,
+                            "capture page=$pageIndex flagged as near-white strategy=${captureResult.strategy.logName}",
+                        )
+                    }
+
+                    try {
+                        appendBitmapPageToPdfDocument(
+                            pdfDocument = pdfDocument,
+                            bitmap = bitmap,
+                            pageIndex = pageIndex,
+                        )
+                    } catch (exception: Exception) {
+                        if (!bitmap.isRecycled) {
+                            bitmap.recycle()
+                        }
+                        finishWithError(
+                            "write_failed",
+                            exception.message ?: "Failed to generate PDF document.",
+                        )
+                        return@hideCaptureOverlays
+                    }
                     if (!bitmap.isRecycled) {
                         bitmap.recycle()
                     }
-                    finishWithError(
-                        "write_failed",
-                        exception.message ?: "Failed to generate PDF document.",
-                    )
-                    return
-                }
-                if (!bitmap.isRecycled) {
-                    bitmap.recycle()
-                }
 
-                if (currentOffset >= maxOffset) {
-                    if (shouldRejectBlankCapture(nonWhiteRatios)) {
-                        finishWithError(
-                            "write_failed",
-                            "The captured webpage content was blank after scrolling.",
-                        )
-                        return
-                    }
-
-                    val pdfFile = try {
-                        writePdfDocumentToTempFile(pdfDocument).also {
-                            pdfDocumentClosed = true
+                    if (currentOffset >= maxOffset) {
+                        if (shouldRejectBlankCapture(nonWhiteRatios)) {
+                            finishWithError(
+                                "write_failed",
+                                "The captured webpage content was blank after scrolling.",
+                            )
+                            return@hideCaptureOverlays
                         }
-                    } catch (exception: Exception) {
-                        pdfDocumentClosed = true
-                        finishWithError(
-                            "write_failed",
-                            exception.message ?: "Failed to generate PDF document.",
-                        )
-                        return
-                    }
-                    if (!pdfFile.exists() || pdfFile.length() <= 0) {
-                        finishWithError("empty_pdf", "Generated PDF is empty.")
-                        return
-                    }
-                    finishWithSuccess(pdfFile, pageIndex)
-                    return
-                }
 
-                if (pageIndex >= maxPages) {
-                    Log.d(
-                        logTag,
-                        "capture limit estimatedPages=$estimatedPages maxPages=$maxPages lastScrollY=${webView.scrollY}",
-                    )
-                    finishWithError(
-                        "capture_limit_exceeded",
-                        "Page requires about $estimatedPages pages, limit is $maxPages.",
-                    )
-                    return
-                }
-
-                val nextOffset = (currentOffset + (scrollExtent - overlapPx).coerceAtLeast(1))
-                    .coerceAtMost(maxOffset)
-                if (nextOffset <= currentOffset) {
-                    if (shouldRejectBlankCapture(nonWhiteRatios)) {
-                        finishWithError(
-                            "write_failed",
-                            "The captured webpage content was blank after scrolling.",
-                        )
-                        return
-                    }
-
-                    val pdfFile = try {
-                        writePdfDocumentToTempFile(pdfDocument).also {
+                        val pdfFile = try {
+                            writePdfDocumentToTempFile(pdfDocument).also {
+                                pdfDocumentClosed = true
+                            }
+                        } catch (exception: Exception) {
                             pdfDocumentClosed = true
+                            finishWithError(
+                                "write_failed",
+                                exception.message ?: "Failed to generate PDF document.",
+                            )
+                            return@hideCaptureOverlays
                         }
-                    } catch (exception: Exception) {
-                        pdfDocumentClosed = true
-                        finishWithError(
-                            "write_failed",
-                            exception.message ?: "Failed to generate PDF document.",
-                        )
-                        return
+                        if (!pdfFile.exists() || pdfFile.length() <= 0) {
+                            finishWithError("empty_pdf", "Generated PDF is empty.")
+                            return@hideCaptureOverlays
+                        }
+                        finishWithSuccess(pdfFile, pageIndex)
+                        return@hideCaptureOverlays
                     }
-                    if (!pdfFile.exists() || pdfFile.length() <= 0) {
-                        finishWithError("empty_pdf", "Generated PDF is empty.")
-                        return
-                    }
-                    finishWithSuccess(pdfFile, pageIndex)
-                    return
-                }
 
-                scrollToAndWaitForDraw(
-                    scrollX = originalScrollX,
-                    scrollY = nextOffset,
-                    callback = { captureStep() },
-                )
+                    if (pageIndex >= maxPages) {
+                        Log.d(
+                            logTag,
+                            "capture limit estimatedPages=$estimatedPages maxPages=$maxPages lastScrollY=${webView.scrollY}",
+                        )
+                        finishWithError(
+                            "capture_limit_exceeded",
+                            "Page requires about $estimatedPages pages, limit is $maxPages.",
+                        )
+                        return@hideCaptureOverlays
+                    }
+
+                    val nextOffset = (currentOffset + (scrollExtent - overlapPx).coerceAtLeast(1))
+                        .coerceAtMost(maxOffset)
+                    if (nextOffset <= currentOffset) {
+                        if (shouldRejectBlankCapture(nonWhiteRatios)) {
+                            finishWithError(
+                                "write_failed",
+                                "The captured webpage content was blank after scrolling.",
+                            )
+                            return@hideCaptureOverlays
+                        }
+
+                        val pdfFile = try {
+                            writePdfDocumentToTempFile(pdfDocument).also {
+                                pdfDocumentClosed = true
+                            }
+                        } catch (exception: Exception) {
+                            pdfDocumentClosed = true
+                            finishWithError(
+                                "write_failed",
+                                exception.message ?: "Failed to generate PDF document.",
+                            )
+                            return@hideCaptureOverlays
+                        }
+                        if (!pdfFile.exists() || pdfFile.length() <= 0) {
+                            finishWithError("empty_pdf", "Generated PDF is empty.")
+                            return@hideCaptureOverlays
+                        }
+                        finishWithSuccess(pdfFile, pageIndex)
+                        return@hideCaptureOverlays
+                    }
+
+                    scrollToAndWaitForDraw(
+                        scrollX = originalScrollX,
+                        scrollY = nextOffset,
+                        callback = { captureStep() },
+                    )
+                }
             }
 
             scrollToAndWaitForDraw(
@@ -557,6 +654,35 @@ class UrlSnapshotWebViewFactory(
             webView.scrollTo(scrollX, scrollY)
             webView.post {
                 webView.scrollTo(scrollX, scrollY)
+            }
+        }
+
+        private fun hideCaptureOverlays(onComplete: () -> Unit) {
+            Log.d(logTag, "overlay cleanup start")
+            runOverlayJavascript(
+                script = hideCaptureOverlaysScript,
+                logPrefix = "overlay cleanup hiddenOverlayCount",
+                onComplete = { _ -> onComplete() },
+            )
+        }
+
+        private fun restoreCaptureOverlays(onComplete: () -> Unit) {
+            runOverlayJavascript(
+                script = restoreCaptureOverlaysScript,
+                logPrefix = "overlay cleanup restored",
+                onComplete = { _ -> onComplete() },
+            )
+        }
+
+        private fun runOverlayJavascript(
+            script: String,
+            logPrefix: String,
+            onComplete: (Int) -> Unit,
+        ) {
+            webView.evaluateJavascript(script) { rawResult ->
+                val count = parseJavascriptIntegerResult(rawResult)
+                Log.d(logTag, "$logPrefix=$count")
+                onComplete(count)
             }
         }
 
@@ -682,6 +808,14 @@ class UrlSnapshotWebViewFactory(
             }
 
             return java.lang.Long.toHexString(hash)
+        }
+
+        private fun parseJavascriptIntegerResult(rawResult: String?): Int {
+            val trimmed = rawResult?.trim().orEmpty()
+            if (trimmed.isEmpty() || trimmed == "null") {
+                return 0
+            }
+            return trimmed.toIntOrNull() ?: 0
         }
 
         private fun logRepeatedSampleHashIfNeeded(
