@@ -5,7 +5,6 @@ import '../../models/documents/document_record.dart';
 import '../../store/document_store.dart';
 import 'document_attachment_service.dart';
 import 'document_import_service.dart';
-import 'url_snapshot_import_service.dart';
 
 class SeaDayDocumentSectionData {
   const SeaDayDocumentSectionData({
@@ -40,17 +39,13 @@ class SeaDayDocumentSectionService {
     DocumentAttachmentService? attachmentService,
     DocumentStore? documentStore,
     DocumentImportService? importService,
-    UrlSnapshotImportService? urlSnapshotImportService,
   })  : _attachmentService = attachmentService ?? DocumentAttachmentService(),
         _documentStore = documentStore ?? DocumentStore(),
-        _importService = importService ?? DocumentImportService(),
-        _urlSnapshotImportService =
-            urlSnapshotImportService ?? UrlSnapshotImportService();
+        _importService = importService ?? DocumentImportService();
 
   final DocumentAttachmentService _attachmentService;
   final DocumentStore _documentStore;
   final DocumentImportService _importService;
-  final UrlSnapshotImportService _urlSnapshotImportService;
 
   Future<SeaDayDocumentSectionData> loadForSeaDay(String seaDayId) async {
     final linkedDocuments = await _attachmentService.getDocumentsForSeaDay(
@@ -132,49 +127,4 @@ class SeaDayDocumentSectionService {
     );
   }
 
-  Future<SeaDayDocumentImportResult> importUrlDocument({
-    required String seaDayId,
-    required String sourceUrl,
-    String? title,
-  }) async {
-    final document = await _urlSnapshotImportService.importUrl(
-      sourceUrl: sourceUrl,
-      title: title,
-    );
-    return _attachImportedDocument(
-      seaDayId: seaDayId,
-      document: document,
-    );
-  }
-
-  Future<SeaDayDocumentImportResult> _attachImportedDocument({
-    required String seaDayId,
-    required DocumentRecord document,
-  }) async {
-    final linkedDocuments = await _attachmentService.getDocumentsForSeaDay(
-      seaDayId: seaDayId,
-    );
-    final alreadyLinked = linkedDocuments.any(
-      (linkedDocument) => linkedDocument.id == document.id,
-    );
-    if (alreadyLinked) {
-      return SeaDayDocumentImportResult(
-        document: document,
-        outcome: SeaDayDocumentImportOutcome.alreadyLinked,
-      );
-    }
-
-    final attached = await _attachmentService.attachDocumentToSeaDay(
-      seaDayId: seaDayId,
-      documentId: document.id,
-    );
-    if (!attached) {
-      throw StateError('Failed to attach document to sea day.');
-    }
-
-    return SeaDayDocumentImportResult(
-      document: document,
-      outcome: SeaDayDocumentImportOutcome.importedAndLinked,
-    );
-  }
 }

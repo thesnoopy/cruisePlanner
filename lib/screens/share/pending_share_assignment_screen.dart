@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 
 import '../../l10n/app_localizations.dart';
+import '../../models/documents/url_document_target.dart';
 import '../../models/share/share_intake_payload.dart';
+import '../../screens/documents/url_snapshot_capture_screen.dart';
+import '../../services/documents/url_document_service.dart';
 import '../../services/share/pending_share_assignment_service.dart';
 import '../../widgets/documents/document_title_prompt_dialog.dart';
 
@@ -118,8 +121,13 @@ class _PendingShareAssignmentScreenState
       return;
     }
 
+    if (item.kind == ShareIntakeItemKind.url) {
+      await _assignUrlItem(item, target, loc);
+      return;
+    }
+
     String? title;
-    if (item.isFileBased || item.kind == ShareIntakeItemKind.url) {
+    if (item.isFileBased) {
       title = await showDocumentTitlePromptDialog(
         context: context,
         initialTitle: _initialDocumentTitle(item),
@@ -143,6 +151,94 @@ class _PendingShareAssignmentScreenState
       }
 
       Navigator.of(context).pop<String>(_messageForOutcome(loc, outcome));
+    } catch (_) {
+      if (!mounted) {
+        return;
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(loc.documentImportFailed)),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _isMutating = false);
+      }
+    }
+  }
+
+  Future<void> _assignUrlItem(
+    ShareIntakeItem item,
+    PendingShareAssignmentTarget target,
+    AppLocalizations loc,
+  ) async {
+    final action = await _showUrlAssignmentOptions(loc);
+    if (action == null || !mounted) {
+      return;
+    }
+
+    if (action == _PendingShareUrlAssignmentAction.linkOnly) {
+      setState(() => _isMutating = true);
+      try {
+        final result = await _service.assignPendingUrlAsLinkDocument(
+          batchId: widget.batchId,
+          itemIndex: widget.itemIndex,
+          target: target,
+        );
+        if (!mounted) {
+          return;
+        }
+
+        Navigator.of(context).pop<String>(
+          _messageForUrlOutcome(loc, result.outcome),
+        );
+      } catch (_) {
+        if (!mounted) {
+          return;
+        }
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(loc.documentImportFailed)),
+        );
+      } finally {
+        if (mounted) {
+          setState(() => _isMutating = false);
+        }
+      }
+      return;
+    }
+
+    final captureResult = await Navigator.of(context).push<UrlDocumentSaveResult>(
+      MaterialPageRoute(
+        builder: (_) => UrlSnapshotCaptureScreen(
+          target: UrlDocumentTarget(
+            type: _mapUrlTargetType(target.type),
+            id: target.id,
+          ),
+          initialUrl: item.value,
+        ),
+      ),
+    );
+    if (captureResult == null || !mounted) {
+      return;
+    }
+
+    setState(() => _isMutating = true);
+    try {
+      await _service.assignPendingUrlAsLinkDocument(
+        batchId: widget.batchId,
+        itemIndex: widget.itemIndex,
+        target: target,
+        removePendingItem: false,
+      );
+      await _service.completePendingUrlAssignment(
+        batchId: widget.batchId,
+        itemIndex: widget.itemIndex,
+      );
+      if (!mounted) {
+        return;
+      }
+
+      Navigator.of(context).pop<String>(loc.shareAssignUrlAndPdfSaved);
     } catch (_) {
       if (!mounted) {
         return;
@@ -263,6 +359,37 @@ class _PendingShareAssignmentScreenState
     }
   }
 
+  String _messageForUrlOutcome(
+    AppLocalizations loc,
+    UrlDocumentSaveOutcome outcome,
+  ) {
+    switch (outcome) {
+      case UrlDocumentSaveOutcome.importedAndLinked:
+        return loc.documentImported;
+      case UrlDocumentSaveOutcome.existingLinked:
+        return loc.documentLinkedExisting;
+      case UrlDocumentSaveOutcome.alreadyLinked:
+        return loc.documentAlreadyLinked;
+    }
+  }
+
+  UrlDocumentTargetType _mapUrlTargetType(
+    PendingShareAssignmentTargetType type,
+  ) {
+    switch (type) {
+      case PendingShareAssignmentTargetType.cruise:
+        return UrlDocumentTargetType.cruise;
+      case PendingShareAssignmentTargetType.excursion:
+        return UrlDocumentTargetType.excursion;
+      case PendingShareAssignmentTargetType.travelItem:
+        return UrlDocumentTargetType.travelItem;
+      case PendingShareAssignmentTargetType.portCall:
+        return UrlDocumentTargetType.portCall;
+      case PendingShareAssignmentTargetType.seaDay:
+        return UrlDocumentTargetType.seaDay;
+    }
+  }
+
   String _initialDocumentTitle(ShareIntakeItem item) {
     switch (item.kind) {
       case ShareIntakeItemKind.file:
@@ -274,6 +401,57 @@ class _PendingShareAssignmentScreenState
         return item.value.trim();
     }
   }
+
+  Future<_PendingShareUrlAssignmentAction?> _showUrlAssignmentOptions(
+    AppLocalizations loc,
+  ) {
+    return showModalBottomSheet<_PendingShareUrlAssignmentAction>(
+      context: context,
+      builder: (ctx) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(24, 20, 24, 24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                loc.shareAssignUrlOptionsTitle,
+                style: Theme.of(ctx).textTheme.titleMedium,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                loc.shareAssignUrlOptionsHint,
+                style: Theme.of(ctx).textTheme.bodySmall,
+              ),
+              const SizedBox(height: 16),
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: const Icon(Icons.link_outlined),
+                title: Text(loc.shareAssignAddLinkOnly),
+                onTap: () => Navigator.of(ctx).pop(
+                  _PendingShareUrlAssignmentAction.linkOnly,
+                ),
+              ),
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: const Icon(Icons.picture_as_pdf_outlined),
+                title: Text(loc.shareAssignAddLinkAndSavePdf),
+                subtitle: Text(loc.shareAssignUrlOpenBeforeSaveHint),
+                onTap: () => Navigator.of(ctx).pop(
+                  _PendingShareUrlAssignmentAction.linkAndSavePdf,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+enum _PendingShareUrlAssignmentAction {
+  linkOnly,
+  linkAndSavePdf,
 }
 
 class _CruiseTargetGroup extends StatelessWidget {

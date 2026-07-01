@@ -387,6 +387,76 @@ class DocumentAttachmentService {
     return _resolveDocuments(seaDay.documentIds);
   }
 
+  Future<bool> isDocumentLinkedToCruise({
+    required String cruiseId,
+    required String documentId,
+  }) async {
+    await _ensureCruisesLoaded();
+
+    final cruise = _cruiseStore.getCruise(cruiseId);
+    if (cruise == null) {
+      return false;
+    }
+
+    return cruise.documentIds.contains(documentId);
+  }
+
+  Future<bool> isDocumentLinkedToExcursion({
+    required String excursionId,
+    required String documentId,
+  }) async {
+    await _ensureCruisesLoaded();
+
+    final excursion = _findExcursion(excursionId);
+    if (excursion == null) {
+      return false;
+    }
+
+    return excursion.documentIds.contains(documentId);
+  }
+
+  Future<bool> isDocumentLinkedToTravelItem({
+    required String travelItemId,
+    required String documentId,
+  }) async {
+    await _ensureCruisesLoaded();
+
+    final travelItem = _findTravelItem(travelItemId);
+    if (travelItem == null) {
+      return false;
+    }
+
+    return travelItem.documentIds.contains(documentId);
+  }
+
+  Future<bool> isDocumentLinkedToPortCall({
+    required String portCallId,
+    required String documentId,
+  }) async {
+    await _ensureCruisesLoaded();
+
+    final portCall = _findPortCall(portCallId);
+    if (portCall == null) {
+      return false;
+    }
+
+    return portCall.documentIds.contains(documentId);
+  }
+
+  Future<bool> isDocumentLinkedToSeaDay({
+    required String seaDayId,
+    required String documentId,
+  }) async {
+    await _ensureCruisesLoaded();
+
+    final seaDay = _findSeaDay(seaDayId);
+    if (seaDay == null) {
+      return false;
+    }
+
+    return seaDay.documentIds.contains(documentId);
+  }
+
   Future<int> countDocumentReferences(String documentId) async {
     return _referenceCleanupService.countDocumentReferences(documentId);
   }
@@ -402,10 +472,6 @@ class DocumentAttachmentService {
   }
 
   Future<void> _ensureCruisesLoaded() async {
-    if (_cruiseStore.isLoaded) {
-      return;
-    }
-
     await _cruiseStore.load();
   }
 

@@ -92,10 +92,6 @@ class DocumentReferenceCleanupService {
   }
 
   Future<void> _ensureCruisesLoaded() async {
-    if (_cruiseStore.isLoaded) {
-      return;
-    }
-
     await _cruiseStore.load();
   }
 

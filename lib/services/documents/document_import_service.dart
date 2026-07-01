@@ -56,6 +56,35 @@ class DocumentImportService {
     String? sourceDescription,
     String? sourceHost,
   }) async {
+    final resolution = await createStoredDocumentIfNeeded(
+      bytes: bytes,
+      originalFileName: originalFileName,
+      mimeType: mimeType,
+      title: title,
+      kind: kind,
+      origin: origin,
+      sourceUrl: sourceUrl,
+      snapshotStatus: snapshotStatus,
+      capturedAtUtc: capturedAtUtc,
+      sourceDescription: sourceDescription,
+      sourceHost: sourceHost,
+    );
+    return resolution.document;
+  }
+
+  Future<DocumentImportResolution> createStoredDocumentIfNeeded({
+    required Uint8List bytes,
+    required String originalFileName,
+    required String mimeType,
+    String? title,
+    DocumentKind? kind,
+    DocumentOrigin origin = DocumentOrigin.localFile,
+    String? sourceUrl,
+    DocumentSnapshotStatus? snapshotStatus,
+    DateTime? capturedAtUtc,
+    String? sourceDescription,
+    String? sourceHost,
+  }) async {
     final normalizedFileName = originalFileName.trim();
     if (normalizedFileName.isEmpty) {
       throw ArgumentError.value(
@@ -70,6 +99,17 @@ class DocumentImportService {
       throw ArgumentError.value(mimeType, 'mimeType', 'Must not be empty.');
     }
 
+    final contentHash = _fileStore.calculateBytesContentHash(bytes);
+    final existingDocument = await _documentStore.findDocumentByContentHash(
+      contentHash,
+    );
+    if (existingDocument != null) {
+      return DocumentImportResolution(
+        document: existingDocument,
+        kind: DocumentImportResolutionKind.existing,
+      );
+    }
+
     final documentId = _uuid.v4();
     final fileExtension = _extractFileExtension(normalizedFileName);
     final storedFile = await _fileStore.writeBytesIntoStorage(
@@ -79,7 +119,6 @@ class DocumentImportService {
     );
 
     final relativePath = _fileStore.buildRelativePath(documentId, fileExtension);
-    final contentHash = await _fileStore.calculateContentHash(storedFile);
     final byteSize = await storedFile.length();
     final resolvedTitle = _resolveTitle(
       explicitTitle: title,
@@ -109,7 +148,10 @@ class DocumentImportService {
     );
 
     await _documentStore.saveDocument(record);
-    return record;
+    return DocumentImportResolution(
+      document: record,
+      kind: DocumentImportResolutionKind.imported,
+    );
   }
 
   Future<DocumentImportResolution> importFileIfNeeded({

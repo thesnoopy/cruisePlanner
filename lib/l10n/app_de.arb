@@ -660,6 +660,54 @@
   "@documentOpenFailed": {
     "description": "SnackBar, wenn ein verknüpftes Dokument nicht geöffnet werden kann"
   },
+  "urlSnapshotTitle": "Webseite als PDF speichern",
+  "@urlSnapshotTitle": {
+    "description": "Titel des Screens zum manuellen Speichern einer Webseite als PDF"
+  },
+  "urlSnapshotHint": "Lade die gewünschte Webseite in der App. Wenn der sichtbare Stand passt, speichere ihn als PDF-Dokument.",
+  "@urlSnapshotHint": {
+    "description": "Kurzer Hilfetext für den URL-Snapshot-Screen"
+  },
+  "urlSnapshotUrlLabel": "URL",
+  "@urlSnapshotUrlLabel": {
+    "description": "Beschriftung des URL-Eingabefelds im URL-Snapshot-Screen"
+  },
+  "urlSnapshotOpen": "Webseite öffnen",
+  "@urlSnapshotOpen": {
+    "description": "Aktion zum Laden einer URL im URL-Snapshot-Screen"
+  },
+  "urlSnapshotReload": "Neu laden",
+  "@urlSnapshotReload": {
+    "description": "Aktion zum Neuladen der aktuell geöffneten URL im URL-Snapshot-Screen"
+  },
+  "urlSnapshotSaveAsPdf": "Als PDF speichern",
+  "@urlSnapshotSaveAsPdf": {
+    "description": "Primäre Aktion zum Speichern des sichtbaren WebView-Inhalts als PDF"
+  },
+  "urlSnapshotSaveAsPdfShort": "URL als PDF",
+  "@urlSnapshotSaveAsPdfShort": {
+    "description": "Kurzes Label für die Dokument-Sektionsaktion zum Starten des URL-Snapshot-Flows"
+  },
+  "urlSnapshotMissingUrl": "Bitte eine gültige URL angeben.",
+  "@urlSnapshotMissingUrl": {
+    "description": "Fehlermeldung, wenn keine gültige URL für den URL-Snapshot vorliegt"
+  },
+  "urlSnapshotPageNotLoaded": "Die Seite ist noch nicht geladen und kann noch nicht als PDF gespeichert werden.",
+  "@urlSnapshotPageNotLoaded": {
+    "description": "Fehlermeldung, wenn noch keine geladene Seite für den Snapshot vorliegt"
+  },
+  "urlSnapshotLoadFailed": "Die Webseite konnte nicht geladen werden.",
+  "@urlSnapshotLoadFailed": {
+    "description": "Generische Fehlermeldung bei Ladefehlern im URL-Snapshot-Screen"
+  },
+  "urlSnapshotSaveFailed": "Das PDF konnte nicht gespeichert werden.",
+  "@urlSnapshotSaveFailed": {
+    "description": "Generische Fehlermeldung bei fehlgeschlagener PDF-Erzeugung oder Dokumentanlage"
+  },
+  "urlSnapshotUnsupportedPlatform": "Diese Funktion ist derzeit nur auf Android und iOS verfügbar.",
+  "@urlSnapshotUnsupportedPlatform": {
+    "description": "Hinweis, wenn URL-Snapshots auf der aktuellen Plattform nicht unterstützt werden"
+  },
   "documentKindPdf": "PDF",
   "@documentKindPdf": {
     "description": "Bezeichnung für PDF-Dokumente"
@@ -778,8 +826,31 @@
   "shareAssignNoTargets": "Es sind noch keine zuweisbaren Ziele verfügbar.",
   "@shareAssignNoTargets": {
     "description": "Hinweis, wenn noch keine bestehenden Ziele für eine Zuweisung vorhanden sind"
-  }
-,
+  },
+  "shareAssignUrlOptionsTitle": "Wie soll diese URL hinzugefügt werden?",
+  "@shareAssignUrlOptionsTitle": {
+    "description": "Titel für die Auswahl, wie eine geteilte URL zugeordnet werden soll"
+  },
+  "shareAssignUrlOptionsHint": "Du kannst den Link als Dokument anhängen oder zusätzlich die Webseite öffnen und den sichtbaren Stand als PDF speichern.",
+  "@shareAssignUrlOptionsHint": {
+    "description": "Hilfetext für die Auswahl im URL-Zuweisungsdialog"
+  },
+  "shareAssignAddLinkOnly": "Nur Link hinzufügen",
+  "@shareAssignAddLinkOnly": {
+    "description": "Aktion, um eine geteilte URL nur als Link-Dokument anzuhängen"
+  },
+  "shareAssignAddLinkAndSavePdf": "Link hinzufügen und PDF speichern",
+  "@shareAssignAddLinkAndSavePdf": {
+    "description": "Aktion, um eine geteilte URL anzuhängen und zusätzlich als PDF zu speichern"
+  },
+  "shareAssignUrlOpenBeforeSaveHint": "Die Webseite wird geöffnet. Prüfe den sichtbaren Stand und speichere sie dann als PDF.",
+  "@shareAssignUrlOpenBeforeSaveHint": {
+    "description": "Hinweis vor dem Einstieg in den URL-Snapshot-Flow aus dem Share-Screen"
+  },
+  "shareAssignUrlAndPdfSaved": "Link und PDF gespeichert.",
+  "@shareAssignUrlAndPdfSaved": {
+    "description": "Erfolgsmeldung nach dem Anhängen einer geteilten URL als Link und PDF"
+  },
   "syncProgressTitle": "Synchronisationsfortschritt",
   "@syncProgressTitle": {
     "description": "Titel des dedizierten Screens fÃ¼r den Synchronisationsfortschritt"
@@ -862,6 +933,7 @@
     "description": "Beschriftung des SchlieÃŸen-Buttons im Sync-Fortschrittsscreen"
   }
 }
+
 
 
 

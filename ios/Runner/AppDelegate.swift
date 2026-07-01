@@ -1,12 +1,10 @@
 import Flutter
 import UIKit
-import WebKit
 
 @main
 @objc class AppDelegate: FlutterAppDelegate, FlutterStreamHandler {
   private let shareMethodChannelName = "de.mailsmart.cruiseplanner/share_intake"
   private let shareEventChannelName = "de.mailsmart.cruiseplanner/share_intake/events"
-  private let urlSnapshotMethodChannelName = "de.mailsmart.cruiseplanner/url_snapshot"
   private let shareKey = "ShareKey"
   private let shareTypeKey = "ShareTypeKey"
   private let shareQueueKey = "ShareQueueKey"
@@ -14,8 +12,6 @@ import WebKit
   private var pendingInitialShareBatches: [[[String: Any]]] = []
   private var shareEventSink: FlutterEventSink?
   private var shareBridgeConfigured = false
-  private var urlSnapshotBridgeConfigured = false
-  private var activeUrlSnapshotCaptures: [URLPdfSnapshotCapture] = []
 
   override func application(
     _ application: UIApplication,
@@ -32,7 +28,13 @@ import WebKit
 
     if let controller = window?.rootViewController as? FlutterViewController {
       configureShareBridge(for: controller.binaryMessenger)
-      configureUrlSnapshotBridge(for: controller.binaryMessenger)
+    }
+
+    if let registrar = self.registrar(forPlugin: "URLSnapshotWebViewFactory") {
+      registrar.register(
+        URLSnapshotWebViewFactory(messenger: registrar.messenger()),
+        withId: URLSnapshotWebViewFactory.viewType
+      )
     }
 
     return result
@@ -102,48 +104,6 @@ import WebKit
       binaryMessenger: messenger
     )
     eventChannel.setStreamHandler(self)
-  }
-
-  private func configureUrlSnapshotBridge(for messenger: FlutterBinaryMessenger) {
-    if urlSnapshotBridgeConfigured {
-      return
-    }
-
-    urlSnapshotBridgeConfigured = true
-
-    let methodChannel = FlutterMethodChannel(
-      name: urlSnapshotMethodChannelName,
-      binaryMessenger: messenger
-    )
-    methodChannel.setMethodCallHandler { [weak self] call, result in
-      guard let self else {
-        result(FlutterMethodNotImplemented)
-        return
-      }
-
-      switch call.method {
-      case "captureUrlAsPdf":
-        guard
-          let arguments = call.arguments as? [String: Any],
-          let sourceUrl = (arguments["sourceUrl"] as? String)?
-            .trimmingCharacters(in: .whitespacesAndNewlines),
-          !sourceUrl.isEmpty
-        else {
-          result(
-            FlutterError(
-              code: "invalid_args",
-              message: "Missing sourceUrl.",
-              details: nil
-            )
-          )
-          return
-        }
-
-        self.captureUrlAsPdf(sourceUrl: sourceUrl, result: result)
-      default:
-        result(FlutterMethodNotImplemented)
-      }
-    }
   }
 
   private func handleShareURL(_ url: URL) -> Bool {
@@ -355,205 +315,6 @@ import WebKit
     }
 
     return scheme == "http" || scheme == "https"
-  }
-
-  private func captureUrlAsPdf(sourceUrl: String, result: @escaping FlutterResult) {
-    let captureId = UUID().uuidString
-    let capture = URLPdfSnapshotCapture.start(captureId: captureId, sourceUrl: sourceUrl) { [weak self] payload in
-      guard let self else {
-        return
-      }
-
-      self.activeUrlSnapshotCaptures.removeAll { $0.captureId == captureId }
-
-      switch payload {
-      case let .success(value):
-        result(value)
-      case let .failure(error):
-        result(error)
-      }
-    }
-
-    activeUrlSnapshotCaptures.append(capture)
-  }
-}
-
-private final class URLPdfSnapshotCapture: NSObject, WKNavigationDelegate {
-  enum Outcome {
-    case success([String: Any])
-    case failure(FlutterError)
-  }
-
-  let captureId: String
-  private let sourceUrl: String
-  private let completion: (Outcome) -> Void
-  private let webView: WKWebView
-  private var timeoutWorkItem: DispatchWorkItem?
-  private var completed = false
-
-  private init(captureId: String, sourceUrl: String, completion: @escaping (Outcome) -> Void) {
-    self.captureId = captureId
-    self.sourceUrl = sourceUrl
-    self.completion = completion
-    let configuration = WKWebViewConfiguration()
-    configuration.websiteDataStore = .nonPersistent()
-    self.webView = WKWebView(
-      frame: CGRect(x: 0, y: 0, width: 595.2, height: 841.8),
-      configuration: configuration
-    )
-    super.init()
-    webView.navigationDelegate = self
-    webView.isHidden = true
-  }
-
-  static func start(
-    captureId: String,
-    sourceUrl: String,
-    completion: @escaping (Outcome) -> Void
-  ) -> URLPdfSnapshotCapture {
-    let capture = URLPdfSnapshotCapture(
-      captureId: captureId,
-      sourceUrl: sourceUrl,
-      completion: completion
-    )
-    capture.start()
-    return capture
-  }
-
-  func start() {
-    guard let url = URL(string: sourceUrl) else {
-      finish(
-        .failure(
-          FlutterError(
-            code: "invalid_url",
-            message: "Invalid sourceUrl.",
-            details: nil
-          )
-        )
-      )
-      return
-    }
-
-    let timeoutWorkItem = DispatchWorkItem { [weak self] in
-      self?.finish(
-        .failure(
-          FlutterError(
-            code: "timeout",
-            message: "Timed out while rendering URL to PDF.",
-            details: nil
-          )
-        )
-      )
-    }
-    self.timeoutWorkItem = timeoutWorkItem
-    DispatchQueue.main.asyncAfter(deadline: .now() + 30, execute: timeoutWorkItem)
-    DispatchQueue.main.async { [weak self] in
-      self?.webView.load(URLRequest(url: url))
-    }
-  }
-
-  func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
-    DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in
-      self?.exportPdf()
-    }
-  }
-
-  func webView(
-    _ webView: WKWebView,
-    didFail navigation: WKNavigation!,
-    withError error: Error
-  ) {
-    finish(
-      .failure(
-        FlutterError(
-          code: "load_failed",
-          message: error.localizedDescription,
-          details: nil
-        )
-      )
-    )
-  }
-
-  func webView(
-    _ webView: WKWebView,
-    didFailProvisionalNavigation navigation: WKNavigation!,
-    withError error: Error
-  ) {
-    finish(
-      .failure(
-        FlutterError(
-          code: "load_failed",
-          message: error.localizedDescription,
-          details: nil
-        )
-      )
-    )
-  }
-
-  private func exportPdf() {
-    let renderer = UIPrintPageRenderer()
-    renderer.addPrintFormatter(webView.viewPrintFormatter(), startingAtPageAt: 0)
-
-    let pageRect = CGRect(x: 0, y: 0, width: 595.2, height: 841.8)
-    let printableRect = pageRect.insetBy(dx: 18, dy: 18)
-    renderer.setValue(NSValue(cgRect: pageRect), forKey: "paperRect")
-    renderer.setValue(NSValue(cgRect: printableRect), forKey: "printableRect")
-
-    let pageCount = renderer.numberOfPages
-    guard pageCount > 0 else {
-      finish(
-        .failure(
-          FlutterError(
-            code: "write_failed",
-            message: "No printable pages were generated.",
-            details: nil
-          )
-        )
-      )
-      return
-    }
-
-    let pdfData = NSMutableData()
-    UIGraphicsBeginPDFContextToData(pdfData, pageRect, nil)
-    for pageIndex in 0..<pageCount {
-      UIGraphicsBeginPDFPage()
-      renderer.drawPage(at: pageIndex, in: UIGraphicsGetPDFContextBounds())
-    }
-    UIGraphicsEndPDFContext()
-
-    guard pdfData.length > 0 else {
-      finish(
-        .failure(
-          FlutterError(
-            code: "write_failed",
-            message: "Generated PDF is empty.",
-            details: nil
-          )
-        )
-      )
-      return
-    }
-
-    finish(
-      .success([
-        "pdfBytes": FlutterStandardTypedData(bytes: pdfData as Data),
-        "effectiveUrl": webView.url?.absoluteString as Any,
-        "pageTitle": webView.title as Any,
-      ])
-    )
-  }
-
-  private func finish(_ outcome: Outcome) {
-    guard !completed else {
-      return
-    }
-
-    completed = true
-    timeoutWorkItem?.cancel()
-    timeoutWorkItem = nil
-    webView.stopLoading()
-    webView.navigationDelegate = nil
-    completion(outcome)
   }
 }
 

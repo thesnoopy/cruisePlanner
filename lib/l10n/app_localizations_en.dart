@@ -461,6 +461,44 @@ class AppLocalizationsEn extends AppLocalizations {
   String get documentKindUnknown => 'Document';
 
   @override
+  String get urlSnapshotTitle => 'Save webpage as PDF';
+
+  @override
+  String get urlSnapshotHint =>
+      'Open the relevant webpage in the app. When the visible state looks right, save it as a PDF document.';
+
+  @override
+  String get urlSnapshotUrlLabel => 'URL';
+
+  @override
+  String get urlSnapshotOpen => 'Open webpage';
+
+  @override
+  String get urlSnapshotReload => 'Reload';
+
+  @override
+  String get urlSnapshotSaveAsPdf => 'Save as PDF';
+
+  @override
+  String get urlSnapshotSaveAsPdfShort => 'URL as PDF';
+
+  @override
+  String get urlSnapshotMissingUrl => 'Please enter a valid URL.';
+
+  @override
+  String get urlSnapshotPageNotLoaded =>
+      'The page has not finished loading yet and cannot be saved as a PDF.';
+
+  @override
+  String get urlSnapshotLoadFailed => 'The webpage could not be loaded.';
+  @override
+  String get urlSnapshotSaveFailed => 'The PDF could not be saved.';
+
+  @override
+  String get urlSnapshotUnsupportedPlatform =>
+      'This feature is currently only available on Android and iOS.';
+
+  @override
   String get sharePendingTitle => 'Pending shared items';
 
   @override
@@ -523,6 +561,26 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get shareAssignNoTargets => 'No assignable targets are available yet.';
+
+  @override
+  String get shareAssignUrlOptionsTitle => 'How should this URL be added?';
+
+  @override
+  String get shareAssignUrlOptionsHint =>
+      'You can attach the link as a document or also open the webpage and save the visible state as a PDF.';
+
+  @override
+  String get shareAssignAddLinkOnly => 'Add link only';
+
+  @override
+  String get shareAssignAddLinkAndSavePdf => 'Add link and save PDF';
+
+  @override
+  String get shareAssignUrlOpenBeforeSaveHint =>
+      'The webpage will open. Review the visible state and then save it as a PDF.';
+
+  @override
+  String get shareAssignUrlAndPdfSaved => 'Link and PDF saved.';
 
   @override
   String get syncProgressTitle => 'Sync progress';
@@ -594,3 +652,4 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get syncProgressClose => 'Close';
 }
+

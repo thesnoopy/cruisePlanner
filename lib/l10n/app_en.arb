@@ -373,6 +373,54 @@
   "@documentOpenFailed": {
     "description": "Snack bar shown when opening a linked document fails"
   },
+  "urlSnapshotTitle": "Save webpage as PDF",
+  "@urlSnapshotTitle": {
+    "description": "Title of the manual webpage-to-PDF capture screen"
+  },
+  "urlSnapshotHint": "Open the relevant webpage in the app. When the visible state looks right, save it as a PDF document.",
+  "@urlSnapshotHint": {
+    "description": "Short helper text for the URL snapshot capture screen"
+  },
+  "urlSnapshotUrlLabel": "URL",
+  "@urlSnapshotUrlLabel": {
+    "description": "Label for the URL input field on the URL snapshot screen"
+  },
+  "urlSnapshotOpen": "Open webpage",
+  "@urlSnapshotOpen": {
+    "description": "Action label to load a URL on the URL snapshot screen"
+  },
+  "urlSnapshotReload": "Reload",
+  "@urlSnapshotReload": {
+    "description": "Action label to reload the currently open URL on the URL snapshot screen"
+  },
+  "urlSnapshotSaveAsPdf": "Save as PDF",
+  "@urlSnapshotSaveAsPdf": {
+    "description": "Primary action label to save the visible web view content as a PDF"
+  },
+  "urlSnapshotSaveAsPdfShort": "URL as PDF",
+  "@urlSnapshotSaveAsPdfShort": {
+    "description": "Short action label in document sections to start the URL snapshot flow"
+  },
+  "urlSnapshotMissingUrl": "Please enter a valid URL.",
+  "@urlSnapshotMissingUrl": {
+    "description": "Error shown when no valid URL is available for a URL snapshot"
+  },
+  "urlSnapshotPageNotLoaded": "The page has not finished loading yet and cannot be saved as a PDF.",
+  "@urlSnapshotPageNotLoaded": {
+    "description": "Error shown when there is no loaded page available for capture"
+  },
+  "urlSnapshotLoadFailed": "The webpage could not be loaded.",
+  "@urlSnapshotLoadFailed": {
+    "description": "Generic error shown when loading a webpage fails in the URL snapshot screen"
+  },
+  "urlSnapshotSaveFailed": "The PDF could not be saved.",
+  "@urlSnapshotSaveFailed": {
+    "description": "Generic error shown when PDF generation or document creation fails"
+  },
+  "urlSnapshotUnsupportedPlatform": "This feature is currently only available on Android and iOS.",
+  "@urlSnapshotUnsupportedPlatform": {
+    "description": "Message shown when URL snapshots are not supported on the current platform"
+  },
   "documentKindPdf": "PDF",
   "@documentKindPdf": {
     "description": "Label for PDF documents"
@@ -492,6 +540,30 @@
   "@shareAssignNoTargets": {
     "description": "Message shown when there are no existing cruise targets to assign a shared item to"
   },
+  "shareAssignUrlOptionsTitle": "How should this URL be added?",
+  "@shareAssignUrlOptionsTitle": {
+    "description": "Title for choosing how a shared URL should be assigned"
+  },
+  "shareAssignUrlOptionsHint": "You can attach the link as a document or also open the webpage and save the visible state as a PDF.",
+  "@shareAssignUrlOptionsHint": {
+    "description": "Helper text for the shared URL assignment options"
+  },
+  "shareAssignAddLinkOnly": "Add link only",
+  "@shareAssignAddLinkOnly": {
+    "description": "Action to attach a shared URL as a link-only document"
+  },
+  "shareAssignAddLinkAndSavePdf": "Add link and save PDF",
+  "@shareAssignAddLinkAndSavePdf": {
+    "description": "Action to attach a shared URL and then capture it as a PDF"
+  },
+  "shareAssignUrlOpenBeforeSaveHint": "The webpage will open. Review the visible state and then save it as a PDF.",
+  "@shareAssignUrlOpenBeforeSaveHint": {
+    "description": "Hint shown before entering the shared URL snapshot flow"
+  },
+  "shareAssignUrlAndPdfSaved": "Link and PDF saved.",
+  "@shareAssignUrlAndPdfSaved": {
+    "description": "Success message after a shared URL was attached as a link and saved as a PDF"
+  },
   "syncProgressTitle": "Sync progress",
   "@syncProgressTitle": {
     "description": "Title of the dedicated sync progress screen"
@@ -574,3 +646,4 @@
     "description": "Close button label on the sync progress screen"
   }
 }
+

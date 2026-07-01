@@ -4,8 +4,11 @@ import 'package:flutter/material.dart';
 import '../../l10n/app_localizations.dart';
 import '../../models/documents/document_kind.dart';
 import '../../models/documents/document_record.dart';
+import '../../models/documents/url_document_target.dart';
+import '../../screens/documents/url_snapshot_capture_screen.dart';
 import '../../services/documents/document_open_service.dart';
 import '../../services/documents/sea_day_document_section_service.dart';
+import '../../services/documents/url_document_service.dart';
 import 'document_title_prompt_dialog.dart';
 
 class SeaDayDocumentsSection extends StatefulWidget {
@@ -233,6 +236,40 @@ class _SeaDayDocumentsSectionState extends State<SeaDayDocumentsSection> {
     }
   }
 
+  Future<void> _captureUrlSnapshot() async {
+    final loc = AppLocalizations.of(context)!;
+    final result = await Navigator.of(context).push<UrlDocumentSaveResult>(
+      MaterialPageRoute(
+        builder: (_) => UrlSnapshotCaptureScreen(
+          target: UrlDocumentTarget(
+            type: UrlDocumentTargetType.seaDay,
+            id: widget.seaDayId,
+          ),
+        ),
+      ),
+    );
+    if (result == null || !mounted) {
+      return;
+    }
+
+    setState(() => _isMutating = true);
+    try {
+      await _reload();
+      if (!mounted) {
+        return;
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(_messageForUrlOutcome(loc, result.outcome)),
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _isMutating = false);
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final loc = AppLocalizations.of(context)!;
@@ -264,6 +301,12 @@ class _SeaDayDocumentsSectionState extends State<SeaDayDocumentsSection> {
                               (_isLoading || _isMutating) ? null : _importDocument,
                           icon: const Icon(Icons.file_upload_outlined),
                           label: Text(loc.importDocument),
+                        ),
+                        TextButton.icon(
+                          onPressed:
+                              (_isLoading || _isMutating) ? null : _captureUrlSnapshot,
+                          icon: const Icon(Icons.language_outlined),
+                          label: Text(loc.urlSnapshotSaveAsPdfShort),
                         ),
                         TextButton.icon(
                           onPressed:
@@ -398,6 +441,20 @@ class _SeaDayDocumentsSectionState extends State<SeaDayDocumentsSection> {
       case SeaDayDocumentImportOutcome.existingLinked:
         return loc.documentLinkedExisting;
       case SeaDayDocumentImportOutcome.alreadyLinked:
+        return loc.documentAlreadyLinked;
+    }
+  }
+
+  String _messageForUrlOutcome(
+    AppLocalizations loc,
+    UrlDocumentSaveOutcome outcome,
+  ) {
+    switch (outcome) {
+      case UrlDocumentSaveOutcome.importedAndLinked:
+        return loc.documentImported;
+      case UrlDocumentSaveOutcome.existingLinked:
+        return loc.documentLinkedExisting;
+      case UrlDocumentSaveOutcome.alreadyLinked:
         return loc.documentAlreadyLinked;
     }
   }

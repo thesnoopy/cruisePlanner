@@ -16,6 +16,7 @@ The app is built for people who want to keep cruise-related information structur
 - Plan shore excursions with notes, stops, payment plans, payment status, and linked documents.
 - Track travel logistics with typed items for flights, trains, transfers, rental cars, hotels, cruise check-in, and cruise check-out.
 - Import, attach, detach, open, and sync linked documents for cruises, excursions, travel items, and port calls.
+- Open a URL in an in-app web view and save the currently visible page state as an offline PDF document attached to an existing cruise entity.
 - Configure optional WebDAV sync for cruise data and documents.
 - Review incoming shared files from Android/iOS and assign them to existing entities.
 - Run in German and English based on the device locale.
@@ -198,7 +199,7 @@ Implemented behavior:
 Current scope boundaries visible in code:
 
 - The share-assignment flow currently supports file-based shared items for document import/linking.
-- Shared text and URLs are captured into the pending queue, but assignment is intentionally disabled for non-file items.
+- Shared URLs can be assigned through a manual snapshot flow: the user opens the URL in an in-app web view, logs in if needed, and saves the visible page as a PDF document.
 
 ## Localization
 

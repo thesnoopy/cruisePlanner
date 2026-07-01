@@ -461,6 +461,44 @@ class AppLocalizationsDe extends AppLocalizations {
   String get documentKindUnknown => 'Dokument';
 
   @override
+  String get urlSnapshotTitle => 'Webseite als PDF speichern';
+
+  @override
+  String get urlSnapshotHint =>
+      'Lade die gewÃ¼nschte Webseite in der App. Wenn der sichtbare Stand passt, speichere ihn als PDF-Dokument.';
+
+  @override
+  String get urlSnapshotUrlLabel => 'URL';
+
+  @override
+  String get urlSnapshotOpen => 'Webseite Ã¶ffnen';
+
+  @override
+  String get urlSnapshotReload => 'Neu laden';
+
+  @override
+  String get urlSnapshotSaveAsPdf => 'Als PDF speichern';
+
+  @override
+  String get urlSnapshotSaveAsPdfShort => 'URL als PDF';
+
+  @override
+  String get urlSnapshotMissingUrl => 'Bitte eine gÃ¼ltige URL angeben.';
+
+  @override
+  String get urlSnapshotPageNotLoaded =>
+      'Die Seite ist noch nicht geladen und kann noch nicht als PDF gespeichert werden.';
+
+  @override
+  String get urlSnapshotLoadFailed => 'Die Webseite konnte nicht geladen werden.';
+  @override
+  String get urlSnapshotSaveFailed => 'Das PDF konnte nicht gespeichert werden.';
+
+  @override
+  String get urlSnapshotUnsupportedPlatform =>
+      'Diese Funktion ist derzeit nur auf Android und iOS verfÃ¼gbar.';
+
+  @override
   String get sharePendingTitle => 'Geteilte Inhalte warten';
 
   @override
@@ -523,6 +561,28 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get shareAssignNoTargets => 'Es sind noch keine zuweisbaren Ziele verfügbar.';
+  @override
+  String get shareAssignUrlOptionsTitle =>
+      'Wie soll diese URL hinzugefügt werden?';
+
+  @override
+  String get shareAssignUrlOptionsHint =>
+      'Du kannst den Link als Dokument anhängen oder zusätzlich die Webseite öffnen und den sichtbaren Stand als PDF speichern.';
+
+  @override
+  String get shareAssignAddLinkOnly => 'Nur Link hinzufügen';
+
+  @override
+  String get shareAssignAddLinkAndSavePdf =>
+      'Link hinzufügen und PDF speichern';
+
+  @override
+  String get shareAssignUrlOpenBeforeSaveHint =>
+      'Die Webseite wird geöffnet. Prüfe den sichtbaren Stand und speichere sie dann als PDF.';
+
+  @override
+  String get shareAssignUrlAndPdfSaved => 'Link und PDF gespeichert.';
+
   @override
   String get syncProgressTitle => 'Synchronisationsfortschritt';
 
@@ -593,3 +653,4 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get syncProgressClose => 'Schlie\u00dfen';
 }
+

@@ -9,12 +9,14 @@ import '../../models/travel/flight_item.dart';
 import '../../models/travel/hotel_item.dart';
 import '../../models/travel/rental_car_item.dart';
 import '../../models/travel/transfer_item.dart';
+import '../../models/documents/url_document_target.dart';
 import '../../store/cruise_store.dart';
 import '../documents/cruise_document_section_service.dart';
 import '../documents/excursion_document_section_service.dart';
 import '../documents/port_call_document_section_service.dart';
 import '../documents/sea_day_document_section_service.dart';
 import '../documents/travel_document_section_service.dart';
+import '../documents/url_document_service.dart';
 import 'share_intake_service.dart';
 
 enum PendingShareAssignmentTargetType {
@@ -86,6 +88,7 @@ class PendingShareAssignmentService {
     TravelDocumentSectionService? travelDocumentSectionService,
     PortCallDocumentSectionService? portCallDocumentSectionService,
     SeaDayDocumentSectionService? seaDayDocumentSectionService,
+    UrlDocumentService? urlDocumentService,
   })  : _shareIntakeService = shareIntakeService ?? ShareIntakeService(),
         _cruiseStore = cruiseStore ?? CruiseStore(),
         _cruiseDocumentSectionService =
@@ -97,7 +100,8 @@ class PendingShareAssignmentService {
         _portCallDocumentSectionService =
             portCallDocumentSectionService ?? PortCallDocumentSectionService(),
         _seaDayDocumentSectionService =
-            seaDayDocumentSectionService ?? SeaDayDocumentSectionService();
+            seaDayDocumentSectionService ?? SeaDayDocumentSectionService(),
+        _urlDocumentService = urlDocumentService ?? UrlDocumentService();
 
   final ShareIntakeService _shareIntakeService;
   final CruiseStore _cruiseStore;
@@ -106,6 +110,7 @@ class PendingShareAssignmentService {
   final TravelDocumentSectionService _travelDocumentSectionService;
   final PortCallDocumentSectionService _portCallDocumentSectionService;
   final SeaDayDocumentSectionService _seaDayDocumentSectionService;
+  final UrlDocumentService _urlDocumentService;
 
   bool canAssignItem({
     required String batchId,
@@ -129,13 +134,15 @@ class PendingShareAssignmentService {
       return false;
     }
 
-    if (!_isSupportedUrlValue(resolvedItem.value)) {
+    final normalizedUrl = _normalizeUrlValueOrNull(resolvedItem.value);
+    if (normalizedUrl == null) {
       return false;
     }
 
     return _isFirstUrlItem(
       batchId: batchId,
       itemIndex: itemIndex,
+      normalizedUrl: normalizedUrl,
     );
   }
 
@@ -182,28 +189,60 @@ class PendingShareAssignmentService {
     )) {
       throw UnsupportedError('Pending share item is not assignable.');
     }
+    if (!item.isFileBased) {
+      throw UnsupportedError(
+        'URL assignment must be completed through the URL snapshot flow.',
+      );
+    }
 
-    final outcome = item.kind == ShareIntakeItemKind.url
-        ? await _assignUrlItem(
-            item: item,
-            target: target,
-            title: title,
-          )
-        : await _assignFileItem(
+    final outcome = await _assignFileItem(
             item: item,
             target: target,
             title: title,
           );
 
-    if (item.kind == ShareIntakeItemKind.url) {
-      await _removeUrlItemsFromBatch(batchId: batchId);
-    } else {
-      await _shareIntakeService.removePendingItem(
+    await _shareIntakeService.removePendingItem(
+      batchId: batchId,
+      itemIndex: itemIndex,
+    );
+    return outcome;
+  }
+
+  Future<UrlDocumentSaveResult> assignPendingUrlAsLinkDocument({
+    required String batchId,
+    required int itemIndex,
+    required PendingShareAssignmentTarget target,
+    bool removePendingItem = true,
+  }) async {
+    final item = _shareIntakeService.getPendingItem(
+      batchId: batchId,
+      itemIndex: itemIndex,
+    );
+    if (item == null) {
+      throw StateError('Pending share item not found.');
+    }
+    if (!canAssignItem(
+      batchId: batchId,
+      itemIndex: itemIndex,
+      item: item,
+    )) {
+      throw UnsupportedError('Pending share item is not assignable.');
+    }
+    if (item.kind != ShareIntakeItemKind.url) {
+      throw UnsupportedError('Pending share item is not a URL.');
+    }
+
+    final result = await _urlDocumentService.saveLinkOnly(
+      target: _mapUrlTarget(target),
+      sourceUrl: item.value,
+    );
+    if (removePendingItem) {
+      await completePendingUrlAssignment(
         batchId: batchId,
         itemIndex: itemIndex,
       );
     }
-    return outcome;
+    return result;
   }
 
   Future<PendingShareAssignmentOutcome> _assignFileItem({
@@ -249,55 +288,6 @@ class PendingShareAssignmentService {
           await _seaDayDocumentSectionService.importDocument(
             seaDayId: target.id,
             sourcePath: normalizedPath,
-            title: title,
-          ),
-        ),
-    };
-  }
-
-  Future<PendingShareAssignmentOutcome> _assignUrlItem({
-    required ShareIntakeItem item,
-    required PendingShareAssignmentTarget target,
-    String? title,
-  }) async {
-    final normalizedUrl = item.value.trim();
-    if (normalizedUrl.isEmpty) {
-      throw StateError('Pending share item has no source URL.');
-    }
-
-    return switch (target.type) {
-      PendingShareAssignmentTargetType.cruise => _mapCruiseOutcome(
-          await _cruiseDocumentSectionService.importUrlDocument(
-            cruiseId: target.id,
-            sourceUrl: normalizedUrl,
-            title: title,
-          ),
-        ),
-      PendingShareAssignmentTargetType.excursion => _mapExcursionOutcome(
-          await _excursionDocumentSectionService.importUrlDocument(
-            excursionId: target.id,
-            sourceUrl: normalizedUrl,
-            title: title,
-          ),
-        ),
-      PendingShareAssignmentTargetType.travelItem => _mapTravelOutcome(
-          await _travelDocumentSectionService.importUrlDocument(
-            travelItemId: target.id,
-            sourceUrl: normalizedUrl,
-            title: title,
-          ),
-        ),
-      PendingShareAssignmentTargetType.portCall => _mapPortCallOutcome(
-          await _portCallDocumentSectionService.importUrlDocument(
-            portCallId: target.id,
-            sourceUrl: normalizedUrl,
-            title: title,
-          ),
-        ),
-      PendingShareAssignmentTargetType.seaDay => _mapSeaDayOutcome(
-          await _seaDayDocumentSectionService.importUrlDocument(
-            seaDayId: target.id,
-            sourceUrl: normalizedUrl,
             title: title,
           ),
         ),
@@ -506,6 +496,7 @@ class PendingShareAssignmentService {
   bool _isFirstUrlItem({
     required String batchId,
     required int itemIndex,
+    required String normalizedUrl,
   }) {
     final batch = _shareIntakeService.getPendingBatch(batchId);
     if (batch == null || itemIndex < 0 || itemIndex >= batch.items.length) {
@@ -513,7 +504,12 @@ class PendingShareAssignmentService {
     }
 
     for (var index = 0; index < itemIndex; index++) {
-      if (batch.items[index].kind == ShareIntakeItemKind.url) {
+      if (batch.items[index].kind != ShareIntakeItemKind.url) {
+        continue;
+      }
+
+      final earlierUrl = _normalizeUrlValueOrNull(batch.items[index].value);
+      if (earlierUrl == normalizedUrl) {
         return false;
       }
     }
@@ -521,13 +517,18 @@ class PendingShareAssignmentService {
     return batch.items[itemIndex].kind == ShareIntakeItemKind.url;
   }
 
-  bool _isSupportedUrlValue(String value) {
+  String? _normalizeUrlValueOrNull(String value) {
     final uri = Uri.tryParse(value.trim());
-    return uri != null && (uri.isScheme('http') || uri.isScheme('https'));
+    if (uri == null || !(uri.isScheme('http') || uri.isScheme('https'))) {
+      return null;
+    }
+
+    return uri.toString();
   }
 
-  Future<void> _removeUrlItemsFromBatch({
+  Future<void> _removeMatchingUrlItemsFromBatch({
     required String batchId,
+    required String normalizedUrl,
   }) async {
     final batch = _shareIntakeService.getPendingBatch(batchId);
     if (batch == null) {
@@ -535,7 +536,13 @@ class PendingShareAssignmentService {
     }
 
     for (var index = batch.items.length - 1; index >= 0; index--) {
-      if (batch.items[index].kind != ShareIntakeItemKind.url) {
+      final item = batch.items[index];
+      if (item.kind != ShareIntakeItemKind.url) {
+        continue;
+      }
+
+      final currentUrl = _normalizeUrlValueOrNull(item.value);
+      if (currentUrl != normalizedUrl) {
         continue;
       }
 
@@ -544,5 +551,42 @@ class PendingShareAssignmentService {
         itemIndex: index,
       );
     }
+  }
+
+  Future<void> completePendingUrlAssignment({
+    required String batchId,
+    required int itemIndex,
+  }) {
+    final item = _shareIntakeService.getPendingItem(
+      batchId: batchId,
+      itemIndex: itemIndex,
+    );
+    final normalizedUrl = item == null
+        ? null
+        : _normalizeUrlValueOrNull(item.value);
+    if (normalizedUrl == null) {
+      return Future.value();
+    }
+
+    return _removeMatchingUrlItemsFromBatch(
+      batchId: batchId,
+      normalizedUrl: normalizedUrl,
+    );
+  }
+
+  UrlDocumentTarget _mapUrlTarget(PendingShareAssignmentTarget target) {
+    return UrlDocumentTarget(
+      type: switch (target.type) {
+        PendingShareAssignmentTargetType.cruise => UrlDocumentTargetType.cruise,
+        PendingShareAssignmentTargetType.excursion =>
+          UrlDocumentTargetType.excursion,
+        PendingShareAssignmentTargetType.travelItem =>
+          UrlDocumentTargetType.travelItem,
+        PendingShareAssignmentTargetType.portCall =>
+          UrlDocumentTargetType.portCall,
+        PendingShareAssignmentTargetType.seaDay => UrlDocumentTargetType.seaDay,
+      },
+      id: target.id,
+    );
   }
 }

@@ -106,6 +106,10 @@ class DocumentFileStore {
 
   Future<String> calculateContentHash(File file) async {
     final bytes = await file.readAsBytes();
+    return calculateBytesContentHash(bytes);
+  }
+
+  String calculateBytesContentHash(Uint8List bytes) {
     return sha256.convert(bytes).toString();
   }
 

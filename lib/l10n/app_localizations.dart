@@ -995,6 +995,80 @@ abstract class AppLocalizations {
   /// **'Document'**
   String get documentKindUnknown;
 
+  /// Title of the manual webpage-to-PDF capture screen
+  ///
+  /// In en, this message translates to:
+  /// **'Save webpage as PDF'**
+  String get urlSnapshotTitle;
+
+  /// Short helper text for the URL snapshot capture screen
+  ///
+  /// In en, this message translates to:
+  /// **'Open the relevant webpage in the app. When the visible state looks right, save it as a PDF document.'**
+  String get urlSnapshotHint;
+
+  /// Label for the URL input field on the URL snapshot screen
+  ///
+  /// In en, this message translates to:
+  /// **'URL'**
+  String get urlSnapshotUrlLabel;
+
+  /// Action label to load a URL on the URL snapshot screen
+  ///
+  /// In en, this message translates to:
+  /// **'Open webpage'**
+  String get urlSnapshotOpen;
+
+  /// Action label to reload the currently open URL on the URL snapshot screen
+  ///
+  /// In en, this message translates to:
+  /// **'Reload'**
+  String get urlSnapshotReload;
+
+  /// Action label to best-effort expand additional visible page content
+
+  /// Primary action label to save the visible web view content as a PDF
+  ///
+  /// In en, this message translates to:
+  /// **'Save as PDF'**
+  String get urlSnapshotSaveAsPdf;
+
+  /// Short action label in document sections to start the URL snapshot flow
+  ///
+  /// In en, this message translates to:
+  /// **'URL as PDF'**
+  String get urlSnapshotSaveAsPdfShort;
+
+  /// Error shown when no valid URL is available for a URL snapshot
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter a valid URL.'**
+  String get urlSnapshotMissingUrl;
+
+  /// Error shown when there is no loaded page available for capture
+  ///
+  /// In en, this message translates to:
+  /// **'The page has not finished loading yet and cannot be saved as a PDF.'**
+  String get urlSnapshotPageNotLoaded;
+
+  /// Generic error shown when loading a webpage fails in the URL snapshot screen
+  ///
+  /// In en, this message translates to:
+  /// **'The webpage could not be loaded.'**
+  String get urlSnapshotLoadFailed;
+
+  /// Generic error shown when PDF generation or document creation fails
+  ///
+  /// In en, this message translates to:
+  /// **'The PDF could not be saved.'**
+  String get urlSnapshotSaveFailed;
+
+  /// Message shown when URL snapshots are not supported on the current platform
+  ///
+  /// In en, this message translates to:
+  /// **'This feature is currently only available on Android and iOS.'**
+  String get urlSnapshotUnsupportedPlatform;
+
   /// Title for the lightweight pending share handoff card
   ///
   /// In en, this message translates to:
@@ -1102,6 +1176,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No assignable targets are available yet.'**
   String get shareAssignNoTargets;
+
+  /// Title for choosing how a shared URL should be assigned
+  ///
+  /// In en, this message translates to:
+  /// **'How should this URL be added?'**
+  String get shareAssignUrlOptionsTitle;
+
+  /// Helper text for the shared URL assignment options
+  ///
+  /// In en, this message translates to:
+  /// **'You can attach the link as a document or also open the webpage and save the visible state as a PDF.'**
+  String get shareAssignUrlOptionsHint;
+
+  /// Action to attach a shared URL as a link-only document
+  ///
+  /// In en, this message translates to:
+  /// **'Add link only'**
+  String get shareAssignAddLinkOnly;
+
+  /// Action to attach a shared URL and then capture it as a PDF
+  ///
+  /// In en, this message translates to:
+  /// **'Add link and save PDF'**
+  String get shareAssignAddLinkAndSavePdf;
+
+  /// Hint shown before entering the shared URL snapshot flow
+  ///
+  /// In en, this message translates to:
+  /// **'The webpage will open. Review the visible state and then save it as a PDF.'**
+  String get shareAssignUrlOpenBeforeSaveHint;
+
+  /// Success message after a shared URL was attached as a link and saved as a PDF
+  ///
+  /// In en, this message translates to:
+  /// **'Link and PDF saved.'**
+  String get shareAssignUrlAndPdfSaved;
 
   /// Title of the dedicated sync progress screen
   ///
@@ -1249,3 +1359,4 @@ AppLocalizations lookupAppLocalizations(Locale locale) {
     'that was used.'
   );
 }
+
