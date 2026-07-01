@@ -10,6 +10,11 @@ enum ShareIntakeItemKind {
   url,
 }
 
+final RegExp _embeddedUrlPattern = RegExp(
+  r'''https?://[^\s<>"']+''',
+  caseSensitive: false,
+);
+
 class ShareIntakeItem {
   const ShareIntakeItem({
     required this.kind,
@@ -61,9 +66,19 @@ class ShareIntakeItem {
       return null;
     }
 
+    final extractedUrl = _extractFirstHttpUrl(normalizedValue);
+    final resolvedKind = extractedUrl == null
+        ? kind
+        : (kind == ShareIntakeItemKind.text || kind == ShareIntakeItemKind.url)
+            ? ShareIntakeItemKind.url
+            : kind;
+    final resolvedValue = resolvedKind == ShareIntakeItemKind.url && extractedUrl != null
+        ? extractedUrl
+        : normalizedValue;
+
     return ShareIntakeItem(
-      kind: kind,
-      value: normalizedValue,
+      kind: resolvedKind,
+      value: resolvedValue,
       mimeType: _readNullableString(json['mimeType']),
       fileName: _readNullableString(json['fileName']),
       message: _readNullableString(json['message']),
@@ -71,6 +86,52 @@ class ShareIntakeItem {
       durationMillis: _readNullableInt(json['durationMillis']),
     );
   }
+}
+
+String? _extractFirstHttpUrl(String value) {
+  final match = _embeddedUrlPattern.firstMatch(value);
+  if (match == null) {
+    return null;
+  }
+
+  var candidate = match.group(0)?.trim() ?? '';
+  if (candidate.isEmpty) {
+    return null;
+  }
+
+  while (candidate.isNotEmpty) {
+    final trailingChar = candidate[candidate.length - 1];
+    if (!_isTrimmedTrailingPunctuation(trailingChar)) {
+      break;
+    }
+    candidate = candidate.substring(0, candidate.length - 1);
+  }
+
+  final uri = Uri.tryParse(candidate);
+  if (uri == null || !(uri.isScheme('http') || uri.isScheme('https'))) {
+    return null;
+  }
+
+  return uri.toString();
+}
+
+bool _isTrimmedTrailingPunctuation(String char) {
+  switch (char) {
+    case '.':
+    case ',':
+    case ';':
+    case ':':
+    case '!':
+    case '?':
+    case ')':
+    case ']':
+    case '}':
+    case '"':
+    case '\'':
+      return true;
+  }
+
+  return false;
 }
 
 class ShareIntakeBatch {

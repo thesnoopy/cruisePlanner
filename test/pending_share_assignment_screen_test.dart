@@ -64,50 +64,54 @@ void main() {
     tester,
   ) async {
     debugDefaultTargetPlatformOverride = TargetPlatform.windows;
-    final navigatorKey = GlobalKey<NavigatorState>();
-    final service = _FakePendingShareAssignmentService();
+    try {
+      final navigatorKey = GlobalKey<NavigatorState>();
+      final service = _FakePendingShareAssignmentService();
 
-    await tester.pumpWidget(
-      MaterialApp(
-        navigatorKey: navigatorKey,
-        locale: const Locale('en'),
-        localizationsDelegates: AppLocalizations.localizationsDelegates,
-        supportedLocales: AppLocalizations.supportedLocales,
-        home: const Scaffold(body: SizedBox.shrink()),
-      ),
-    );
-
-    final resultFuture = navigatorKey.currentState!.push<String>(
-      MaterialPageRoute(
-        builder: (_) => PendingShareAssignmentScreen(
-          batchId: 'batch-1',
-          itemIndex: 0,
-          service: service,
+      await tester.pumpWidget(
+        MaterialApp(
+          navigatorKey: navigatorKey,
+          locale: const Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: const Scaffold(body: SizedBox.shrink()),
         ),
-      ),
-    );
-    await tester.pumpAndSettle();
+      );
 
-    await tester.tap(find.text('Harbor Excursion'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Add link and save PDF'));
-    await tester.pumpAndSettle();
+      final resultFuture = navigatorKey.currentState!.push<String>(
+        MaterialPageRoute(
+          builder: (_) => PendingShareAssignmentScreen(
+            batchId: 'batch-1',
+            itemIndex: 0,
+            service: service,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
 
-    expect(find.text('Save webpage as PDF'), findsOneWidget);
-    expect(find.text('https://example.com/tickets/boarding-pass'), findsWidgets);
+      await tester.tap(find.text('Harbor Excursion'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Add link and save PDF'));
+      await tester.pumpAndSettle();
 
-    navigatorKey.currentState!.pop<UrlDocumentSaveResult>(
-      UrlDocumentSaveResult(
-        document: _sampleDocument(),
-        outcome: UrlDocumentSaveOutcome.importedAndLinked,
-      ),
-    );
-    await tester.pumpAndSettle();
+      expect(find.text('Save webpage as PDF'), findsOneWidget);
+      expect(find.text('https://example.com/tickets/boarding-pass'), findsWidgets);
 
-    expect(service.linkAssignmentCallCount, 1);
-    expect(service.lastRemovePendingItem, isFalse);
-    expect(service.completePendingUrlAssignmentCallCount, 1);
-    expect(await resultFuture, 'Link and PDF saved.');
+      navigatorKey.currentState!.pop<UrlDocumentSaveResult>(
+        UrlDocumentSaveResult(
+          document: _sampleDocument(),
+          outcome: UrlDocumentSaveOutcome.importedAndLinked,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(service.linkAssignmentCallCount, 1);
+      expect(service.lastRemovePendingItem, isFalse);
+      expect(service.completePendingUrlAssignmentCallCount, 1);
+      expect(await resultFuture, 'Link and PDF saved.');
+    } finally {
+      debugDefaultTargetPlatformOverride = null;
+    }
   });
 }
 

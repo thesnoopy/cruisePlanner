@@ -232,118 +232,126 @@ void main() {
     tester,
   ) async {
     debugDefaultTargetPlatformOverride = TargetPlatform.windows;
-    final controller = _FakeUrlSnapshotWebViewController(
-      const UrlSnapshotViewState(
-        isSupported: true,
-        isLoading: false,
-        hasLoadedPage: false,
-        canCapture: false,
-      ),
-    );
+    try {
+      final controller = _FakeUrlSnapshotWebViewController(
+        const UrlSnapshotViewState(
+          isSupported: true,
+          isLoading: false,
+          hasLoadedPage: false,
+          canCapture: false,
+        ),
+      );
 
-    await tester.pumpWidget(
-      MaterialApp(
-        locale: const Locale('en'),
-        localizationsDelegates: AppLocalizations.localizationsDelegates,
-        supportedLocales: AppLocalizations.supportedLocales,
-        home: UrlSnapshotCaptureScreen(
-          target: const UrlDocumentTarget(
-            type: UrlDocumentTargetType.cruise,
-            id: 'cruise-1',
-          ),
-          webViewController: controller,
-          documentService: UrlDocumentService(
-            documentImportService: _FakeDocumentImportService(),
-            attachmentService: DocumentAttachmentService(),
+      await tester.pumpWidget(
+        MaterialApp(
+          locale: const Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: UrlSnapshotCaptureScreen(
+            target: const UrlDocumentTarget(
+              type: UrlDocumentTargetType.cruise,
+              id: 'cruise-1',
+            ),
+            webViewController: controller,
+            documentService: UrlDocumentService(
+              documentImportService: _FakeDocumentImportService(),
+              attachmentService: DocumentAttachmentService(),
+            ),
           ),
         ),
-      ),
-    );
-    await tester.pump();
+      );
+      await tester.pump();
 
-    expect(_saveAsPdfButton(tester).onPressed, isNull);
+      expect(_saveAsPdfButton(tester).onPressed, isNull);
 
-    controller.updateState(
-      const UrlSnapshotViewState(
-        isSupported: true,
-        isLoading: false,
-        hasLoadedPage: true,
-        canCapture: true,
-        currentUrl: 'https://example.com',
-      ),
-    );
-    await tester.pump();
+      controller.updateState(
+        const UrlSnapshotViewState(
+          isSupported: true,
+          isLoading: false,
+          hasLoadedPage: true,
+          canCapture: true,
+          currentUrl: 'https://example.com',
+        ),
+      );
+      await tester.pump();
 
-    expect(_saveAsPdfButton(tester).onPressed, isNotNull);
+      expect(_saveAsPdfButton(tester).onPressed, isNotNull);
 
-    controller.updateState(
-      const UrlSnapshotViewState(
-        isSupported: true,
-        isLoading: true,
-        hasLoadedPage: true,
-        canCapture: true,
-        currentUrl: 'https://example.com',
-      ),
-    );
-    await tester.pump();
+      controller.updateState(
+        const UrlSnapshotViewState(
+          isSupported: true,
+          isLoading: true,
+          hasLoadedPage: true,
+          canCapture: true,
+          currentUrl: 'https://example.com',
+        ),
+      );
+      await tester.pump();
 
-    expect(_saveAsPdfButton(tester).onPressed, isNull);
+      expect(_saveAsPdfButton(tester).onPressed, isNull);
+    } finally {
+      debugDefaultTargetPlatformOverride = null;
+    }
   });
 
   testWidgets('ExcursionDocumentsSection reloads after returning from URL snapshot capture', (
     tester,
   ) async {
     debugDefaultTargetPlatformOverride = TargetPlatform.windows;
-    final navigatorKey = GlobalKey<NavigatorState>();
-    final document = _sampleDocumentRecord(
-      id: 'doc-new-1',
-      title: 'Saved Snapshot',
-      sourceUrl: 'https://example.com/ticket',
-    );
-    final service = _FakeExcursionDocumentSectionService(
-      initialData: const ExcursionDocumentSectionData(
-        linkedDocuments: <DocumentRecord>[],
-        availableDocuments: <DocumentRecord>[],
-      ),
-      reloadedData: ExcursionDocumentSectionData(
-        linkedDocuments: <DocumentRecord>[document],
-        availableDocuments: const <DocumentRecord>[],
-      ),
-    );
+    try {
+      final navigatorKey = GlobalKey<NavigatorState>();
+      final document = _sampleDocumentRecord(
+        id: 'doc-new-1',
+        title: 'Saved Snapshot',
+        sourceUrl: 'https://example.com/ticket',
+      );
+      final service = _FakeExcursionDocumentSectionService(
+        initialData: const ExcursionDocumentSectionData(
+          linkedDocuments: <DocumentRecord>[],
+          availableDocuments: <DocumentRecord>[],
+        ),
+        reloadedData: ExcursionDocumentSectionData(
+          linkedDocuments: <DocumentRecord>[document],
+          availableDocuments: const <DocumentRecord>[],
+        ),
+      );
 
-    await tester.pumpWidget(
-      MaterialApp(
-        navigatorKey: navigatorKey,
-        locale: const Locale('en'),
-        localizationsDelegates: AppLocalizations.localizationsDelegates,
-        supportedLocales: AppLocalizations.supportedLocales,
-        home: Scaffold(
-          body: ExcursionDocumentsSection(
-            excursionId: 'exc-1',
-            service: service,
+      await tester.pumpWidget(
+        MaterialApp(
+          navigatorKey: navigatorKey,
+          locale: const Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(
+            body: ExcursionDocumentsSection(
+              excursionId: 'exc-1',
+              service: service,
+            ),
           ),
         ),
-      ),
-    );
-    await tester.pumpAndSettle();
+      );
+      await tester.pumpAndSettle();
 
-    expect(find.text('Saved Snapshot'), findsNothing);
-    expect(service.loadCallCount, 1);
+      expect(find.text('Saved Snapshot'), findsNothing);
+      expect(service.loadCallCount, 1);
 
-    await tester.tap(find.text('URL as PDF'));
-    await tester.pumpAndSettle();
+      await tester.tap(find.text('URL as PDF'));
+      await tester.pumpAndSettle();
 
-    navigatorKey.currentState!.pop<UrlDocumentSaveResult>(
-      UrlDocumentSaveResult(
-        document: document,
-        outcome: UrlDocumentSaveOutcome.importedAndLinked,
-      ),
-    );
-    await tester.pumpAndSettle();
+      navigatorKey.currentState!.pop<UrlDocumentSaveResult>(
+        UrlDocumentSaveResult(
+          document: document,
+          outcome: UrlDocumentSaveOutcome.importedAndLinked,
+        ),
+      );
+      await tester.pumpAndSettle();
 
-    expect(service.loadCallCount, 2);
-    expect(service.loadedExcursionIds, <String>['exc-1', 'exc-1']);
-    expect(find.text('Saved Snapshot'), findsOneWidget);
+      expect(service.loadCallCount, 2);
+      expect(service.loadedExcursionIds, <String>['exc-1', 'exc-1']);
+      expect(find.text('Saved Snapshot'), findsOneWidget);
+    } finally {
+      debugDefaultTargetPlatformOverride = null;
+    }
   });
 }
 
