@@ -37,6 +37,8 @@
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NSCameraUsageDescription</key>
+	<string>Cruise Planner uses the camera to import photos or documents into your trip documents.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Cruise Planner uses shared photos and files to import them into your trip documents.</string>
 	<key>UILaunchStoryboardName</key>
