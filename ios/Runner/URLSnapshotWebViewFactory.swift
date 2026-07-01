@@ -348,7 +348,7 @@ private final class URLSnapshotWebViewPlatformView: NSObject, FlutterPlatformVie
         scrollView.setContentOffset(originalOffset, animated: false)
         closePdfContext()
         try? FileManager.default.removeItem(at: outputURL)
-        isCapturing = false
+        self.isCapturing = false
         result(
           FlutterError(
             code: code,
@@ -363,7 +363,7 @@ private final class URLSnapshotWebViewPlatformView: NSObject, FlutterPlatformVie
       restoreCaptureOverlayState {
         scrollView.setContentOffset(originalOffset, animated: false)
         closePdfContext()
-        isCapturing = false
+        self.isCapturing = false
         let fileSize = (try? pdfFile.resourceValues(forKeys: [.fileSizeKey]).fileSize) ?? 0
         guard fileSize > 0 else {
           try? FileManager.default.removeItem(at: pdfFile)
@@ -384,8 +384,8 @@ private final class URLSnapshotWebViewPlatformView: NSObject, FlutterPlatformVie
         )
         result([
           "filePath": pdfFile.path,
-          "title": webView.title as Any,
-          "url": webView.url?.absoluteString ?? sourceUrl,
+          "title": self.webView.title as Any,
+          "url": self.webView.url?.absoluteString ?? sourceUrl,
           "pageCount": pageCount,
           "fileSizeBytes": fileSize,
         ])
@@ -447,7 +447,7 @@ private final class URLSnapshotWebViewPlatformView: NSObject, FlutterPlatformVie
     func captureStep() {
       let currentOffsetY = scrollView.contentOffset.y
       hideCaptureOverlays {
-        webView.takeSnapshot(with: nil) { [weak self] image, error in
+        self.webView.takeSnapshot(with: nil) { [weak self] image, error in
           guard let self else {
             finishWithError(code: "cancelled", message: "PDF capture was cancelled.")
             return
