@@ -772,24 +772,43 @@ private final class URLSnapshotWebViewPlatformView: NSObject, FlutterPlatformVie
     }
 
     if !validCandidates.isEmpty {
+      let expectedOverlapPx = Int(Self.overlap.rounded())
       let toleratedScore = bestScore + Self.overlapDetectionScoreTolerance
-      if let detectedCandidate = validCandidates
-        .filter({ $0.score <= toleratedScore })
-        .min(
-          by: {
-            let leftDistance = abs($0.overlapPx - Int(Self.overlap.rounded()))
-            let rightDistance = abs($1.overlapPx - Int(Self.overlap.rounded()))
-            if leftDistance != rightDistance {
-              return leftDistance < rightDistance
-            }
-            if $0.score != $1.score {
-              return $0.score < $1.score
-            }
-            return $0.overlapPx < $1.overlapPx
-          }
-        )
-      {
-        let isFarFromExpected = abs(detectedCandidate.overlapPx - Int(Self.overlap.rounded())) > Int(Self.overlap.rounded())
+      let toleratedCandidates = validCandidates.filter { candidate in
+        candidate.score <= toleratedScore
+      }
+      var detectedCandidate: OverlapCandidate?
+
+      for candidate in toleratedCandidates {
+        guard let currentDetectedCandidate = detectedCandidate else {
+          detectedCandidate = candidate
+          continue
+        }
+
+        let candidateDistance = abs(candidate.overlapPx - expectedOverlapPx)
+        let currentDistance = abs(currentDetectedCandidate.overlapPx - expectedOverlapPx)
+        if candidateDistance < currentDistance {
+          detectedCandidate = candidate
+          continue
+        }
+        if candidateDistance > currentDistance {
+          continue
+        }
+        if candidate.score < currentDetectedCandidate.score {
+          detectedCandidate = candidate
+          continue
+        }
+        if candidate.score > currentDetectedCandidate.score {
+          continue
+        }
+        if candidate.overlapPx < currentDetectedCandidate.overlapPx {
+          detectedCandidate = candidate
+        }
+      }
+
+      if let detectedCandidate {
+        let isFarFromExpected =
+          abs(detectedCandidate.overlapPx - expectedOverlapPx) > expectedOverlapPx
         let hasClearlyBetterScore: Bool
         if let fallbackScore {
           hasClearlyBetterScore =
