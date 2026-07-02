@@ -834,6 +834,44 @@
   "@documentOpenFailed": {
     "description": "SnackBar, wenn ein verknüpftes Dokument nicht geöffnet werden kann"
   },
+  "documentImportAssistantReviewTitle": "Assistent-Vorschlag",
+  "@documentImportAssistantReviewTitle": {
+    "description": "Titel des Review-Dialogs für eine Aktion des Dokumentimport-Assistenten"
+  },
+  "documentImportAssistantReviewFound": "Der Assistent hat ein wahrscheinliches Ziel für dieses Dokument gefunden.",
+  "@documentImportAssistantReviewFound": {
+    "description": "Kurzer Hilfetext, wenn eine unterstützte Assistenten-Aktion verfügbar ist"
+  },
+  "documentImportAssistantReviewOpen": "Bearbeitung öffnen",
+  "@documentImportAssistantReviewOpen": {
+    "description": "Primäre Aktion zum Öffnen des vom Dokumentimport-Assistenten vorgeschlagenen Bearbeitungs-Screens"
+  },
+  "documentImportAssistantManualReviewMessage": "Dieses Dokument konnte noch nicht sicher genug zugeordnet werden.",
+  "@documentImportAssistantManualReviewMessage": {
+    "description": "Sichere Meldung, wenn der Assistent eine manuelle Prüfung benötigt"
+  },
+  "documentImportAssistantUnsupportedMessage": "Für dieses Dokument ist noch keine unterstützte Assistenten-Aktion verfügbar.",
+  "@documentImportAssistantUnsupportedMessage": {
+    "description": "Sichere Meldung, wenn keine unterstützte Assistenten-Aktion angeboten werden kann"
+  },
+  "documentImportAssistantActionEditExisting": "Bestehenden Eintrag öffnen: {target}",
+  "@documentImportAssistantActionEditExisting": {
+    "description": "Beschriftung dafür, dass der Assistent ein bestehendes Ziel zur Bearbeitung öffnet",
+    "placeholders": {
+      "target": {
+        "type": "String"
+      }
+    }
+  },
+  "documentImportAssistantActionCreateNew": "Neu anlegen: {target}",
+  "@documentImportAssistantActionCreateNew": {
+    "description": "Beschriftung dafür, dass der Assistent ein neues Ziel aus dem Dokumententwurf anlegt",
+    "placeholders": {
+      "target": {
+        "type": "String"
+      }
+    }
+  },
   "urlSnapshotTitle": "Webseite als PDF speichern",
   "@urlSnapshotTitle": {
     "description": "Titel des Screens zum manuellen Speichern einer Webseite als PDF"

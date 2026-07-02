@@ -11,6 +11,9 @@ import '../../screens/travel/travel_edit_screen.dart';
 class DocumentImportAssistantActionNavigator {
   const DocumentImportAssistantActionNavigator();
 
+  bool canOpen(DocumentImportAssistantAction action) =>
+      buildScreen(action) != null;
+
   Future<bool> open(
     BuildContext context,
     DocumentImportAssistantAction action,

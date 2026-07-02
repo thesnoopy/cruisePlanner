@@ -1229,6 +1229,48 @@ abstract class AppLocalizations {
   /// **'Document could not be opened.'**
   String get documentOpenFailed;
 
+  /// Title of the review dialog for a document import assistant action
+  ///
+  /// In en, this message translates to:
+  /// **'Assistant suggestion'**
+  String get documentImportAssistantReviewTitle;
+
+  /// Short helper text shown when a supported assistant action is available
+  ///
+  /// In en, this message translates to:
+  /// **'The assistant found a likely destination for this document.'**
+  String get documentImportAssistantReviewFound;
+
+  /// Primary action label to open the edit screen suggested by the document import assistant
+  ///
+  /// In en, this message translates to:
+  /// **'Open edit screen'**
+  String get documentImportAssistantReviewOpen;
+
+  /// Safe message shown when the assistant requires manual review
+  ///
+  /// In en, this message translates to:
+  /// **'This document could not be assigned with enough confidence yet.'**
+  String get documentImportAssistantManualReviewMessage;
+
+  /// Safe message shown when no supported assistant action can be offered
+  ///
+  /// In en, this message translates to:
+  /// **'No supported assistant action is available for this document yet.'**
+  String get documentImportAssistantUnsupportedMessage;
+
+  /// Label describing that the assistant will open an existing target for editing
+  ///
+  /// In en, this message translates to:
+  /// **'Open existing: {target}'**
+  String documentImportAssistantActionEditExisting(String target);
+
+  /// Label describing that the assistant will create a new target from the document draft
+  ///
+  /// In en, this message translates to:
+  /// **'Create new: {target}'**
+  String documentImportAssistantActionCreateNew(String target);
+
   /// Label for PDF documents
   ///
   /// In en, this message translates to:

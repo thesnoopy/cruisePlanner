@@ -594,6 +594,34 @@ class AppLocalizationsDe extends AppLocalizations {
   String get documentOpenFailed => 'Dokument konnte nicht geöffnet werden.';
 
   @override
+  String get documentImportAssistantReviewTitle => 'Assistent-Vorschlag';
+
+  @override
+  String get documentImportAssistantReviewFound =>
+      'Der Assistent hat ein wahrscheinliches Ziel für dieses Dokument gefunden.';
+
+  @override
+  String get documentImportAssistantReviewOpen => 'Bearbeitung öffnen';
+
+  @override
+  String get documentImportAssistantManualReviewMessage =>
+      'Dieses Dokument konnte noch nicht sicher genug zugeordnet werden.';
+
+  @override
+  String get documentImportAssistantUnsupportedMessage =>
+      'Für dieses Dokument ist noch keine unterstützte Assistenten-Aktion verfügbar.';
+
+  @override
+  String documentImportAssistantActionEditExisting(String target) {
+    return 'Bestehenden Eintrag öffnen: $target';
+  }
+
+  @override
+  String documentImportAssistantActionCreateNew(String target) {
+    return 'Neu anlegen: $target';
+  }
+
+  @override
   String get documentKindPdf => 'PDF';
 
   @override

@@ -545,6 +545,44 @@
   "@documentOpenFailed": {
     "description": "Snack bar shown when opening a linked document fails"
   },
+  "documentImportAssistantReviewTitle": "Assistant suggestion",
+  "@documentImportAssistantReviewTitle": {
+    "description": "Title of the review dialog for a document import assistant action"
+  },
+  "documentImportAssistantReviewFound": "The assistant found a likely destination for this document.",
+  "@documentImportAssistantReviewFound": {
+    "description": "Short helper text shown when a supported assistant action is available"
+  },
+  "documentImportAssistantReviewOpen": "Open edit screen",
+  "@documentImportAssistantReviewOpen": {
+    "description": "Primary action label to open the edit screen suggested by the document import assistant"
+  },
+  "documentImportAssistantManualReviewMessage": "This document could not be assigned with enough confidence yet.",
+  "@documentImportAssistantManualReviewMessage": {
+    "description": "Safe message shown when the assistant requires manual review"
+  },
+  "documentImportAssistantUnsupportedMessage": "No supported assistant action is available for this document yet.",
+  "@documentImportAssistantUnsupportedMessage": {
+    "description": "Safe message shown when no supported assistant action can be offered"
+  },
+  "documentImportAssistantActionEditExisting": "Open existing: {target}",
+  "@documentImportAssistantActionEditExisting": {
+    "description": "Label describing that the assistant will open an existing target for editing",
+    "placeholders": {
+      "target": {
+        "type": "String"
+      }
+    }
+  },
+  "documentImportAssistantActionCreateNew": "Create new: {target}",
+  "@documentImportAssistantActionCreateNew": {
+    "description": "Label describing that the assistant will create a new target from the document draft",
+    "placeholders": {
+      "target": {
+        "type": "String"
+      }
+    }
+  },
   "urlSnapshotTitle": "Save webpage as PDF",
   "@urlSnapshotTitle": {
     "description": "Title of the manual webpage-to-PDF capture screen"
