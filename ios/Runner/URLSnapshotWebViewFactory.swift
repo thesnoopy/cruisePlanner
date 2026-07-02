@@ -692,18 +692,19 @@ private final class URLSnapshotWebViewPlatformView: NSObject, FlutterPlatformVie
     }
 
     let safeMaxCropPx = max(currentRasterImage.height - Self.minPdfContentHeightPx, 0)
-    let fallbackCropPx = min(Int(Self.overlap.rounded()), safeMaxCropPx)
+    let expectedOverlapPx = Int(Self.overlap.rounded())
+    let fallbackCropPx = min(expectedOverlapPx, safeMaxCropPx)
+    let maxExpectedSearchLimitPx = expectedOverlapPx * Self.overlapDetectionMaxMultiplier
+    let preferredSearchLimitPxBase = max(
+      Self.overlapDetectionMinPx,
+      maxExpectedSearchLimitPx
+    )
     let preferredSearchLimitPx = min(
       Self.overlapDetectionMaxPx,
-      max(
-        Self.overlapDetectionMinPx,
-        Int(Self.overlap.rounded()) * Self.overlapDetectionMaxMultiplier
-      )
+      preferredSearchLimitPxBase
     )
-    let searchLimitPx = min(
-      safeMaxCropPx,
-      min(previousReference.heightPx, preferredSearchLimitPx)
-    )
+    let cappedSearchLimitPx = min(previousReference.heightPx, preferredSearchLimitPx)
+    let searchLimitPx = min(safeMaxCropPx, cappedSearchLimitPx)
     if searchLimitPx < Self.overlapDetectionMinPx {
       return fallbackOverlapDecision(fallbackCropPx: fallbackCropPx, fallbackScore: nil)
     }
@@ -772,7 +773,6 @@ private final class URLSnapshotWebViewPlatformView: NSObject, FlutterPlatformVie
     }
 
     if !validCandidates.isEmpty {
-      let expectedOverlapPx = Int(Self.overlap.rounded())
       let toleratedScore = bestScore + Self.overlapDetectionScoreTolerance
       let toleratedCandidates = validCandidates.filter { candidate in
         candidate.score <= toleratedScore
@@ -846,12 +846,15 @@ private final class URLSnapshotWebViewPlatformView: NSObject, FlutterPlatformVie
       return nil
     }
 
+    let expectedOverlapPx = Int(Self.overlap.rounded())
+    let maxExpectedReferenceHeightPx = expectedOverlapPx * Self.overlapDetectionMaxMultiplier
+    let preferredReferenceHeightPxBase = max(
+      Self.overlapDetectionMinPx,
+      maxExpectedReferenceHeightPx
+    )
     let preferredReferenceHeightPx = min(
       Self.overlapDetectionMaxPx,
-      max(
-        Self.overlapDetectionMinPx,
-        Int(Self.overlap.rounded()) * Self.overlapDetectionMaxMultiplier
-      )
+      preferredReferenceHeightPxBase
     )
     let referenceHeightPx = min(writtenHeightPx, preferredReferenceHeightPx)
     let startY = rasterImage.height - referenceHeightPx
@@ -869,8 +872,10 @@ private final class URLSnapshotWebViewPlatformView: NSObject, FlutterPlatformVie
   }
 
   private func makeRasterImage(from image: UIImage) -> RasterImage? {
-    let width = max(Int((image.size.width * image.scale).rounded()), 1)
-    let height = max(Int((image.size.height * image.scale).rounded()), 1)
+    let scaledWidth = Int((image.size.width * image.scale).rounded())
+    let scaledHeight = Int((image.size.height * image.scale).rounded())
+    let width = max(scaledWidth, 1)
+    let height = max(scaledHeight, 1)
     let bytesPerRow = width * 4
     let colorSpace = CGColorSpaceCreateDeviceRGB()
     let bitmapInfo = CGBitmapInfo.byteOrder32Big.union(
@@ -932,14 +937,17 @@ private final class URLSnapshotWebViewPlatformView: NSObject, FlutterPlatformVie
     startY: Int,
     endYExclusive: Int
   ) -> LumaProfile? {
-    let safeStartY = min(max(startY, 0), rasterImage.height)
-    let safeEndY = min(max(endYExclusive, safeStartY), rasterImage.height)
+    let clampedStartY = max(startY, 0)
+    let safeStartY = min(clampedStartY, rasterImage.height)
+    let clampedEndY = max(endYExclusive, safeStartY)
+    let safeEndY = min(clampedEndY, rasterImage.height)
     let sampledHeightPx = safeEndY - safeStartY
     if rasterImage.width <= 0 || sampledHeightPx <= 0 {
       return nil
     }
 
-    let sampleCount = max(1, min(Self.overlapDetectionHorizontalSamples, rasterImage.width))
+    let cappedSampleCount = min(Self.overlapDetectionHorizontalSamples, rasterImage.width)
+    let sampleCount = max(1, cappedSampleCount)
     let rowStridePx = max(Self.overlapDetectionRowStridePx, 1)
     let rowCount = ceilDiv(sampledHeightPx, rowStridePx)
     let values: [UInt8]? = rasterImage.data.withUnsafeBytes { rawBuffer in
@@ -955,13 +963,14 @@ private final class URLSnapshotWebViewPlatformView: NSObject, FlutterPlatformVie
         let rowOffset = rowIndex * sampleCount
         let pixelRowOffset = y * rasterImage.bytesPerRow
         for sampleIndex in 0..<sampleCount {
-          let x = min(
-            rasterImage.width - 1,
-            Int(
-              ((Int64(sampleIndex) * 2 + 1) * Int64(rasterImage.width)) /
-                Int64(sampleCount * 2)
-            )
-          )
+          let sampleIndex64 = Int64(sampleIndex)
+          let width64 = Int64(rasterImage.width)
+          let sampleCount64 = Int64(sampleCount)
+          let numerator = ((sampleIndex64 * 2) + 1) * width64
+          let denominator = sampleCount64 * 2
+          let sampledX = Int(numerator / denominator)
+          let maxX = rasterImage.width - 1
+          let x = min(maxX, sampledX)
           let pixelOffset = pixelRowOffset + (x * 4)
           let red = baseAddress[pixelOffset]
           let green = baseAddress[pixelOffset + 1]
@@ -1026,12 +1035,10 @@ private final class URLSnapshotWebViewPlatformView: NSObject, FlutterPlatformVie
       let previousOffset = (previousStartRow + rowIndex) * sampleCount
       let currentOffset = rowIndex * sampleCount
       for sampleIndex in 0..<sampleCount {
-        totalDifference += Double(
-          abs(
-            Int(previousProfile.values[previousOffset + sampleIndex]) -
-              Int(currentProfile.values[currentOffset + sampleIndex])
-          )
-        )
+        let previousValue = Int(previousProfile.values[previousOffset + sampleIndex])
+        let currentValue = Int(currentProfile.values[currentOffset + sampleIndex])
+        let absoluteDifference = abs(previousValue - currentValue)
+        totalDifference += Double(absoluteDifference)
         comparedValues += 1
       }
     }
@@ -1051,8 +1058,10 @@ private final class URLSnapshotWebViewPlatformView: NSObject, FlutterPlatformVie
       return 0
     }
 
-    let clampedStartRow = min(max(startRow, 0), profile.rows - 1)
-    let clampedEndRow = min(clampedStartRow + rowCount, profile.rows)
+    let nonNegativeStartRow = max(startRow, 0)
+    let clampedStartRow = min(nonNegativeStartRow, profile.rows - 1)
+    let unclampedEndRow = clampedStartRow + rowCount
+    let clampedEndRow = min(unclampedEndRow, profile.rows)
     if clampedEndRow - clampedStartRow < 2 {
       return 0
     }
@@ -1065,12 +1074,10 @@ private final class URLSnapshotWebViewPlatformView: NSObject, FlutterPlatformVie
       let currentOffset = rowIndex * sampleCount
       let nextOffset = (rowIndex + 1) * sampleCount
       for sampleIndex in 0..<sampleCount {
-        totalDifference += Double(
-          abs(
-            Int(profile.values[currentOffset + sampleIndex]) -
-              Int(profile.values[nextOffset + sampleIndex])
-          )
-        )
+        let currentValue = Int(profile.values[currentOffset + sampleIndex])
+        let nextValue = Int(profile.values[nextOffset + sampleIndex])
+        let absoluteDifference = abs(currentValue - nextValue)
+        totalDifference += Double(absoluteDifference)
         comparedValues += 1
       }
     }
@@ -1082,11 +1089,17 @@ private final class URLSnapshotWebViewPlatformView: NSObject, FlutterPlatformVie
   }
 
   private func luminanceValue(red: UInt8, green: UInt8, blue: UInt8) -> UInt8 {
-    UInt8((Int(red) * 54 + Int(green) * 183 + Int(blue) * 19) / 256)
+    let redComponent = Int(red) * 54
+    let greenComponent = Int(green) * 183
+    let blueComponent = Int(blue) * 19
+    let weightedSum = redComponent + greenComponent + blueComponent
+    let luminance = weightedSum / 256
+    return UInt8(luminance)
   }
 
   private func safeFallbackCropPx(forImagePixelHeight imagePixelHeight: Int) -> Int {
-    sanitizedTopCropPx(Int(Self.overlap.rounded()), imagePixelHeight: imagePixelHeight)
+    let expectedOverlapPx = Int(Self.overlap.rounded())
+    return sanitizedTopCropPx(expectedOverlapPx, imagePixelHeight: imagePixelHeight)
   }
 
   private func fallbackOverlapDecision(
@@ -1105,11 +1118,13 @@ private final class URLSnapshotWebViewPlatformView: NSObject, FlutterPlatformVie
 
   private func sanitizedTopCropPx(_ topCropPx: Int, imagePixelHeight: Int) -> Int {
     let maxCropPx = max(imagePixelHeight - Self.minPdfContentHeightPx, 0)
-    return min(max(topCropPx, 0), maxCropPx)
+    let nonNegativeCropPx = max(topCropPx, 0)
+    return min(nonNegativeCropPx, maxCropPx)
   }
 
   private func pixelHeight(for image: UIImage) -> Int {
-    max(Int((image.size.height * image.scale).rounded()), 1)
+    let scaledHeight = Int((image.size.height * image.scale).rounded())
+    return max(scaledHeight, 1)
   }
 
   private func formatOverlapScore(_ score: Double?) -> String {
@@ -1141,10 +1156,9 @@ private final class URLSnapshotWebViewPlatformView: NSObject, FlutterPlatformVie
   }
 
   private func determineMaxCapturePages(estimatedPages: Int) -> Int {
-    min(
-      Self.maxCapturePagesSafetyLimit,
-      max(Self.minCapturePages, estimatedPages + Self.capturePageBuffer)
-    )
+    let bufferedEstimatedPages = estimatedPages + Self.capturePageBuffer
+    let minProtectedPages = max(Self.minCapturePages, bufferedEstimatedPages)
+    return min(Self.maxCapturePagesSafetyLimit, minProtectedPages)
   }
 
   private func emitEvent(
