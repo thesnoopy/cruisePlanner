@@ -2,11 +2,13 @@
 import 'package:flutter/material.dart';
 import '../../models/documents/document_draft_target_type.dart';
 import '../../models/documents/document_import_draft.dart';
+import '../../models/documents/document_import_source_reference.dart';
 import '../../store/cruise_store.dart';
 import '../../models/route/route_item.dart';
 import '../../models/route/port_call_item.dart';
 import '../../models/route/sea_day_item.dart';
 import '../../services/documents/route_item_import_draft_prefill_service.dart';
+import '../../services/documents/route_item_saved_document_attachment_service.dart';
 import '../../utils/format.dart';
 import '../../l10n/app_localizations.dart';
 import '../../widgets/documents/port_call_documents_section.dart';
@@ -18,6 +20,7 @@ class RouteEditScreen extends StatefulWidget {
   final bool createMode;
   final DocumentDraftTargetType? draftTargetType;
   final RouteItemImportDraft? initialDraft;
+  final DocumentImportSourceReference? sourceReference;
 
   const RouteEditScreen({
     super.key,
@@ -25,6 +28,7 @@ class RouteEditScreen extends StatefulWidget {
     required this.cruiseId,
     this.draftTargetType,
     this.initialDraft,
+    this.sourceReference,
   }) : createMode = false;
 
   const RouteEditScreen.create({
@@ -33,6 +37,7 @@ class RouteEditScreen extends StatefulWidget {
     required this.cruiseId,
     required this.draftTargetType,
     this.initialDraft,
+    this.sourceReference,
   }) : createMode = true;
 
   @override
@@ -41,6 +46,8 @@ class RouteEditScreen extends StatefulWidget {
 
 class _RouteEditScreenState extends State<RouteEditScreen> {
   final _draftPrefillService = const RouteItemImportDraftPrefillService();
+  final _savedDocumentAttachmentService =
+      RouteItemSavedDocumentAttachmentService();
 
   RouteItem? _item;
   final _portName = TextEditingController();
@@ -157,6 +164,11 @@ class _RouteEditScreenState extends State<RouteEditScreen> {
       return;
     }
     await s.upsertRouteItem(cruiseId: widget.cruiseId, item: next);
+    await _savedDocumentAttachmentService.attachImportedDocumentIfPresent(
+      cruiseId: widget.cruiseId,
+      routeItemId: next.id,
+      sourceReference: widget.sourceReference,
+    );
     if (!mounted) {
       return;
     }
