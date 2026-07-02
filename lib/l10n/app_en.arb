@@ -16,6 +16,10 @@
   "@homeNewCruiseLabel": {
     "description": "Label of the FAB to add a cruise"
   },
+  "homeSettingsTooltip": "Settings",
+  "@homeSettingsTooltip": {
+    "description": "Tooltip for the top-level settings icon button"
+  },
   "homeWebdavSettingsTooltip": "WebDAV settings",
   "@homeWebdavSettingsTooltip": {
     "description": "Tooltip for the WebDAV settings icon button"
@@ -44,6 +48,38 @@
         "type": "String"
       }
     }
+  },
+  "settingsTitle": "Settings",
+  "@settingsTitle": {
+    "description": "Title of the top-level settings screen"
+  },
+  "settingsWebdavTitle": "WebDAV Sync",
+  "@settingsWebdavTitle": {
+    "description": "Title of the WebDAV settings entry"
+  },
+  "settingsWebdavSubtitle": "Configure your WebDAV server and sync path.",
+  "@settingsWebdavSubtitle": {
+    "description": "Subtitle of the WebDAV settings entry"
+  },
+  "settingsAiDocumentAnalysisTitle": "AI Document Analysis",
+  "@settingsAiDocumentAnalysisTitle": {
+    "description": "Title of the AI document analysis settings entry and screen"
+  },
+  "settingsAiDocumentAnalysisSubtitle": "Optional cloud analysis for imported documents.",
+  "@settingsAiDocumentAnalysisSubtitle": {
+    "description": "Subtitle of the AI document analysis settings entry"
+  },
+  "aiDocumentAnalysisStatusDisabled": "Disabled",
+  "@aiDocumentAnalysisStatusDisabled": {
+    "description": "Status headline for the placeholder AI document analysis settings"
+  },
+  "aiDocumentAnalysisOptionalHint": "Cloud AI document analysis is optional.",
+  "@aiDocumentAnalysisOptionalHint": {
+    "description": "Short helper text explaining that AI document analysis is optional"
+  },
+  "aiDocumentAnalysisNotConfiguredHint": "No provider is configured yet. This area is prepared for a later phase.",
+  "@aiDocumentAnalysisNotConfiguredHint": {
+    "description": "Short helper text explaining that AI document analysis is not configured in this phase"
   },
   "homeDeleteTooltip": "Delete",
   "@homeDeleteTooltip": {
@@ -82,6 +118,70 @@
   "requiredField": "Required Field",
   "chatterOptional": "Chatter (optional)",
   "save": "Save",
+  "webdavSettingsTitle": "WebDAV settings",
+  "@webdavSettingsTitle": {
+    "description": "Title of the WebDAV settings screen"
+  },
+  "webdavSettingsSaved": "WebDAV settings saved.",
+  "@webdavSettingsSaved": {
+    "description": "Snack bar shown after saving WebDAV settings"
+  },
+  "webdavSettingsDeleted": "WebDAV settings deleted.",
+  "@webdavSettingsDeleted": {
+    "description": "Snack bar shown after clearing WebDAV settings"
+  },
+  "webdavSettingsDeleteTitle": "Delete settings",
+  "@webdavSettingsDeleteTitle": {
+    "description": "Title of the confirmation dialog for clearing WebDAV settings"
+  },
+  "webdavSettingsDeleteMessage": "Do you really want to delete the saved WebDAV settings?",
+  "@webdavSettingsDeleteMessage": {
+    "description": "Message of the confirmation dialog for clearing WebDAV settings"
+  },
+  "webdavSettingsBaseUrlLabel": "Base URL",
+  "@webdavSettingsBaseUrlLabel": {
+    "description": "Label for the WebDAV base URL input"
+  },
+  "webdavSettingsBaseUrlHint": "https://host/remote.php/dav/files/USERNAME/",
+  "@webdavSettingsBaseUrlHint": {
+    "description": "Hint for the WebDAV base URL input"
+  },
+  "webdavSettingsBaseUrlRequired": "Please enter a base URL.",
+  "@webdavSettingsBaseUrlRequired": {
+    "description": "Validation message when the WebDAV base URL is missing"
+  },
+  "webdavSettingsUsernameLabel": "Username",
+  "@webdavSettingsUsernameLabel": {
+    "description": "Label for the WebDAV username input"
+  },
+  "webdavSettingsUsernameRequired": "Please enter a username.",
+  "@webdavSettingsUsernameRequired": {
+    "description": "Validation message when the WebDAV username is missing"
+  },
+  "webdavSettingsPasswordLabel": "Password",
+  "@webdavSettingsPasswordLabel": {
+    "description": "Label for the WebDAV password input"
+  },
+  "webdavSettingsPasswordRequired": "Please enter a password.",
+  "@webdavSettingsPasswordRequired": {
+    "description": "Validation message when the WebDAV password is missing"
+  },
+  "webdavSettingsRemotePathLabel": "Remote path",
+  "@webdavSettingsRemotePathLabel": {
+    "description": "Label for the WebDAV remote path input"
+  },
+  "webdavSettingsRemotePathHint": "/CruiseApp/cruises.json",
+  "@webdavSettingsRemotePathHint": {
+    "description": "Hint for the WebDAV remote path input"
+  },
+  "webdavSettingsRemotePathRequired": "Please enter a remote path.",
+  "@webdavSettingsRemotePathRequired": {
+    "description": "Validation message when the WebDAV remote path is missing"
+  },
+  "webdavSettingsStorageHint": "The settings are stored locally and encrypted. WebDAV behavior and synchronization remain unchanged in this phase.",
+  "@webdavSettingsStorageHint": {
+    "description": "Helper text at the bottom of the WebDAV settings screen"
+  },
   "seaDay": "Sea Day",
   "editPort": "Edit Port",
   "editSeaDay": "Edit Seaday",

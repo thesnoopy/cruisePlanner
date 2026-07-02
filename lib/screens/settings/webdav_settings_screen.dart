@@ -1,6 +1,6 @@
-
 import 'package:flutter/material.dart';
 
+import '../../l10n/app_localizations.dart';
 import '../../settings/webdav_settings.dart';
 import '../../settings/webdav_settings_store.dart';
 
@@ -38,7 +38,6 @@ class _WebDavSettingsScreenState extends State<WebDavSettingsScreen> {
       _passwordController.text = settings.password;
       _remotePathController.text = settings.remotePath;
     } else {
-      // Sinnvoller Default
       _remotePathController.text = '/CruiseApp/cruises.json';
     }
 
@@ -51,6 +50,8 @@ class _WebDavSettingsScreenState extends State<WebDavSettingsScreen> {
     if (!_formKey.currentState!.validate()) {
       return;
     }
+
+    final loc = AppLocalizations.of(context)!;
 
     setState(() => _saving = true);
 
@@ -69,27 +70,26 @@ class _WebDavSettingsScreenState extends State<WebDavSettingsScreen> {
 
     setState(() => _saving = false);
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('WebDAV-Einstellungen gespeichert')),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(loc.webdavSettingsSaved)));
   }
 
   Future<void> _clear() async {
+    final loc = AppLocalizations.of(context)!;
     final confirm = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Einstellungen löschen'),
-        content: const Text(
-          'Möchtest du die gespeicherten WebDAV-Einstellungen wirklich löschen?',
-        ),
+        title: Text(loc.webdavSettingsDeleteTitle),
+        content: Text(loc.webdavSettingsDeleteMessage),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(false),
-            child: const Text('Abbrechen'),
+            child: Text(loc.confirmCancel),
           ),
           FilledButton.tonal(
             onPressed: () => Navigator.of(ctx).pop(true),
-            child: const Text('Löschen'),
+            child: Text(loc.delete),
           ),
         ],
       ),
@@ -110,9 +110,9 @@ class _WebDavSettingsScreenState extends State<WebDavSettingsScreen> {
       return;
     }
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('WebDAV-Einstellungen gelöscht')),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(loc.webdavSettingsDeleted)));
   }
 
   @override
@@ -126,9 +126,11 @@ class _WebDavSettingsScreenState extends State<WebDavSettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final loc = AppLocalizations.of(context)!;
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('WebDAV-Einstellungen'),
+        title: Text(loc.webdavSettingsTitle),
       ),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
@@ -142,16 +144,15 @@ class _WebDavSettingsScreenState extends State<WebDavSettingsScreen> {
                     children: [
                       TextFormField(
                         controller: _baseUrlController,
-                        decoration: const InputDecoration(
-                          labelText: 'Base URL',
-                          hintText:
-                              'https://host/remote.php/dav/files/USERNAME/',
-                          prefixIcon: Icon(Icons.cloud_outlined),
+                        decoration: InputDecoration(
+                          labelText: loc.webdavSettingsBaseUrlLabel,
+                          hintText: loc.webdavSettingsBaseUrlHint,
+                          prefixIcon: const Icon(Icons.cloud_outlined),
                         ),
                         keyboardType: TextInputType.url,
                         validator: (value) {
                           if (value == null || value.trim().isEmpty) {
-                            return 'Bitte Base URL angeben';
+                            return loc.webdavSettingsBaseUrlRequired;
                           }
                           return null;
                         },
@@ -159,13 +160,13 @@ class _WebDavSettingsScreenState extends State<WebDavSettingsScreen> {
                       const SizedBox(height: 12),
                       TextFormField(
                         controller: _usernameController,
-                        decoration: const InputDecoration(
-                          labelText: 'Benutzername',
-                          prefixIcon: Icon(Icons.person_outline),
+                        decoration: InputDecoration(
+                          labelText: loc.webdavSettingsUsernameLabel,
+                          prefixIcon: const Icon(Icons.person_outline),
                         ),
                         validator: (value) {
                           if (value == null || value.trim().isEmpty) {
-                            return 'Bitte Benutzername angeben';
+                            return loc.webdavSettingsUsernameRequired;
                           }
                           return null;
                         },
@@ -173,14 +174,14 @@ class _WebDavSettingsScreenState extends State<WebDavSettingsScreen> {
                       const SizedBox(height: 12),
                       TextFormField(
                         controller: _passwordController,
-                        decoration: const InputDecoration(
-                          labelText: 'Passwort',
-                          prefixIcon: Icon(Icons.lock_outline),
+                        decoration: InputDecoration(
+                          labelText: loc.webdavSettingsPasswordLabel,
+                          prefixIcon: const Icon(Icons.lock_outline),
                         ),
                         obscureText: true,
                         validator: (value) {
                           if (value == null || value.isEmpty) {
-                            return 'Bitte Passwort angeben';
+                            return loc.webdavSettingsPasswordRequired;
                           }
                           return null;
                         },
@@ -188,14 +189,14 @@ class _WebDavSettingsScreenState extends State<WebDavSettingsScreen> {
                       const SizedBox(height: 12),
                       TextFormField(
                         controller: _remotePathController,
-                        decoration: const InputDecoration(
-                          labelText: 'Remote Pfad',
-                          hintText: '/CruiseApp/cruises.json',
-                          prefixIcon: Icon(Icons.folder_outlined),
+                        decoration: InputDecoration(
+                          labelText: loc.webdavSettingsRemotePathLabel,
+                          hintText: loc.webdavSettingsRemotePathHint,
+                          prefixIcon: const Icon(Icons.folder_outlined),
                         ),
                         validator: (value) {
                           if (value == null || value.trim().isEmpty) {
-                            return 'Bitte Remote Pfad angeben';
+                            return loc.webdavSettingsRemotePathRequired;
                           }
                           return null;
                         },
@@ -214,22 +215,21 @@ class _WebDavSettingsScreenState extends State<WebDavSettingsScreen> {
                                         strokeWidth: 2,
                                       ),
                                     )
-                                  : const Text('Speichern'),
+                                  : Text(loc.save),
                             ),
                           ),
                           const SizedBox(width: 12),
                           OutlinedButton.icon(
                             onPressed: _saving ? null : _clear,
                             icon: const Icon(Icons.delete_outline),
-                            label: const Text('Löschen'),
+                            label: Text(loc.delete),
                           ),
                         ],
                       ),
                       const SizedBox(height: 12),
-                      const Text(
-                        'Hinweis: Die Einstellungen werden lokal und verschlüsselt gespeichert. '
-                        'Die eigentliche Synchronisation mit dem WebDAV-Server fügst du im nächsten Schritt hinzu.',
-                        style: TextStyle(fontSize: 12),
+                      Text(
+                        loc.webdavSettingsStorageHint,
+                        style: const TextStyle(fontSize: 12),
                       ),
                     ],
                   ),

@@ -20,6 +20,10 @@
   "@homeNewCruiseLabel": {
     "description": "Label des FAB zum Anlegen einer neuen Reise"
   },
+  "homeSettingsTooltip": "Einstellungen",
+  "@homeSettingsTooltip": {
+    "description": "Tooltip für den Button zu den allgemeinen Einstellungen"
+  },
 
   "homeWebdavSettingsTooltip": "WebDAV-Einstellungen",
   "@homeWebdavSettingsTooltip": {
@@ -55,6 +59,39 @@
   },
 
   "homeDeleteTooltip": "Löschen",
+  "settingsTitle": "Einstellungen",
+  "@settingsTitle": {
+    "description": "Titel des übergeordneten Einstellungs-Screens"
+  },
+  "settingsWebdavTitle": "WebDAV-Sync",
+  "@settingsWebdavTitle": {
+    "description": "Titel des WebDAV-Einstellungs-Eintrags"
+  },
+  "settingsWebdavSubtitle": "WebDAV-Server und Sync-Pfad konfigurieren.",
+  "@settingsWebdavSubtitle": {
+    "description": "Untertitel des WebDAV-Einstellungs-Eintrags"
+  },
+  "settingsAiDocumentAnalysisTitle": "KI-Dokumentanalyse",
+  "@settingsAiDocumentAnalysisTitle": {
+    "description": "Titel des KI-Dokumentanalyse-Eintrags und -Screens"
+  },
+  "settingsAiDocumentAnalysisSubtitle": "Optionale Cloud-Analyse für importierte Dokumente.",
+  "@settingsAiDocumentAnalysisSubtitle": {
+    "description": "Untertitel des KI-Dokumentanalyse-Eintrags"
+  },
+  "aiDocumentAnalysisStatusDisabled": "Deaktiviert",
+  "@aiDocumentAnalysisStatusDisabled": {
+    "description": "Statusüberschrift für die Platzhalter-Einstellungen der KI-Dokumentanalyse"
+  },
+  "aiDocumentAnalysisOptionalHint": "Cloud-KI für die Dokumentanalyse ist optional.",
+  "@aiDocumentAnalysisOptionalHint": {
+    "description": "Kurzer Hinweis, dass die KI-Dokumentanalyse optional ist"
+  },
+  "aiDocumentAnalysisNotConfiguredHint": "Es ist noch kein Anbieter konfiguriert. Dieser Bereich wird in einer späteren Phase vorbereitet.",
+  "@aiDocumentAnalysisNotConfiguredHint": {
+    "description": "Kurzer Hinweis, dass die KI-Dokumentanalyse in dieser Phase noch nicht konfiguriert ist"
+  },
+
   "@homeDeleteTooltip": {
     "description": "Tooltip für den Lösch-Button in der Cruise-Kachel"
   },
@@ -220,6 +257,70 @@
     "description": "Speichern"
   },
 
+  "webdavSettingsTitle": "WebDAV-Einstellungen",
+  "@webdavSettingsTitle": {
+    "description": "Titel des WebDAV-Einstellungs-Screens"
+  },
+  "webdavSettingsSaved": "WebDAV-Einstellungen gespeichert.",
+  "@webdavSettingsSaved": {
+    "description": "SnackBar nach dem Speichern der WebDAV-Einstellungen"
+  },
+  "webdavSettingsDeleted": "WebDAV-Einstellungen gelöscht.",
+  "@webdavSettingsDeleted": {
+    "description": "SnackBar nach dem Löschen der WebDAV-Einstellungen"
+  },
+  "webdavSettingsDeleteTitle": "Einstellungen löschen",
+  "@webdavSettingsDeleteTitle": {
+    "description": "Titel des Bestätigungsdialogs zum Löschen der WebDAV-Einstellungen"
+  },
+  "webdavSettingsDeleteMessage": "Möchtest du die gespeicherten WebDAV-Einstellungen wirklich löschen?",
+  "@webdavSettingsDeleteMessage": {
+    "description": "Text des Bestätigungsdialogs zum Löschen der WebDAV-Einstellungen"
+  },
+  "webdavSettingsBaseUrlLabel": "Base URL",
+  "@webdavSettingsBaseUrlLabel": {
+    "description": "Beschriftung für die Base-URL-Eingabe"
+  },
+  "webdavSettingsBaseUrlHint": "https://host/remote.php/dav/files/USERNAME/",
+  "@webdavSettingsBaseUrlHint": {
+    "description": "Hinweistext für die Base-URL-Eingabe"
+  },
+  "webdavSettingsBaseUrlRequired": "Bitte Base URL angeben.",
+  "@webdavSettingsBaseUrlRequired": {
+    "description": "Validierungsmeldung, wenn die Base URL fehlt"
+  },
+  "webdavSettingsUsernameLabel": "Benutzername",
+  "@webdavSettingsUsernameLabel": {
+    "description": "Beschriftung für die Benutzernamen-Eingabe"
+  },
+  "webdavSettingsUsernameRequired": "Bitte Benutzername angeben.",
+  "@webdavSettingsUsernameRequired": {
+    "description": "Validierungsmeldung, wenn der Benutzername fehlt"
+  },
+  "webdavSettingsPasswordLabel": "Passwort",
+  "@webdavSettingsPasswordLabel": {
+    "description": "Beschriftung für die Passwort-Eingabe"
+  },
+  "webdavSettingsPasswordRequired": "Bitte Passwort angeben.",
+  "@webdavSettingsPasswordRequired": {
+    "description": "Validierungsmeldung, wenn das Passwort fehlt"
+  },
+  "webdavSettingsRemotePathLabel": "Remote-Pfad",
+  "@webdavSettingsRemotePathLabel": {
+    "description": "Beschriftung für die Remote-Pfad-Eingabe"
+  },
+  "webdavSettingsRemotePathHint": "/CruiseApp/cruises.json",
+  "@webdavSettingsRemotePathHint": {
+    "description": "Hinweistext für die Remote-Pfad-Eingabe"
+  },
+  "webdavSettingsRemotePathRequired": "Bitte Remote-Pfad angeben.",
+  "@webdavSettingsRemotePathRequired": {
+    "description": "Validierungsmeldung, wenn der Remote-Pfad fehlt"
+  },
+  "webdavSettingsStorageHint": "Die Einstellungen werden lokal und verschlüsselt gespeichert. WebDAV-Verhalten und Synchronisation bleiben in dieser Phase unverändert.",
+  "@webdavSettingsStorageHint": {
+    "description": "Hinweistext am unteren Rand des WebDAV-Einstellungs-Screens"
+  },
   "seaDay": "Seetag",
   "@homeDeleteTooltip": {
     "description": "Seetag"

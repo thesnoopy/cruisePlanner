@@ -119,6 +119,12 @@ abstract class AppLocalizations {
   /// **'New cruise'**
   String get homeNewCruiseLabel;
 
+  /// Tooltip for the top-level settings icon button
+  ///
+  /// In en, this message translates to:
+  /// **'Settings'**
+  String get homeSettingsTooltip;
+
   /// Tooltip for the WebDAV settings icon button
   ///
   /// In en, this message translates to:
@@ -154,6 +160,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Cloud sync failed: {error}'**
   String homeCloudSyncFailed(String error);
+
+  /// Title of the top-level settings screen
+  ///
+  /// In en, this message translates to:
+  /// **'Settings'**
+  String get settingsTitle;
+
+  /// Title of the WebDAV settings entry
+  ///
+  /// In en, this message translates to:
+  /// **'WebDAV Sync'**
+  String get settingsWebdavTitle;
+
+  /// Subtitle of the WebDAV settings entry
+  ///
+  /// In en, this message translates to:
+  /// **'Configure your WebDAV server and sync path.'**
+  String get settingsWebdavSubtitle;
+
+  /// Title of the AI document analysis settings entry and screen
+  ///
+  /// In en, this message translates to:
+  /// **'AI Document Analysis'**
+  String get settingsAiDocumentAnalysisTitle;
+
+  /// Subtitle of the AI document analysis settings entry
+  ///
+  /// In en, this message translates to:
+  /// **'Optional cloud analysis for imported documents.'**
+  String get settingsAiDocumentAnalysisSubtitle;
+
+  /// Status headline for the placeholder AI document analysis settings
+  ///
+  /// In en, this message translates to:
+  /// **'Disabled'**
+  String get aiDocumentAnalysisStatusDisabled;
+
+  /// Short helper text explaining that AI document analysis is optional
+  ///
+  /// In en, this message translates to:
+  /// **'Cloud AI document analysis is optional.'**
+  String get aiDocumentAnalysisOptionalHint;
+
+  /// Short helper text explaining that AI document analysis is not configured in this phase
+  ///
+  /// In en, this message translates to:
+  /// **'No provider is configured yet. This area is prepared for a later phase.'**
+  String get aiDocumentAnalysisNotConfiguredHint;
 
   /// Edit Travel
   ///
@@ -358,6 +412,102 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Save'**
   String get save;
+
+  /// Title of the WebDAV settings screen
+  ///
+  /// In en, this message translates to:
+  /// **'WebDAV settings'**
+  String get webdavSettingsTitle;
+
+  /// Snack bar shown after saving WebDAV settings
+  ///
+  /// In en, this message translates to:
+  /// **'WebDAV settings saved.'**
+  String get webdavSettingsSaved;
+
+  /// Snack bar shown after clearing WebDAV settings
+  ///
+  /// In en, this message translates to:
+  /// **'WebDAV settings deleted.'**
+  String get webdavSettingsDeleted;
+
+  /// Title of the confirmation dialog for clearing WebDAV settings
+  ///
+  /// In en, this message translates to:
+  /// **'Delete settings'**
+  String get webdavSettingsDeleteTitle;
+
+  /// Message of the confirmation dialog for clearing WebDAV settings
+  ///
+  /// In en, this message translates to:
+  /// **'Do you really want to delete the saved WebDAV settings?'**
+  String get webdavSettingsDeleteMessage;
+
+  /// Label for the WebDAV base URL input
+  ///
+  /// In en, this message translates to:
+  /// **'Base URL'**
+  String get webdavSettingsBaseUrlLabel;
+
+  /// Hint for the WebDAV base URL input
+  ///
+  /// In en, this message translates to:
+  /// **'https://host/remote.php/dav/files/USERNAME/'**
+  String get webdavSettingsBaseUrlHint;
+
+  /// Validation message when the WebDAV base URL is missing
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter a base URL.'**
+  String get webdavSettingsBaseUrlRequired;
+
+  /// Label for the WebDAV username input
+  ///
+  /// In en, this message translates to:
+  /// **'Username'**
+  String get webdavSettingsUsernameLabel;
+
+  /// Validation message when the WebDAV username is missing
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter a username.'**
+  String get webdavSettingsUsernameRequired;
+
+  /// Label for the WebDAV password input
+  ///
+  /// In en, this message translates to:
+  /// **'Password'**
+  String get webdavSettingsPasswordLabel;
+
+  /// Validation message when the WebDAV password is missing
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter a password.'**
+  String get webdavSettingsPasswordRequired;
+
+  /// Label for the WebDAV remote path input
+  ///
+  /// In en, this message translates to:
+  /// **'Remote path'**
+  String get webdavSettingsRemotePathLabel;
+
+  /// Hint for the WebDAV remote path input
+  ///
+  /// In en, this message translates to:
+  /// **'/CruiseApp/cruises.json'**
+  String get webdavSettingsRemotePathHint;
+
+  /// Validation message when the WebDAV remote path is missing
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter a remote path.'**
+  String get webdavSettingsRemotePathRequired;
+
+  /// Helper text at the bottom of the WebDAV settings screen
+  ///
+  /// In en, this message translates to:
+  /// **'The settings are stored locally and encrypted. WebDAV behavior and synchronization remain unchanged in this phase.'**
+  String get webdavSettingsStorageHint;
 
   /// No description provided for @seaDay.
   ///

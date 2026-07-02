@@ -13,7 +13,7 @@ import '../store/cruise_store.dart';
 import '../widgets/confirmation_dialog.dart';
 import 'cruise_hub_screen.dart';
 import 'share/pending_share_review_screen.dart';
-import 'settings/webdav_settings_screen.dart';
+import 'settings/settings_screen.dart';
 import 'sync/sync_progress_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -125,12 +125,12 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         title: Text(loc.appTitle),
         actions: [
           IconButton(
-            tooltip: loc.homeWebdavSettingsTooltip,
-            icon: const Icon(Icons.cloud_outlined),
+            tooltip: loc.homeSettingsTooltip,
+            icon: const Icon(Icons.settings_outlined),
             onPressed: () async {
               await Navigator.of(context).push(
                 MaterialPageRoute(
-                  builder: (_) => const WebDavSettingsScreen(),
+                  builder: (_) => const SettingsScreen(),
                 ),
               );
             },

@@ -21,6 +21,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeNewCruiseLabel => 'New cruise';
 
   @override
+  String get homeSettingsTooltip => 'Settings';
+
+  @override
   String get homeWebdavSettingsTooltip => 'WebDAV settings';
 
   @override
@@ -39,6 +42,30 @@ class AppLocalizationsEn extends AppLocalizations {
   String homeCloudSyncFailed(String error) {
     return 'Cloud sync failed: $error';
   }
+
+  @override
+  String get settingsTitle => 'Settings';
+
+  @override
+  String get settingsWebdavTitle => 'WebDAV Sync';
+
+  @override
+  String get settingsWebdavSubtitle => 'Configure your WebDAV server and sync path.';
+
+  @override
+  String get settingsAiDocumentAnalysisTitle => 'AI Document Analysis';
+
+  @override
+  String get settingsAiDocumentAnalysisSubtitle => 'Optional cloud analysis for imported documents.';
+
+  @override
+  String get aiDocumentAnalysisStatusDisabled => 'Disabled';
+
+  @override
+  String get aiDocumentAnalysisOptionalHint => 'Cloud AI document analysis is optional.';
+
+  @override
+  String get aiDocumentAnalysisNotConfiguredHint => 'No provider is configured yet. This area is prepared for a later phase.';
 
   @override
   String get homeDeleteTooltip => 'Delete';
@@ -141,6 +168,58 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get save => 'Save';
+
+  @override
+  String get webdavSettingsTitle => 'WebDAV settings';
+
+  @override
+  String get webdavSettingsSaved => 'WebDAV settings saved.';
+
+  @override
+  String get webdavSettingsDeleted => 'WebDAV settings deleted.';
+
+  @override
+  String get webdavSettingsDeleteTitle => 'Delete settings';
+
+  @override
+  String get webdavSettingsDeleteMessage =>
+      'Do you really want to delete the saved WebDAV settings?';
+
+  @override
+  String get webdavSettingsBaseUrlLabel => 'Base URL';
+
+  @override
+  String get webdavSettingsBaseUrlHint =>
+      'https://host/remote.php/dav/files/USERNAME/';
+
+  @override
+  String get webdavSettingsBaseUrlRequired => 'Please enter a base URL.';
+
+  @override
+  String get webdavSettingsUsernameLabel => 'Username';
+
+  @override
+  String get webdavSettingsUsernameRequired => 'Please enter a username.';
+
+  @override
+  String get webdavSettingsPasswordLabel => 'Password';
+
+  @override
+  String get webdavSettingsPasswordRequired => 'Please enter a password.';
+
+  @override
+  String get webdavSettingsRemotePathLabel => 'Remote path';
+
+  @override
+  String get webdavSettingsRemotePathHint => '/CruiseApp/cruises.json';
+
+  @override
+  String get webdavSettingsRemotePathRequired =>
+      'Please enter a remote path.';
+
+  @override
+  String get webdavSettingsStorageHint =>
+      'The settings are stored locally and encrypted. WebDAV behavior and synchronization remain unchanged in this phase.';
 
   @override
   String get seaDay => 'Sea Day';
