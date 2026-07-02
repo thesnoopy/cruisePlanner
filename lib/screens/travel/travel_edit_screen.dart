@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import '../../l10n/app_localizations.dart';
 import '../../models/documents/document_draft_target_type.dart';
 import '../../models/documents/document_import_draft.dart';
+import '../../models/documents/document_import_source_reference.dart';
 import '../../models/identifiable.dart';
 import '../../models/travel/base_travel.dart';
 import '../../models/travel/flight_item.dart';
@@ -15,6 +16,7 @@ import '../../models/travel/rental_car_item.dart';
 import '../../models/travel/train_item.dart';
 import '../../models/travel/transfer_item.dart';
 import '../../services/documents/travel_import_draft_prefill_service.dart';
+import '../../services/documents/travel_saved_document_attachment_service.dart';
 import '../../store/cruise_store.dart';
 import '../../utils/format.dart';
 import '../../widgets/documents/travel_documents_section.dart';
@@ -24,12 +26,14 @@ class TravelEditScreen extends StatefulWidget {
   final String? cruiseId;
   final DocumentDraftTargetType? draftTargetType;
   final TravelImportDraft? initialDraft;
+  final DocumentImportSourceReference sourceReference;
 
   const TravelEditScreen({
     super.key,
     required this.travelItemId,
     this.draftTargetType,
     this.initialDraft,
+    this.sourceReference = const DocumentImportSourceReference(),
   }) : cruiseId = null;
 
   const TravelEditScreen.create({
@@ -37,6 +41,7 @@ class TravelEditScreen extends StatefulWidget {
     required this.cruiseId,
     required this.draftTargetType,
     this.initialDraft,
+    this.sourceReference = const DocumentImportSourceReference(),
   }) : travelItemId = null;
 
   @override
@@ -45,6 +50,8 @@ class TravelEditScreen extends StatefulWidget {
 
 class _TravelEditScreenState extends State<TravelEditScreen> {
   final _draftPrefillService = const TravelImportDraftPrefillService();
+  final _savedDocumentAttachmentService =
+      TravelSavedDocumentAttachmentService();
 
   TravelItem? _item;
   String? _cruiseId;
@@ -339,6 +346,10 @@ class _TravelEditScreenState extends State<TravelEditScreen> {
     }
 
     await store.upsertTravelItem(cruiseId: cid, item: next);
+    await _savedDocumentAttachmentService.attachImportedDocumentIfPresent(
+      travelItemId: next.id,
+      sourceReference: widget.sourceReference,
+    );
     if (!mounted) {
       return;
     }
