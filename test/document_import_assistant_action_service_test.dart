@@ -242,16 +242,76 @@ void main() {
       expect(action.isSupported, isFalse);
     });
 
-    test('unsupported non-travel and non-excursion draft returns unsupported', () {
+    test('maps existing cruise match to editExistingCruise', () {
+      final cruiseDraft = CruiseImportDraft(
+        title: 'Summer Cruise',
+        shipName: 'Ocean Star',
+        startDate: DateTime(2026, 7, 13),
+        endDate: DateTime(2026, 7, 20),
+      );
+      const sourceReference = DocumentImportSourceReference(
+        documentId: 'doc-cruise-1',
+      );
+      final result = _buildMatchResult(
+        draft: DocumentImportDraft(
+          targetType: DocumentDraftTargetType.cruise,
+          sourceReference: sourceReference,
+          cruise: cruiseDraft,
+        ),
+        action: DocumentDraftMatchAction.useExisting,
+        matchedCruiseId: 'cruise-3',
+        matchedTargetType: DocumentDraftTargetType.cruise,
+      );
+
+      final action = service.buildAction(result);
+
+      expect(action.type, DocumentImportAssistantActionType.editExistingCruise);
+      expect(action.cruiseId, 'cruise-3');
+      expect(action.draftTargetType, DocumentDraftTargetType.cruise);
+      expect(action.targetType, DocumentDraftTargetType.cruise);
+      expect(action.initialCruiseDraft, cruiseDraft);
+      expect(action.sourceReference, sourceReference);
+      expect(action.isSupported, isTrue);
+    });
+
+    test(
+      'maps new cruise draft to createNewCruise without requiring matchedCruiseId',
+      () {
+        final cruiseDraft = CruiseImportDraft(
+          title: 'Autumn Voyage',
+          shipName: 'Sea Breeze',
+          startDate: DateTime(2026, 9, 1),
+          endDate: DateTime(2026, 9, 8),
+        );
+        final result = _buildMatchResult(
+          draft: DocumentImportDraft(
+            targetType: DocumentDraftTargetType.cruise,
+            cruise: cruiseDraft,
+          ),
+          action: DocumentDraftMatchAction.createNew,
+          matchedTargetType: DocumentDraftTargetType.cruise,
+        );
+
+        final action = service.buildAction(result);
+
+        expect(action.type, DocumentImportAssistantActionType.createNewCruise);
+        expect(action.cruiseId, isNull);
+        expect(action.draftTargetType, DocumentDraftTargetType.cruise);
+        expect(action.targetType, DocumentDraftTargetType.cruise);
+        expect(action.initialCruiseDraft, cruiseDraft);
+        expect(action.isSupported, isTrue);
+      },
+    );
+
+    test('does not edit existing cruise without matchedCruiseId', () {
       final result = _buildMatchResult(
         draft: DocumentImportDraft(
           targetType: DocumentDraftTargetType.cruise,
           cruise: CruiseImportDraft(
-            title: 'Summer Cruise',
+            title: 'Winter Cruise',
           ),
         ),
-        action: DocumentDraftMatchAction.createNew,
-        matchedCruiseId: 'cruise-3',
+        action: DocumentDraftMatchAction.useExisting,
         matchedTargetType: DocumentDraftTargetType.cruise,
       );
 
@@ -301,6 +361,32 @@ void main() {
 
       final action = service.buildAction(result);
 
+      expect(action.sourceReference, sourceReference);
+    });
+
+    test('sourceReference is preserved for cruise actions', () {
+      const sourceReference = DocumentImportSourceReference(
+        documentId: 'doc-cruise-2',
+        pendingShareBatchId: 'share-cruise-1',
+        pendingShareItemIndex: 1,
+      );
+      final result = _buildMatchResult(
+        draft: DocumentImportDraft(
+          targetType: DocumentDraftTargetType.cruise,
+          sourceReference: sourceReference,
+          cruise: CruiseImportDraft(
+            title: 'Northern Lights Cruise',
+          ),
+        ),
+        action: DocumentDraftMatchAction.createNew,
+        matchedCruiseId: 'cruise-7',
+        matchedTargetType: DocumentDraftTargetType.cruise,
+      );
+
+      final action = service.buildAction(result);
+
+      expect(action.type, DocumentImportAssistantActionType.createNewCruise);
+      expect(action.cruiseId, 'cruise-7');
       expect(action.sourceReference, sourceReference);
     });
   });

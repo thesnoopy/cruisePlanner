@@ -49,6 +49,30 @@ class DocumentImportAssistantActionService {
       );
     }
 
+    if (draft.targetType == DocumentDraftTargetType.cruise) {
+      if (matchResult.action == DocumentDraftMatchAction.useExisting) {
+        final cruiseId = matchResult.matchedCruiseId;
+        if (cruiseId == null || cruiseId.isEmpty) {
+          return DocumentImportAssistantAction.unsupported(
+            sourceReference: draft.sourceReference,
+          );
+        }
+
+        return DocumentImportAssistantAction.editExistingCruise(
+          cruiseId: cruiseId,
+          initialCruiseDraft: draft.cruise,
+          sourceReference: draft.sourceReference,
+        );
+      }
+
+      final cruiseId = matchResult.matchedCruiseId;
+      return DocumentImportAssistantAction.createNewCruise(
+        cruiseId: cruiseId == null || cruiseId.isEmpty ? null : cruiseId,
+        initialCruiseDraft: draft.cruise,
+        sourceReference: draft.sourceReference,
+      );
+    }
+
     if (draft.targetType.isRouteItemTarget) {
       if (matchResult.action == DocumentDraftMatchAction.useExisting) {
         final cruiseId = matchResult.matchedCruiseId;

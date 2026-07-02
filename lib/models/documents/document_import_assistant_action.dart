@@ -7,6 +7,8 @@ import 'document_import_source_reference.dart';
 enum DocumentImportAssistantActionType {
   unsupported,
   manualReview,
+  editExistingCruise,
+  createNewCruise,
   editExistingExcursion,
   createNewExcursion,
   editExistingRouteItem,
@@ -22,6 +24,7 @@ class DocumentImportAssistantAction extends Equatable {
   final String? travelItemId;
   final String? cruiseId;
   final DocumentDraftTargetType? draftTargetType;
+  final CruiseImportDraft? initialCruiseDraft;
   final ExcursionImportDraft? initialDraft;
   final RouteItemImportDraft? initialRouteItemDraft;
   final TravelImportDraft? initialTravelDraft;
@@ -37,6 +40,7 @@ class DocumentImportAssistantAction extends Equatable {
        travelItemId = null,
        cruiseId = null,
        draftTargetType = null,
+       initialCruiseDraft = null,
        initialDraft = null,
        initialRouteItemDraft = null,
        initialTravelDraft = null;
@@ -49,6 +53,33 @@ class DocumentImportAssistantAction extends Equatable {
        travelItemId = null,
        cruiseId = null,
        draftTargetType = null,
+       initialCruiseDraft = null,
+       initialDraft = null,
+       initialRouteItemDraft = null,
+       initialTravelDraft = null;
+
+  const DocumentImportAssistantAction.editExistingCruise({
+    required this.cruiseId,
+    this.initialCruiseDraft,
+    required this.sourceReference,
+  }) : type = DocumentImportAssistantActionType.editExistingCruise,
+       excursionId = null,
+       routeItemId = null,
+       travelItemId = null,
+       draftTargetType = DocumentDraftTargetType.cruise,
+       initialDraft = null,
+       initialRouteItemDraft = null,
+       initialTravelDraft = null;
+
+  const DocumentImportAssistantAction.createNewCruise({
+    this.cruiseId,
+    this.initialCruiseDraft,
+    required this.sourceReference,
+  }) : type = DocumentImportAssistantActionType.createNewCruise,
+       excursionId = null,
+       routeItemId = null,
+       travelItemId = null,
+       draftTargetType = DocumentDraftTargetType.cruise,
        initialDraft = null,
        initialRouteItemDraft = null,
        initialTravelDraft = null;
@@ -62,6 +93,7 @@ class DocumentImportAssistantAction extends Equatable {
        travelItemId = null,
        cruiseId = null,
        draftTargetType = DocumentDraftTargetType.excursion,
+       initialCruiseDraft = null,
        initialRouteItemDraft = null,
        initialTravelDraft = null;
 
@@ -74,6 +106,7 @@ class DocumentImportAssistantAction extends Equatable {
        routeItemId = null,
        travelItemId = null,
        draftTargetType = DocumentDraftTargetType.excursion,
+       initialCruiseDraft = null,
        initialRouteItemDraft = null,
        initialTravelDraft = null;
 
@@ -86,6 +119,7 @@ class DocumentImportAssistantAction extends Equatable {
   }) : type = DocumentImportAssistantActionType.editExistingRouteItem,
        excursionId = null,
        travelItemId = null,
+       initialCruiseDraft = null,
        initialDraft = null,
        initialTravelDraft = null;
 
@@ -98,6 +132,7 @@ class DocumentImportAssistantAction extends Equatable {
        excursionId = null,
        routeItemId = null,
        travelItemId = null,
+       initialCruiseDraft = null,
        initialDraft = null,
        initialTravelDraft = null;
 
@@ -110,6 +145,7 @@ class DocumentImportAssistantAction extends Equatable {
        excursionId = null,
        routeItemId = null,
        cruiseId = null,
+       initialCruiseDraft = null,
        initialDraft = null,
        initialRouteItemDraft = null;
 
@@ -122,10 +158,13 @@ class DocumentImportAssistantAction extends Equatable {
        excursionId = null,
        routeItemId = null,
        travelItemId = null,
+       initialCruiseDraft = null,
        initialDraft = null,
        initialRouteItemDraft = null;
 
   bool get isSupported =>
+      type == DocumentImportAssistantActionType.editExistingCruise ||
+      type == DocumentImportAssistantActionType.createNewCruise ||
       type == DocumentImportAssistantActionType.editExistingExcursion ||
       type == DocumentImportAssistantActionType.createNewExcursion ||
       type == DocumentImportAssistantActionType.editExistingRouteItem ||
@@ -144,6 +183,7 @@ class DocumentImportAssistantAction extends Equatable {
         travelItemId,
         cruiseId,
         draftTargetType,
+        initialCruiseDraft,
         initialDraft,
         initialRouteItemDraft,
         initialTravelDraft,
