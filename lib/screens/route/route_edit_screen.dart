@@ -1,9 +1,12 @@
 // RouteEditScreen – supports Date+Time and 'Alle Mann an Bord'; fixes getRef, mounted.
 import 'package:flutter/material.dart';
+import '../../models/documents/document_draft_target_type.dart';
+import '../../models/documents/document_import_draft.dart';
 import '../../store/cruise_store.dart';
 import '../../models/route/route_item.dart';
 import '../../models/route/port_call_item.dart';
 import '../../models/route/sea_day_item.dart';
+import '../../services/documents/route_item_import_draft_prefill_service.dart';
 import '../../utils/format.dart';
 import '../../l10n/app_localizations.dart';
 import '../../widgets/documents/port_call_documents_section.dart';
@@ -12,16 +15,37 @@ import '../../widgets/documents/sea_day_documents_section.dart';
 class RouteEditScreen extends StatefulWidget {
   final String routeItemId;
   final String cruiseId; // pass from list to avoid store lookup
-  const RouteEditScreen({super.key, required this.routeItemId, required this.cruiseId});
+  final bool createMode;
+  final DocumentDraftTargetType? draftTargetType;
+  final RouteItemImportDraft? initialDraft;
+
+  const RouteEditScreen({
+    super.key,
+    required this.routeItemId,
+    required this.cruiseId,
+    this.draftTargetType,
+    this.initialDraft,
+  }) : createMode = false;
+
+  const RouteEditScreen.create({
+    super.key,
+    required this.routeItemId,
+    required this.cruiseId,
+    required this.draftTargetType,
+    this.initialDraft,
+  }) : createMode = true;
 
   @override
   State<RouteEditScreen> createState() => _RouteEditScreenState();
 }
 
 class _RouteEditScreenState extends State<RouteEditScreen> {
+  final _draftPrefillService = const RouteItemImportDraftPrefillService();
+
   RouteItem? _item;
   final _portName = TextEditingController();
   final _notes = TextEditingController();
+  bool _loading = true;
 
   DateTime? _date; // anchor day
   DateTime? _arrival;
@@ -29,6 +53,9 @@ class _RouteEditScreenState extends State<RouteEditScreen> {
   DateTime? _allAboard;
 
   bool get isPort => _item is PortCallItem;
+  bool get _isPortTarget =>
+      _item is PortCallItem ||
+      widget.draftTargetType == DocumentDraftTargetType.portCall;
 
   @override
   void initState() {
@@ -39,23 +66,66 @@ class _RouteEditScreenState extends State<RouteEditScreen> {
   Future<void> _load() async {
     final s = CruiseStore();
     await s.load();
-    final it = s.getById<RouteItem>(widget.routeItemId);
+    RouteItem? it;
+    if (widget.createMode) {
+      final cruise = s.getCruise(widget.cruiseId);
+      final targetType = widget.draftTargetType;
+      if (cruise != null &&
+          targetType != null &&
+          targetType.isRouteItemTarget) {
+        it = _draftPrefillService.buildNewRouteItem(
+          routeItemId: widget.routeItemId,
+          fallbackDate: cruise.period.start,
+          targetType: targetType,
+          draft: widget.initialDraft,
+        );
+      }
+    } else {
+      final storedItem = s.getById<RouteItem>(widget.routeItemId);
+      final targetType = widget.draftTargetType;
+      if (storedItem != null) {
+        it = targetType == null
+            ? storedItem
+            : _draftPrefillService.mergeIntoExisting(
+                    base: storedItem,
+                    targetType: targetType,
+                    draft: widget.initialDraft,
+                  ) ??
+                storedItem;
+      }
+    }
+
     if (!mounted) {
       return;
     }
+
+    if (it != null) {
+      _applyItemToForm(it);
+    }
+
     setState(() {
       _item = it;
-      _date = it?.date;
-      if (it is PortCallItem) {
-        _portName.text = it.portName;
-        _arrival = it.arrival;
-        _departure = it.departure;
-        _allAboard = it.allAboard;
-        _notes.text = it.notes ?? '';
-      } else if (it is SeaDayItem) {
-        _notes.text = it.notes ?? '';
-      }
+      _loading = false;
     });
+  }
+
+  void _applyItemToForm(RouteItem item) {
+    _date = item.date;
+    _arrival = null;
+    _departure = null;
+    _allAboard = null;
+    _portName.text = '';
+    _notes.text = '';
+
+    if (item is PortCallItem) {
+      _portName.text = item.portName;
+      _arrival = item.arrival;
+      _departure = item.departure;
+      _allAboard = item.allAboard;
+      _notes.text = item.notes ?? '';
+    } else if (item is SeaDayItem) {
+      _notes.text = item.notes ?? '';
+    }
   }
 
   Future<void> _save() async {
@@ -65,7 +135,9 @@ class _RouteEditScreenState extends State<RouteEditScreen> {
     }
     final s = CruiseStore();
     await s.load();
-    final latestItem = s.getById<RouteItem>(widget.routeItemId) ?? it;
+    final latestItem = widget.createMode
+        ? it
+        : s.getById<RouteItem>(widget.routeItemId) ?? it;
     late RouteItem next;
     if (latestItem is PortCallItem) {
       next = latestItem.copyWith(
@@ -156,8 +228,14 @@ class _RouteEditScreenState extends State<RouteEditScreen> {
   Widget build(BuildContext context) {
     final it = _item;
     final loc = AppLocalizations.of(context)!;
-    if (it == null) {
+    if (_loading) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+    if (it == null) {
+      return Scaffold(
+        appBar: AppBar(title: Text(_isPortTarget ? loc.editPort : loc.editSeaDay)),
+        body: Center(child: Text(_isPortTarget ? loc.harbour : loc.seaDay)),
+      );
     }
 
     return Scaffold(
@@ -199,10 +277,10 @@ class _RouteEditScreenState extends State<RouteEditScreen> {
           ],
           const SizedBox(height: 12),
           TextField(controller: _notes, decoration: InputDecoration(labelText: loc.notesOptional), maxLines: 3),
-          if (it is PortCallItem) ...[
+          if (!widget.createMode && it is PortCallItem) ...[
             const SizedBox(height: 24),
             PortCallDocumentsSection(portCallId: it.id),
-          ] else if (it is SeaDayItem) ...[
+          ] else if (!widget.createMode && it is SeaDayItem) ...[
             const SizedBox(height: 24),
             SeaDayDocumentsSection(
               key: ValueKey('sea-day-docs-${it.id}-${it.documentIds.join('|')}'),
