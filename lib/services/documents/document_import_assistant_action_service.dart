@@ -21,7 +21,39 @@ class DocumentImportAssistantActionService {
     }
 
     if (draft.targetType != DocumentDraftTargetType.excursion) {
-      return DocumentImportAssistantAction.unsupported(
+      if (!draft.targetType.isTravelTarget) {
+        return DocumentImportAssistantAction.unsupported(
+          sourceReference: draft.sourceReference,
+        );
+      }
+
+      if (matchResult.action == DocumentDraftMatchAction.useExisting) {
+        final travelItemId = matchResult.matchedItemId;
+        if (travelItemId == null || travelItemId.isEmpty) {
+          return DocumentImportAssistantAction.unsupported(
+            sourceReference: draft.sourceReference,
+          );
+        }
+
+        return DocumentImportAssistantAction.editExistingTravel(
+          travelItemId: travelItemId,
+          draftTargetType: draft.targetType,
+          initialTravelDraft: draft.travel,
+          sourceReference: draft.sourceReference,
+        );
+      }
+
+      final cruiseId = matchResult.matchedCruiseId;
+      if (cruiseId == null || cruiseId.isEmpty) {
+        return DocumentImportAssistantAction.unsupported(
+          sourceReference: draft.sourceReference,
+        );
+      }
+
+      return DocumentImportAssistantAction.createNewTravel(
+        cruiseId: cruiseId,
+        draftTargetType: draft.targetType,
+        initialTravelDraft: draft.travel,
         sourceReference: draft.sourceReference,
       );
     }

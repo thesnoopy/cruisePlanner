@@ -62,6 +62,74 @@ void main() {
       expect(action.initialDraft, excursionDraft);
     });
 
+    test('useExisting travel match becomes an edit-existing travel action', () {
+      final travelDraft = TravelImportDraft(
+        start: DateTime(2026, 7, 7, 10),
+        end: DateTime(2026, 7, 7, 12),
+        from: 'Miami Airport',
+        to: 'Port of Miami',
+        notes: 'Terminal transfer',
+        mode: 'shuttle',
+      );
+      const sourceReference = DocumentImportSourceReference(
+        documentId: 'doc-travel-1',
+      );
+      final result = _buildMatchResult(
+        draft: DocumentImportDraft(
+          targetType: DocumentDraftTargetType.transfer,
+          sourceReference: sourceReference,
+          travel: travelDraft,
+        ),
+        action: DocumentDraftMatchAction.useExisting,
+        matchedCruiseId: 'cruise-5',
+        matchedItemId: 'travel-1',
+        matchedTargetType: DocumentDraftTargetType.transfer,
+      );
+
+      final action = service.buildAction(result);
+
+      expect(
+        action.type,
+        DocumentImportAssistantActionType.editExistingTravel,
+      );
+      expect(action.travelItemId, 'travel-1');
+      expect(action.draftTargetType, DocumentDraftTargetType.transfer);
+      expect(action.targetType, DocumentDraftTargetType.transfer);
+      expect(action.initialTravelDraft, travelDraft);
+      expect(action.sourceReference, sourceReference);
+    });
+
+    test('createNew travel match with cruise id becomes a create-new travel action', () {
+      final travelDraft = TravelImportDraft(
+        start: DateTime(2026, 7, 8, 14),
+        end: DateTime(2026, 7, 10, 9),
+        name: 'Harbor View Hotel',
+        location: 'Barcelona',
+        company: 'Harbor Stays',
+        recordLocator: 'HV123',
+      );
+      final result = _buildMatchResult(
+        draft: DocumentImportDraft(
+          targetType: DocumentDraftTargetType.hotel,
+          travel: travelDraft,
+        ),
+        action: DocumentDraftMatchAction.createNew,
+        matchedCruiseId: 'cruise-6',
+        matchedTargetType: DocumentDraftTargetType.hotel,
+      );
+
+      final action = service.buildAction(result);
+
+      expect(
+        action.type,
+        DocumentImportAssistantActionType.createNewTravel,
+      );
+      expect(action.cruiseId, 'cruise-6');
+      expect(action.draftTargetType, DocumentDraftTargetType.hotel);
+      expect(action.targetType, DocumentDraftTargetType.hotel);
+      expect(action.initialTravelDraft, travelDraft);
+    });
+
     test('manualReview returns a manual-review action', () {
       final result = _buildMatchResult(
         draft: DocumentImportDraft(
@@ -80,7 +148,7 @@ void main() {
       expect(action.isSupported, isFalse);
     });
 
-    test('non-excursion draft returns unsupported for now', () {
+    test('unsupported non-travel and non-excursion draft returns unsupported', () {
       final result = _buildMatchResult(
         draft: DocumentImportDraft(
           targetType: DocumentDraftTargetType.cruise,
