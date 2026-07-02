@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 
 import '../../l10n/app_localizations.dart';
 import '../../models/cruise.dart';
+import '../../models/documents/document_import_draft.dart';
+import '../../models/identifiable.dart';
 import '../../models/period.dart';
+import '../../services/documents/cruise_import_draft_prefill_service.dart';
 import '../../store/cruise_store.dart';
 import '../../utils/format.dart';
 import '../../widgets/documents/cruise_documents_section.dart';
@@ -11,15 +14,25 @@ class CruiseEditScreen extends StatefulWidget {
   const CruiseEditScreen({
     super.key,
     required this.cruiseId,
-  });
+    this.initialDraft,
+  }) : fallbackPeriod = null;
 
-  final String cruiseId;
+  const CruiseEditScreen.create({
+    super.key,
+    this.initialDraft,
+    this.fallbackPeriod,
+  }) : cruiseId = null;
+
+  final String? cruiseId;
+  final CruiseImportDraft? initialDraft;
+  final Period? fallbackPeriod;
 
   @override
   State<CruiseEditScreen> createState() => _CruiseEditScreenState();
 }
 
 class _CruiseEditScreenState extends State<CruiseEditScreen> {
+  final _draftPrefillService = const CruiseImportDraftPrefillService();
   final _formKey = GlobalKey<FormState>();
   final _title = TextEditingController();
   final _shipName = TextEditingController();
@@ -32,6 +45,8 @@ class _CruiseEditScreenState extends State<CruiseEditScreen> {
   DateTime? _start;
   DateTime? _end;
   bool _loading = true;
+
+  bool get _isCreateMode => widget.cruiseId == null;
 
   @override
   void initState() {
@@ -53,24 +68,48 @@ class _CruiseEditScreenState extends State<CruiseEditScreen> {
   Future<void> _load() async {
     final store = CruiseStore();
     await store.load();
-    final cruise = store.getCruise(widget.cruiseId);
+
+    Cruise? cruise;
+    final cruiseId = widget.cruiseId;
+    if (cruiseId != null) {
+      final storedCruise = store.getCruise(cruiseId);
+      cruise = storedCruise == null
+          ? null
+          : _draftPrefillService.mergeIntoExisting(
+              base: storedCruise,
+              draft: widget.initialDraft,
+            );
+    } else {
+      cruise = _draftPrefillService.buildNewCruise(
+        cruiseId: Identifiable.newId(),
+        fallbackPeriod: widget.fallbackPeriod ?? _defaultFallbackPeriod(),
+        draft: widget.initialDraft,
+      );
+    }
 
     if (!mounted) {
       return;
     }
 
+    if (cruise != null) {
+      _applyCruiseToForm(cruise);
+    }
+
     setState(() {
       _cruise = cruise;
-      _title.text = cruise?.title ?? '';
-      _shipName.text = cruise?.ship.name ?? '';
-      _shipOperator.text = cruise?.ship.operatorName ?? '';
-      _cabinNumber.text = cruise?.cabinNumber ?? '';
-      _deckNumber.text = cruise?.deckNumber ?? '';
-      _deckName.text = cruise?.deckname ?? '';
-      _start = cruise?.period.start;
-      _end = cruise?.period.end;
       _loading = false;
     });
+  }
+
+  void _applyCruiseToForm(Cruise cruise) {
+    _title.text = cruise.title;
+    _shipName.text = cruise.ship.name;
+    _shipOperator.text = cruise.ship.operatorName ?? '';
+    _cabinNumber.text = cruise.cabinNumber ?? '';
+    _deckNumber.text = cruise.deckNumber ?? '';
+    _deckName.text = cruise.deckname ?? '';
+    _start = cruise.period.start;
+    _end = cruise.period.end;
   }
 
   Future<void> _save() async {
@@ -84,7 +123,9 @@ class _CruiseEditScreenState extends State<CruiseEditScreen> {
 
     final store = CruiseStore();
     await store.load();
-    final latestCruise = store.getCruise(widget.cruiseId) ?? cruise;
+    final latestCruise = _isCreateMode
+        ? cruise
+        : store.getCruise(widget.cruiseId!) ?? cruise;
     final next = latestCruise.copyWith(
       title: _title.text.trim(),
       ship: latestCruise.ship.copyWith(
@@ -136,27 +177,33 @@ class _CruiseEditScreenState extends State<CruiseEditScreen> {
     return trimmed.isEmpty ? null : trimmed;
   }
 
+  Period _defaultFallbackPeriod() {
+    final now = DateTime.now();
+    return Period(start: now, end: now.add(const Duration(days: 7)));
+  }
+
   @override
   Widget build(BuildContext context) {
     final loc = AppLocalizations.of(context)!;
     final cruise = _cruise;
+    final screenTitle = _isCreateMode ? loc.homeNewCruiseLabel : loc.editCruise;
 
     if (_loading) {
       return Scaffold(
-        appBar: AppBar(title: Text(loc.editCruise)),
+        appBar: AppBar(title: Text(screenTitle)),
         body: const Center(child: CircularProgressIndicator()),
       );
     }
 
     if (cruise == null) {
       return Scaffold(
-        appBar: AppBar(title: Text(loc.editCruise)),
+        appBar: AppBar(title: Text(screenTitle)),
         body: Center(child: Text(loc.cruise)),
       );
     }
 
     return Scaffold(
-      appBar: AppBar(title: Text(loc.editCruise)),
+      appBar: AppBar(title: Text(screenTitle)),
       body: Form(
         key: _formKey,
         child: ListView(
@@ -223,8 +270,10 @@ class _CruiseEditScreenState extends State<CruiseEditScreen> {
                 ),
               ],
             ),
-            const SizedBox(height: 24),
-            CruiseDocumentsSection(cruiseId: cruise.id),
+            if (!_isCreateMode) ...[
+              const SizedBox(height: 24),
+              CruiseDocumentsSection(cruiseId: cruise.id),
+            ],
             const SizedBox(height: 24),
             FilledButton.icon(
               onPressed: _save,
