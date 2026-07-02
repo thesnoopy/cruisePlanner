@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../../l10n/app_localizations.dart';
 import '../../models/documents/document_import_draft.dart';
+import '../../models/documents/document_import_source_reference.dart';
 import '../../models/excursion.dart';
 import '../../models/excursions/cash_currency_preference.dart';
 import '../../models/excursions/excursion_payment_method.dart';
@@ -14,6 +15,7 @@ import '../../models/excursions/excursion_payment_trigger.dart';
 import '../../models/excursions/excursion_stop.dart';
 import '../../models/identifiable.dart';
 import '../../services/documents/excursion_import_draft_prefill_service.dart';
+import '../../services/documents/excursion_saved_document_attachment_service.dart';
 import '../../store/cruise_store.dart';
 import '../../utils/format.dart';
 import '../../widgets/documents/excursion_documents_section.dart';
@@ -22,17 +24,20 @@ class ExcursionEditScreen extends StatefulWidget {
   final String? excursionId;
   final String? cruiseId;
   final ExcursionImportDraft? initialDraft;
+  final DocumentImportSourceReference sourceReference;
 
   const ExcursionEditScreen({
     super.key,
     required this.excursionId,
     this.initialDraft,
+    this.sourceReference = const DocumentImportSourceReference(),
   }) : cruiseId = null;
 
   const ExcursionEditScreen.create({
     super.key,
     required this.cruiseId,
     this.initialDraft,
+    this.sourceReference = const DocumentImportSourceReference(),
   }) : excursionId = null;
 
   @override
@@ -42,6 +47,8 @@ class ExcursionEditScreen extends StatefulWidget {
 class _ExcursionEditScreenState extends State<ExcursionEditScreen> {
   final _formKey = GlobalKey<FormState>();
   final _draftPrefillService = const ExcursionImportDraftPrefillService();
+  final _savedDocumentAttachmentService =
+      ExcursionSavedDocumentAttachmentService();
 
   Excursion? _ex;
   String? _cruiseId;
@@ -470,6 +477,10 @@ class _ExcursionEditScreenState extends State<ExcursionEditScreen> {
       paymentPlan: plan,
     );
     await store.upsertExcursion(cruiseId: cid, excursion: updated);
+    await _savedDocumentAttachmentService.attachImportedDocumentIfPresent(
+      excursionId: updated.id,
+      sourceReference: widget.sourceReference,
+    );
 
     if (mounted) {
       Navigator.of(context).pop();
