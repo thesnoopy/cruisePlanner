@@ -5,6 +5,7 @@ import android.os.Build
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
+import android.graphics.Rect
 import android.graphics.RectF
 import android.graphics.pdf.PdfDocument
 import android.util.Log
@@ -23,6 +24,10 @@ import io.flutter.plugin.platform.PlatformView
 import io.flutter.plugin.platform.PlatformViewFactory
 import java.io.File
 import java.io.FileOutputStream
+import java.util.Locale
+import kotlin.math.abs
+import kotlin.math.max
+import kotlin.math.min
 import kotlin.math.roundToInt
 
 class UrlSnapshotWebViewFactory(
@@ -34,6 +39,16 @@ class UrlSnapshotWebViewFactory(
         private const val logTag = "UrlSnapshot"
         private const val captureDelayMs = 700L
         private const val overlapPx = 24
+        private const val overlapDetectionMaxPx = 72
+        private const val overlapDetectionMaxMultiplier = 3
+        private const val overlapDetectionMinPx = 8
+        private const val overlapDetectionRowStridePx = 2
+        private const val overlapDetectionHorizontalSamples = 32
+        private const val overlapDetectionMaxScore = 12.0
+        private const val overlapDetectionScoreTolerance = 1.5
+        private const val overlapDetectionFarMatchMinScoreGain = 2.0
+        private const val overlapDetectionMinDetailScore = 3.0
+        private const val minPdfContentHeightPx = 48
         private const val minCapturePages = 40
         private const val capturePageBuffer = 12
         private const val maxCapturePagesSafetyLimit = 100
@@ -157,6 +172,37 @@ class UrlSnapshotWebViewFactory(
             val nonWhiteRatio: Double,
             val sampleHash: String,
             val strategy: CaptureStrategy,
+        )
+
+        private enum class OverlapStrategy(
+            val logName: String,
+        ) {
+            None("none"),
+            Detected("detected"),
+            Fallback("fallback"),
+        }
+
+        private data class OverlapCropDecision(
+            val cropTopPx: Int,
+            val score: Double?,
+            val strategy: OverlapStrategy,
+        )
+
+        private data class LumaProfile(
+            val rowStridePx: Int,
+            val sampleCount: Int,
+            val rows: Int,
+            val values: IntArray,
+        )
+
+        private data class OverlapReference(
+            val heightPx: Int,
+            val profile: LumaProfile,
+        )
+
+        private data class OverlapCandidate(
+            val overlapPx: Int,
+            val score: Double,
         )
 
         init {
@@ -317,6 +363,7 @@ class UrlSnapshotWebViewFactory(
             val sampleHashes = mutableListOf<String>()
             val pdfDocument = PdfDocument()
             var pdfDocumentClosed = false
+            var previousOverlapReference: OverlapReference? = null
             isCapturing = true
 
             fun closePdfDocument() {
@@ -402,12 +449,17 @@ class UrlSnapshotWebViewFactory(
                     nonWhiteRatios.add(nonWhiteRatio)
                     sampleHashes.add(sampleHash)
                     val pageIndex = nonWhiteRatios.size
+                    val overlapDecision = determineOverlapCrop(
+                        pageIndex = pageIndex,
+                        bitmap = bitmap,
+                        previousReference = previousOverlapReference,
+                    )
 
                     val scrollOffset = webView.verticalScrollOffsetPx()
                     val scrollExtent = webView.verticalScrollExtentPx().takeIf { it > 0 } ?: viewportHeight
                     val scrollRange = webView.verticalScrollRangePx().takeIf { it > 0 }
                         ?: (webView.contentHeight * webView.scale).toInt().coerceAtLeast(viewportHeight)
-                    val pdfPageSize = pdfPageSizeForBitmap(bitmap)
+                    val pdfPageSize = pdfPageSizeForBitmap(bitmap, overlapDecision.cropTopPx)
                     val estimatedPages = estimateRequiredPages(
                         scrollRange = scrollRange,
                         scrollExtent = scrollExtent,
@@ -430,6 +482,9 @@ class UrlSnapshotWebViewFactory(
                             "pdf=${pdfPageSize.first}x${pdfPageSize.second} " +
                             "nonWhiteRatio=$nonWhiteRatio " +
                             "sampleHash=$sampleHash " +
+                            "overlapCropPx=${overlapDecision.cropTopPx} " +
+                            "overlapScore=${formatOverlapScore(overlapDecision.score)} " +
+                            "overlapStrategy=${overlapDecision.strategy.logName} " +
                             "strategy=${captureResult.strategy.logName}",
                     )
                     logRepeatedSampleHashIfNeeded(sampleHashes, captureResult.strategy)
@@ -445,6 +500,11 @@ class UrlSnapshotWebViewFactory(
                             pdfDocument = pdfDocument,
                             bitmap = bitmap,
                             pageIndex = pageIndex,
+                            topCropPx = overlapDecision.cropTopPx,
+                        )
+                        previousOverlapReference = buildOverlapReference(
+                            bitmap = bitmap,
+                            topCropPx = overlapDecision.cropTopPx,
                         )
                     } catch (exception: Exception) {
                         if (!bitmap.isRecycled) {
@@ -551,11 +611,17 @@ class UrlSnapshotWebViewFactory(
             pdfDocument: PdfDocument,
             bitmap: Bitmap,
             pageIndex: Int,
+            topCropPx: Int,
         ) {
-            val (pageWidth, pageHeight) = pdfPageSizeForBitmap(bitmap)
+            val safeTopCropPx = sanitizeTopCropPx(
+                topCropPx = topCropPx,
+                bitmapHeight = bitmap.height,
+            )
+            val (pageWidth, pageHeight) = pdfPageSizeForBitmap(bitmap, safeTopCropPx)
             Log.d(
                 logTag,
-                "pdf page=$pageIndex bitmap=${bitmap.width}x${bitmap.height} pdf=${pageWidth}x${pageHeight}",
+                "pdf page=$pageIndex bitmap=${bitmap.width}x${bitmap.height} cropTopPx=$safeTopCropPx " +
+                    "pdf=${pageWidth}x${pageHeight}",
             )
             val pageInfo = PdfDocument.PageInfo.Builder(
                 pageWidth,
@@ -567,7 +633,7 @@ class UrlSnapshotWebViewFactory(
             canvas.drawColor(Color.WHITE)
             canvas.drawBitmap(
                 bitmap,
-                null,
+                Rect(0, safeTopCropPx, bitmap.width, bitmap.height),
                 RectF(0f, 0f, pageWidth.toFloat(), pageHeight.toFloat()),
                 null,
             )
@@ -810,6 +876,325 @@ class UrlSnapshotWebViewFactory(
             return java.lang.Long.toHexString(hash)
         }
 
+        private fun determineOverlapCrop(
+            pageIndex: Int,
+            bitmap: Bitmap,
+            previousReference: OverlapReference?,
+        ): OverlapCropDecision {
+            if (pageIndex == 1) {
+                return OverlapCropDecision(
+                    cropTopPx = 0,
+                    score = null,
+                    strategy = OverlapStrategy.None,
+                )
+            }
+            if (previousReference == null) {
+                val fallbackCropPx = min(overlapPx, (bitmap.height - minPdfContentHeightPx).coerceAtLeast(0))
+                return fallbackOverlapDecision(fallbackCropPx, null)
+            }
+
+            val safeMaxCropPx = (bitmap.height - minPdfContentHeightPx).coerceAtLeast(0)
+            val fallbackCropPx = min(overlapPx, safeMaxCropPx)
+            val preferredSearchLimitPx = min(
+                overlapDetectionMaxPx,
+                max(overlapDetectionMinPx, overlapPx * overlapDetectionMaxMultiplier),
+            )
+            val searchLimitPx = min(
+                safeMaxCropPx,
+                min(previousReference.heightPx, preferredSearchLimitPx),
+            )
+            if (searchLimitPx < overlapDetectionMinPx) {
+                return fallbackOverlapDecision(fallbackCropPx, null)
+            }
+
+            val currentProfile = buildLumaProfile(
+                bitmap = bitmap,
+                startY = 0,
+                endYExclusive = searchLimitPx,
+            ) ?: return fallbackOverlapDecision(fallbackCropPx, null)
+            val previousProfile = previousReference.profile
+            if (
+                previousProfile.rowStridePx != currentProfile.rowStridePx ||
+                previousProfile.sampleCount != currentProfile.sampleCount
+            ) {
+                return fallbackOverlapDecision(fallbackCropPx, null)
+            }
+
+            val maxCandidateRows = min(previousProfile.rows, currentProfile.rows)
+            val minCandidateRows = ceilDiv(overlapDetectionMinPx, currentProfile.rowStridePx)
+            if (maxCandidateRows < minCandidateRows) {
+                return fallbackOverlapDecision(fallbackCropPx, null)
+            }
+
+            val fallbackScore = overlapScoreForCrop(
+                previousProfile = previousProfile,
+                currentProfile = currentProfile,
+                overlapCropPx = fallbackCropPx,
+            )
+            val validCandidates = mutableListOf<OverlapCandidate>()
+            var bestScore = Double.POSITIVE_INFINITY
+
+            for (candidateRows in minCandidateRows..maxCandidateRows) {
+                val overlapCandidatePx = candidateRows * currentProfile.rowStridePx
+                val score = compareOverlapScore(
+                    previousProfile = previousProfile,
+                    currentProfile = currentProfile,
+                    comparedRows = candidateRows,
+                )
+                bestScore = min(bestScore, score)
+                val previousDetail = profileDetailScore(
+                    profile = previousProfile,
+                    startRow = previousProfile.rows - candidateRows,
+                    rowCount = candidateRows,
+                )
+                val currentDetail = profileDetailScore(
+                    profile = currentProfile,
+                    startRow = 0,
+                    rowCount = candidateRows,
+                )
+                if (
+                    min(previousDetail, currentDetail) >= overlapDetectionMinDetailScore &&
+                    score <= overlapDetectionMaxScore
+                ) {
+                    validCandidates.add(
+                        OverlapCandidate(
+                            overlapPx = overlapCandidatePx,
+                            score = score,
+                        ),
+                    )
+                }
+            }
+
+            if (validCandidates.isNotEmpty()) {
+                val toleratedScore = bestScore + overlapDetectionScoreTolerance
+                val detectedCandidate = validCandidates
+                    .filter { it.score <= toleratedScore }
+                    .minWithOrNull(
+                        compareBy<OverlapCandidate>(
+                            { abs(it.overlapPx - overlapPx) },
+                            { it.score },
+                            { it.overlapPx },
+                        ),
+                    )
+                if (detectedCandidate != null) {
+                    val isFarFromExpected = abs(detectedCandidate.overlapPx - overlapPx) > overlapPx
+                    val hasClearlyBetterScore =
+                        fallbackScore == null ||
+                            detectedCandidate.score <= fallbackScore - overlapDetectionFarMatchMinScoreGain
+                    if (isFarFromExpected && !hasClearlyBetterScore) {
+                        return fallbackOverlapDecision(fallbackCropPx, fallbackScore)
+                    }
+                    return OverlapCropDecision(
+                        cropTopPx = min(detectedCandidate.overlapPx, safeMaxCropPx),
+                        score = detectedCandidate.score,
+                        strategy = OverlapStrategy.Detected,
+                    )
+                }
+            }
+            return fallbackOverlapDecision(fallbackCropPx, fallbackScore)
+        }
+
+        private fun buildOverlapReference(
+            bitmap: Bitmap,
+            topCropPx: Int,
+        ): OverlapReference? {
+            val safeTopCropPx = sanitizeTopCropPx(
+                topCropPx = topCropPx,
+                bitmapHeight = bitmap.height,
+            )
+            val writtenHeightPx = (bitmap.height - safeTopCropPx).coerceAtLeast(0)
+            if (writtenHeightPx < overlapDetectionMinPx) {
+                return null
+            }
+
+            val preferredReferenceHeightPx = min(
+                overlapDetectionMaxPx,
+                max(overlapDetectionMinPx, overlapPx * overlapDetectionMaxMultiplier),
+            )
+            val referenceHeightPx = min(writtenHeightPx, preferredReferenceHeightPx)
+            val startY = bitmap.height - referenceHeightPx
+            val profile = buildLumaProfile(
+                bitmap = bitmap,
+                startY = startY,
+                endYExclusive = bitmap.height,
+            ) ?: return null
+            return OverlapReference(
+                heightPx = referenceHeightPx,
+                profile = profile,
+            )
+        }
+
+        private fun buildLumaProfile(
+            bitmap: Bitmap,
+            startY: Int,
+            endYExclusive: Int,
+        ): LumaProfile? {
+            val width = bitmap.width
+            val safeStartY = startY.coerceAtLeast(0).coerceAtMost(bitmap.height)
+            val safeEndY = endYExclusive.coerceAtLeast(safeStartY).coerceAtMost(bitmap.height)
+            val sampledHeightPx = safeEndY - safeStartY
+            if (width <= 0 || sampledHeightPx <= 0) {
+                return null
+            }
+
+            val sampleCount = min(overlapDetectionHorizontalSamples, width).coerceAtLeast(1)
+            val rowStridePx = overlapDetectionRowStridePx.coerceAtLeast(1)
+            val rowCount = ceilDiv(sampledHeightPx, rowStridePx)
+            val values = IntArray(rowCount * sampleCount)
+
+            var rowIndex = 0
+            var y = safeStartY
+            while (y < safeEndY && rowIndex < rowCount) {
+                val rowOffset = rowIndex * sampleCount
+                for (sampleIndex in 0 until sampleCount) {
+                    val x = (((sampleIndex.toLong() * 2L + 1L) * width) / (sampleCount * 2L))
+                        .toInt()
+                        .coerceIn(0, width - 1)
+                    val color = bitmap.getPixel(x, y)
+                    values[rowOffset + sampleIndex] = luminanceForColor(color)
+                }
+                rowIndex++
+                y += rowStridePx
+            }
+
+            return LumaProfile(
+                rowStridePx = rowStridePx,
+                sampleCount = sampleCount,
+                rows = rowIndex,
+                values = values,
+            )
+        }
+
+        private fun overlapScoreForCrop(
+            previousProfile: LumaProfile,
+            currentProfile: LumaProfile,
+            overlapCropPx: Int,
+        ): Double? {
+            val comparedRows = overlapCropPx / currentProfile.rowStridePx
+            if (
+                overlapCropPx < overlapDetectionMinPx ||
+                comparedRows <= 0 ||
+                previousProfile.rows < comparedRows ||
+                currentProfile.rows < comparedRows
+            ) {
+                return null
+            }
+            return compareOverlapScore(
+                previousProfile = previousProfile,
+                currentProfile = currentProfile,
+                comparedRows = comparedRows,
+            )
+        }
+
+        private fun compareOverlapScore(
+            previousProfile: LumaProfile,
+            currentProfile: LumaProfile,
+            comparedRows: Int,
+        ): Double {
+            val sampleCount = previousProfile.sampleCount
+            val previousStartRow = previousProfile.rows - comparedRows
+            var totalDifference = 0L
+            var comparedValues = 0L
+
+            for (rowIndex in 0 until comparedRows) {
+                val previousOffset = (previousStartRow + rowIndex) * sampleCount
+                val currentOffset = rowIndex * sampleCount
+                for (sampleIndex in 0 until sampleCount) {
+                    totalDifference += abs(
+                        previousProfile.values[previousOffset + sampleIndex] -
+                            currentProfile.values[currentOffset + sampleIndex],
+                    ).toLong()
+                    comparedValues++
+                }
+            }
+
+            if (comparedValues == 0L) {
+                return Double.POSITIVE_INFINITY
+            }
+            return totalDifference.toDouble() / comparedValues.toDouble()
+        }
+
+        private fun profileDetailScore(
+            profile: LumaProfile,
+            startRow: Int,
+            rowCount: Int,
+        ): Double {
+            if (rowCount < 2) {
+                return 0.0
+            }
+
+            val clampedStartRow = startRow.coerceAtLeast(0).coerceAtMost(profile.rows - 1)
+            val clampedEndRow = (clampedStartRow + rowCount).coerceAtMost(profile.rows)
+            if (clampedEndRow - clampedStartRow < 2) {
+                return 0.0
+            }
+
+            var totalDifference = 0L
+            var comparedValues = 0L
+            val sampleCount = profile.sampleCount
+
+            for (rowIndex in clampedStartRow until (clampedEndRow - 1)) {
+                val currentOffset = rowIndex * sampleCount
+                val nextOffset = (rowIndex + 1) * sampleCount
+                for (sampleIndex in 0 until sampleCount) {
+                    totalDifference += abs(
+                        profile.values[currentOffset + sampleIndex] -
+                            profile.values[nextOffset + sampleIndex],
+                    ).toLong()
+                    comparedValues++
+                }
+            }
+
+            if (comparedValues == 0L) {
+                return 0.0
+            }
+            return totalDifference.toDouble() / comparedValues.toDouble()
+        }
+
+        private fun luminanceForColor(color: Int): Int {
+            val red = Color.red(color)
+            val green = Color.green(color)
+            val blue = Color.blue(color)
+            return (red * 54 + green * 183 + blue * 19) / 256
+        }
+
+        private fun fallbackOverlapDecision(
+            fallbackCropPx: Int,
+            fallbackScore: Double?,
+        ): OverlapCropDecision {
+            if (fallbackCropPx > 0) {
+                return OverlapCropDecision(
+                    cropTopPx = fallbackCropPx,
+                    score = fallbackScore,
+                    strategy = OverlapStrategy.Fallback,
+                )
+            }
+            return OverlapCropDecision(
+                cropTopPx = 0,
+                score = fallbackScore,
+                strategy = OverlapStrategy.None,
+            )
+        }
+
+        private fun sanitizeTopCropPx(
+            topCropPx: Int,
+            bitmapHeight: Int,
+        ): Int {
+            val maxCropPx = (bitmapHeight - minPdfContentHeightPx).coerceAtLeast(0)
+            return topCropPx.coerceIn(0, maxCropPx)
+        }
+
+        private fun formatOverlapScore(score: Double?): String {
+            return score?.let { String.format(Locale.US, "%.2f", it) } ?: "n/a"
+        }
+
+        private fun ceilDiv(value: Int, divisor: Int): Int {
+            if (divisor <= 0) {
+                return 0
+            }
+            return (value + divisor - 1) / divisor
+        }
+
         private fun parseJavascriptIntegerResult(rawResult: String?): Int {
             val trimmed = rawResult?.trim().orEmpty()
             if (trimmed.isEmpty() || trimmed == "null") {
@@ -853,10 +1238,18 @@ class UrlSnapshotWebViewFactory(
             return false
         }
 
-        private fun pdfPageSizeForBitmap(bitmap: Bitmap): Pair<Int, Int> {
+        private fun pdfPageSizeForBitmap(
+            bitmap: Bitmap,
+            topCropPx: Int = 0,
+        ): Pair<Int, Int> {
             val density = webView.resources.displayMetrics.density.takeIf { it > 0f } ?: 1f
+            val safeTopCropPx = sanitizeTopCropPx(
+                topCropPx = topCropPx,
+                bitmapHeight = bitmap.height,
+            )
             val pageWidth = (bitmap.width / density).roundToInt().coerceAtLeast(1)
-            val pageHeight = (bitmap.height / density).roundToInt().coerceAtLeast(1)
+            val croppedHeight = (bitmap.height - safeTopCropPx).coerceAtLeast(1)
+            val pageHeight = (croppedHeight / density).roundToInt().coerceAtLeast(1)
             return pageWidth to pageHeight
         }
 

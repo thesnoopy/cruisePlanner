@@ -32,6 +32,16 @@ private final class URLSnapshotWebViewPlatformView: NSObject, FlutterPlatformVie
   private static let channelBase = "de.mailsmart.cruiseplanner/url_snapshot_webview"
   private static let captureDelay: TimeInterval = 0.35
   private static let overlap: CGFloat = 24
+  private static let overlapDetectionMaxPx = 72
+  private static let overlapDetectionMaxMultiplier = 3
+  private static let overlapDetectionMinPx = 8
+  private static let overlapDetectionRowStridePx = 2
+  private static let overlapDetectionHorizontalSamples = 32
+  private static let overlapDetectionMaxScore = 12.0
+  private static let overlapDetectionScoreTolerance = 1.5
+  private static let overlapDetectionFarMatchMinScoreGain = 2.0
+  private static let overlapDetectionMinDetailScore = 3.0
+  private static let minPdfContentHeightPx = 48
   private static let minCapturePages = 40
   private static let capturePageBuffer = 12
   private static let maxCapturePagesSafetyLimit = 100
@@ -125,6 +135,42 @@ private final class URLSnapshotWebViewPlatformView: NSObject, FlutterPlatformVie
   private var eventSink: FlutterEventSink?
   private var titleObservation: NSKeyValueObservation?
   private var isCapturing = false
+
+  private enum OverlapStrategy: String {
+    case none
+    case detected
+    case fallback
+  }
+
+  private struct OverlapCropDecision {
+    let cropTopPx: Int
+    let score: Double?
+    let strategy: OverlapStrategy
+  }
+
+  private struct LumaProfile {
+    let rowStridePx: Int
+    let sampleCount: Int
+    let rows: Int
+    let values: [UInt8]
+  }
+
+  private struct OverlapReference {
+    let heightPx: Int
+    let profile: LumaProfile
+  }
+
+  private struct OverlapCandidate {
+    let overlapPx: Int
+    let score: Double
+  }
+
+  private struct RasterImage {
+    let width: Int
+    let height: Int
+    let bytesPerRow: Int
+    let data: Data
+  }
 
   init(frame: CGRect, viewId: Int64, messenger: FlutterBinaryMessenger) {
     let configuration = WKWebViewConfiguration()
@@ -322,11 +368,11 @@ private final class URLSnapshotWebViewPlatformView: NSObject, FlutterPlatformVie
 
     let scrollView = webView.scrollView
     let originalOffset = scrollView.contentOffset
-    let pageRect = CGRect(x: 0, y: 0, width: 595.2, height: 841.8)
     let tempDirectory = URL(fileURLWithPath: NSTemporaryDirectory(), isDirectory: true)
     let outputURL = tempDirectory.appendingPathComponent("url_snapshot_\(UUID().uuidString).pdf")
     var didBeginPdfContext = false
     var pageCount = 0
+    var previousOverlapReference: OverlapReference?
     isCapturing = true
 
     func closePdfContext() {
@@ -392,7 +438,20 @@ private final class URLSnapshotWebViewPlatformView: NSObject, FlutterPlatformVie
       }
     }
 
-    func appendImagePage(_ image: UIImage, pageIndex: Int) {
+    func appendImagePage(_ image: UIImage, pageIndex: Int, topCropPx: Int) {
+      let safeTopCropPx = self.sanitizedTopCropPx(
+        topCropPx,
+        imagePixelHeight: self.pixelHeight(for: image)
+      )
+      let cropTopPoints = CGFloat(safeTopCropPx) / max(image.scale, 1)
+      let visibleWidth = image.size.width
+      let visibleHeight = max(image.size.height - cropTopPoints, 1 / max(image.scale, 1))
+      let pageRect = CGRect(
+        x: 0,
+        y: 0,
+        width: visibleWidth,
+        height: visibleHeight
+      )
       UIGraphicsBeginPDFPageWithInfo(pageRect, nil)
       guard let context = UIGraphicsGetCurrentContext() else {
         return
@@ -400,30 +459,28 @@ private final class URLSnapshotWebViewPlatformView: NSObject, FlutterPlatformVie
       UIColor.white.setFill()
       context.fill(pageRect)
 
-      let scale = min(
-        pageRect.width / image.size.width,
-        pageRect.height / image.size.height
+      context.saveGState()
+      context.clip(to: pageRect)
+      let drawRect = CGRect(
+        x: 0,
+        y: -cropTopPoints,
+        width: image.size.width,
+        height: image.size.height
       )
-      let targetWidth = image.size.width * scale
-      let targetHeight = image.size.height * scale
-      let targetRect = CGRect(
-        x: (pageRect.width - targetWidth) / 2,
-        y: (pageRect.height - targetHeight) / 2,
-        width: targetWidth,
-        height: targetHeight
-      )
-      image.draw(in: targetRect)
+      image.draw(in: drawRect)
+      context.restoreGState()
       NSLog(
-        "UrlSnapshot pdf page=%d image=%.0fx%.0f pdf=%.1fx%.1f",
+        "UrlSnapshot pdf page=%d image=%.0fx%.0f cropTopPx=%d pdf=%.1fx%.1f",
         pageIndex,
         image.size.width,
         image.size.height,
+        safeTopCropPx,
         pageRect.width,
         pageRect.height
       )
     }
 
-    UIGraphicsBeginPDFContextToFile(outputURL.path, pageRect, nil)
+    UIGraphicsBeginPDFContextToFile(outputURL.path, .zero, nil)
     didBeginPdfContext = true
 
     let initialScrollExtent = max(scrollView.bounds.height, 1)
@@ -466,6 +523,28 @@ private final class URLSnapshotWebViewPlatformView: NSObject, FlutterPlatformVie
             return
           }
 
+          pageCount += 1
+          let overlapDecision: OverlapCropDecision
+          let currentRasterImage = self.makeRasterImage(from: image)
+          if let currentRasterImage {
+            overlapDecision = self.determineOverlapCrop(
+              pageIndex: pageCount,
+              currentRasterImage: currentRasterImage,
+              previousReference: previousOverlapReference
+            )
+          } else if pageCount == 1 {
+            overlapDecision = OverlapCropDecision(
+              cropTopPx: 0,
+              score: nil,
+              strategy: .none
+            )
+          } else {
+            overlapDecision = self.fallbackOverlapDecision(
+              fallbackCropPx: self.safeFallbackCropPx(forImagePixelHeight: self.pixelHeight(for: image)),
+              fallbackScore: nil
+            )
+          }
+
           let scrollExtent = max(scrollView.bounds.height, 1)
           let scrollRange = max(scrollView.contentSize.height, scrollExtent)
           let maxOffsetY = max(0, scrollRange - scrollExtent)
@@ -476,9 +555,8 @@ private final class URLSnapshotWebViewPlatformView: NSObject, FlutterPlatformVie
             step: step
           )
           let maxPages = determineMaxCapturePages(estimatedPages: estimatedPages)
-          pageCount += 1
           NSLog(
-            "UrlSnapshot capture page=%d scrollY=%.0f offset=%.0f extent=%.0f range=%.0f image=%.0fx%.0f estimatedPages=%d maxPages=%d",
+            "UrlSnapshot capture page=%d scrollY=%.0f offset=%.0f extent=%.0f range=%.0f image=%.0fx%.0f estimatedPages=%d maxPages=%d overlapCropPx=%d overlapScore=%@ overlapStrategy=%@",
             pageCount,
             scrollView.contentOffset.y,
             scrollView.contentOffset.y,
@@ -487,9 +565,24 @@ private final class URLSnapshotWebViewPlatformView: NSObject, FlutterPlatformVie
             image.size.width,
             image.size.height,
             estimatedPages,
-            maxPages
+            maxPages,
+            overlapDecision.cropTopPx,
+            self.formatOverlapScore(overlapDecision.score),
+            overlapDecision.strategy.rawValue
           )
-          appendImagePage(image, pageIndex: pageCount)
+          appendImagePage(
+            image,
+            pageIndex: pageCount,
+            topCropPx: overlapDecision.cropTopPx
+          )
+          if let currentRasterImage {
+            previousOverlapReference = self.buildOverlapReference(
+              from: currentRasterImage,
+              topCropPx: overlapDecision.cropTopPx
+            )
+          } else {
+            previousOverlapReference = nil
+          }
 
           if currentOffsetY >= maxOffsetY - 1 {
             finishWithSuccess(pdfFile: outputURL, pageCount: pageCount)
@@ -580,6 +673,438 @@ private final class URLSnapshotWebViewPlatformView: NSObject, FlutterPlatformVie
       return count
     }
     return 0
+  }
+
+  private func determineOverlapCrop(
+    pageIndex: Int,
+    currentRasterImage: RasterImage,
+    previousReference: OverlapReference?
+  ) -> OverlapCropDecision {
+    if pageIndex == 1 {
+      return OverlapCropDecision(cropTopPx: 0, score: nil, strategy: .none)
+    }
+
+    guard let previousReference else {
+      return fallbackOverlapDecision(
+        fallbackCropPx: safeFallbackCropPx(forImagePixelHeight: currentRasterImage.height),
+        fallbackScore: nil
+      )
+    }
+
+    let safeMaxCropPx = max(currentRasterImage.height - Self.minPdfContentHeightPx, 0)
+    let fallbackCropPx = min(Int(Self.overlap.rounded()), safeMaxCropPx)
+    let preferredSearchLimitPx = min(
+      Self.overlapDetectionMaxPx,
+      max(
+        Self.overlapDetectionMinPx,
+        Int(Self.overlap.rounded()) * Self.overlapDetectionMaxMultiplier
+      )
+    )
+    let searchLimitPx = min(
+      safeMaxCropPx,
+      min(previousReference.heightPx, preferredSearchLimitPx)
+    )
+    if searchLimitPx < Self.overlapDetectionMinPx {
+      return fallbackOverlapDecision(fallbackCropPx: fallbackCropPx, fallbackScore: nil)
+    }
+
+    guard
+      let currentProfile = buildLumaProfile(
+        from: currentRasterImage,
+        startY: 0,
+        endYExclusive: searchLimitPx
+      )
+    else {
+      return fallbackOverlapDecision(fallbackCropPx: fallbackCropPx, fallbackScore: nil)
+    }
+
+    let previousProfile = previousReference.profile
+    guard
+      previousProfile.rowStridePx == currentProfile.rowStridePx,
+      previousProfile.sampleCount == currentProfile.sampleCount
+    else {
+      return fallbackOverlapDecision(fallbackCropPx: fallbackCropPx, fallbackScore: nil)
+    }
+
+    let maxCandidateRows = min(previousProfile.rows, currentProfile.rows)
+    let minCandidateRows = ceilDiv(Self.overlapDetectionMinPx, currentProfile.rowStridePx)
+    if maxCandidateRows < minCandidateRows {
+      return fallbackOverlapDecision(fallbackCropPx: fallbackCropPx, fallbackScore: nil)
+    }
+
+    let fallbackScore = overlapScoreForCrop(
+      previousProfile: previousProfile,
+      currentProfile: currentProfile,
+      overlapCropPx: fallbackCropPx
+    )
+    var validCandidates: [OverlapCandidate] = []
+    var bestScore = Double.greatestFiniteMagnitude
+
+    for candidateRows in minCandidateRows...maxCandidateRows {
+      let overlapCandidatePx = candidateRows * currentProfile.rowStridePx
+      let score = compareOverlapScore(
+        previousProfile: previousProfile,
+        currentProfile: currentProfile,
+        comparedRows: candidateRows
+      )
+      bestScore = min(bestScore, score)
+      let previousDetail = profileDetailScore(
+        profile: previousProfile,
+        startRow: previousProfile.rows - candidateRows,
+        rowCount: candidateRows
+      )
+      let currentDetail = profileDetailScore(
+        profile: currentProfile,
+        startRow: 0,
+        rowCount: candidateRows
+      )
+      if
+        min(previousDetail, currentDetail) >= Self.overlapDetectionMinDetailScore &&
+        score <= Self.overlapDetectionMaxScore
+      {
+        validCandidates.append(
+          OverlapCandidate(
+            overlapPx: overlapCandidatePx,
+            score: score
+          )
+        )
+      }
+    }
+
+    if !validCandidates.isEmpty {
+      let toleratedScore = bestScore + Self.overlapDetectionScoreTolerance
+      if let detectedCandidate = validCandidates
+        .filter({ $0.score <= toleratedScore })
+        .min(
+          by: {
+            let leftDistance = abs($0.overlapPx - Int(Self.overlap.rounded()))
+            let rightDistance = abs($1.overlapPx - Int(Self.overlap.rounded()))
+            if leftDistance != rightDistance {
+              return leftDistance < rightDistance
+            }
+            if $0.score != $1.score {
+              return $0.score < $1.score
+            }
+            return $0.overlapPx < $1.overlapPx
+          }
+        )
+      {
+        let isFarFromExpected = abs(detectedCandidate.overlapPx - Int(Self.overlap.rounded())) > Int(Self.overlap.rounded())
+        let hasClearlyBetterScore: Bool
+        if let fallbackScore {
+          hasClearlyBetterScore =
+            detectedCandidate.score <= fallbackScore - Self.overlapDetectionFarMatchMinScoreGain
+        } else {
+          hasClearlyBetterScore = true
+        }
+        if isFarFromExpected && !hasClearlyBetterScore {
+          return fallbackOverlapDecision(
+            fallbackCropPx: fallbackCropPx,
+            fallbackScore: fallbackScore
+          )
+        }
+        return OverlapCropDecision(
+          cropTopPx: min(detectedCandidate.overlapPx, safeMaxCropPx),
+          score: detectedCandidate.score,
+          strategy: .detected
+        )
+      }
+    }
+
+    return fallbackOverlapDecision(
+      fallbackCropPx: fallbackCropPx,
+      fallbackScore: fallbackScore
+    )
+  }
+
+  private func buildOverlapReference(
+    from rasterImage: RasterImage,
+    topCropPx: Int
+  ) -> OverlapReference? {
+    let safeTopCropPx = sanitizedTopCropPx(topCropPx, imagePixelHeight: rasterImage.height)
+    let writtenHeightPx = max(rasterImage.height - safeTopCropPx, 0)
+    if writtenHeightPx < Self.overlapDetectionMinPx {
+      return nil
+    }
+
+    let preferredReferenceHeightPx = min(
+      Self.overlapDetectionMaxPx,
+      max(
+        Self.overlapDetectionMinPx,
+        Int(Self.overlap.rounded()) * Self.overlapDetectionMaxMultiplier
+      )
+    )
+    let referenceHeightPx = min(writtenHeightPx, preferredReferenceHeightPx)
+    let startY = rasterImage.height - referenceHeightPx
+    guard
+      let profile = buildLumaProfile(
+        from: rasterImage,
+        startY: startY,
+        endYExclusive: rasterImage.height
+      )
+    else {
+      return nil
+    }
+
+    return OverlapReference(heightPx: referenceHeightPx, profile: profile)
+  }
+
+  private func makeRasterImage(from image: UIImage) -> RasterImage? {
+    let width = max(Int((image.size.width * image.scale).rounded()), 1)
+    let height = max(Int((image.size.height * image.scale).rounded()), 1)
+    let bytesPerRow = width * 4
+    let colorSpace = CGColorSpaceCreateDeviceRGB()
+    let bitmapInfo = CGBitmapInfo.byteOrder32Big.union(
+      CGBitmapInfo(rawValue: CGImageAlphaInfo.premultipliedLast.rawValue)
+    )
+    var data = Data(count: bytesPerRow * height)
+    let rendered = data.withUnsafeMutableBytes { rawBuffer -> Bool in
+      guard
+        let baseAddress = rawBuffer.baseAddress,
+        let context = CGContext(
+          data: baseAddress,
+          width: width,
+          height: height,
+          bitsPerComponent: 8,
+          bytesPerRow: bytesPerRow,
+          space: colorSpace,
+          bitmapInfo: bitmapInfo.rawValue
+        )
+      else {
+        return false
+      }
+
+      context.setFillColor(UIColor.white.cgColor)
+      context.fill(
+        CGRect(
+          x: 0,
+          y: 0,
+          width: CGFloat(width),
+          height: CGFloat(height)
+        )
+      )
+      UIGraphicsPushContext(context)
+      image.draw(
+        in: CGRect(
+          x: 0,
+          y: 0,
+          width: CGFloat(width),
+          height: CGFloat(height)
+        )
+      )
+      UIGraphicsPopContext()
+      return true
+    }
+
+    guard rendered else {
+      return nil
+    }
+
+    return RasterImage(
+      width: width,
+      height: height,
+      bytesPerRow: bytesPerRow,
+      data: data
+    )
+  }
+
+  private func buildLumaProfile(
+    from rasterImage: RasterImage,
+    startY: Int,
+    endYExclusive: Int
+  ) -> LumaProfile? {
+    let safeStartY = min(max(startY, 0), rasterImage.height)
+    let safeEndY = min(max(endYExclusive, safeStartY), rasterImage.height)
+    let sampledHeightPx = safeEndY - safeStartY
+    if rasterImage.width <= 0 || sampledHeightPx <= 0 {
+      return nil
+    }
+
+    let sampleCount = max(1, min(Self.overlapDetectionHorizontalSamples, rasterImage.width))
+    let rowStridePx = max(Self.overlapDetectionRowStridePx, 1)
+    let rowCount = ceilDiv(sampledHeightPx, rowStridePx)
+    let values: [UInt8]? = rasterImage.data.withUnsafeBytes { rawBuffer in
+      let buffer = rawBuffer.bindMemory(to: UInt8.self)
+      guard let baseAddress = buffer.baseAddress else {
+        return nil
+      }
+
+      var sampledValues = [UInt8](repeating: 0, count: rowCount * sampleCount)
+      var rowIndex = 0
+      var y = safeStartY
+      while y < safeEndY && rowIndex < rowCount {
+        let rowOffset = rowIndex * sampleCount
+        let pixelRowOffset = y * rasterImage.bytesPerRow
+        for sampleIndex in 0..<sampleCount {
+          let x = min(
+            rasterImage.width - 1,
+            Int(
+              ((Int64(sampleIndex) * 2 + 1) * Int64(rasterImage.width)) /
+                Int64(sampleCount * 2)
+            )
+          )
+          let pixelOffset = pixelRowOffset + (x * 4)
+          let red = baseAddress[pixelOffset]
+          let green = baseAddress[pixelOffset + 1]
+          let blue = baseAddress[pixelOffset + 2]
+          sampledValues[rowOffset + sampleIndex] = luminanceValue(
+            red: red,
+            green: green,
+            blue: blue
+          )
+        }
+        rowIndex += 1
+        y += rowStridePx
+      }
+      return sampledValues
+    }
+
+    guard let values else {
+      return nil
+    }
+
+    return LumaProfile(
+      rowStridePx: rowStridePx,
+      sampleCount: sampleCount,
+      rows: rowCount,
+      values: values
+    )
+  }
+
+  private func overlapScoreForCrop(
+    previousProfile: LumaProfile,
+    currentProfile: LumaProfile,
+    overlapCropPx: Int
+  ) -> Double? {
+    let comparedRows = overlapCropPx / currentProfile.rowStridePx
+    if
+      overlapCropPx < Self.overlapDetectionMinPx ||
+      comparedRows <= 0 ||
+      previousProfile.rows < comparedRows ||
+      currentProfile.rows < comparedRows
+    {
+      return nil
+    }
+
+    return compareOverlapScore(
+      previousProfile: previousProfile,
+      currentProfile: currentProfile,
+      comparedRows: comparedRows
+    )
+  }
+
+  private func compareOverlapScore(
+    previousProfile: LumaProfile,
+    currentProfile: LumaProfile,
+    comparedRows: Int
+  ) -> Double {
+    let sampleCount = previousProfile.sampleCount
+    let previousStartRow = previousProfile.rows - comparedRows
+    var totalDifference = 0.0
+    var comparedValues = 0
+
+    for rowIndex in 0..<comparedRows {
+      let previousOffset = (previousStartRow + rowIndex) * sampleCount
+      let currentOffset = rowIndex * sampleCount
+      for sampleIndex in 0..<sampleCount {
+        totalDifference += Double(
+          abs(
+            Int(previousProfile.values[previousOffset + sampleIndex]) -
+              Int(currentProfile.values[currentOffset + sampleIndex])
+          )
+        )
+        comparedValues += 1
+      }
+    }
+
+    if comparedValues == 0 {
+      return .greatestFiniteMagnitude
+    }
+    return totalDifference / Double(comparedValues)
+  }
+
+  private func profileDetailScore(
+    profile: LumaProfile,
+    startRow: Int,
+    rowCount: Int
+  ) -> Double {
+    if rowCount < 2 || profile.rows < 2 {
+      return 0
+    }
+
+    let clampedStartRow = min(max(startRow, 0), profile.rows - 1)
+    let clampedEndRow = min(clampedStartRow + rowCount, profile.rows)
+    if clampedEndRow - clampedStartRow < 2 {
+      return 0
+    }
+
+    let sampleCount = profile.sampleCount
+    var totalDifference = 0.0
+    var comparedValues = 0
+
+    for rowIndex in clampedStartRow..<(clampedEndRow - 1) {
+      let currentOffset = rowIndex * sampleCount
+      let nextOffset = (rowIndex + 1) * sampleCount
+      for sampleIndex in 0..<sampleCount {
+        totalDifference += Double(
+          abs(
+            Int(profile.values[currentOffset + sampleIndex]) -
+              Int(profile.values[nextOffset + sampleIndex])
+          )
+        )
+        comparedValues += 1
+      }
+    }
+
+    if comparedValues == 0 {
+      return 0
+    }
+    return totalDifference / Double(comparedValues)
+  }
+
+  private func luminanceValue(red: UInt8, green: UInt8, blue: UInt8) -> UInt8 {
+    UInt8((Int(red) * 54 + Int(green) * 183 + Int(blue) * 19) / 256)
+  }
+
+  private func safeFallbackCropPx(forImagePixelHeight imagePixelHeight: Int) -> Int {
+    sanitizedTopCropPx(Int(Self.overlap.rounded()), imagePixelHeight: imagePixelHeight)
+  }
+
+  private func fallbackOverlapDecision(
+    fallbackCropPx: Int,
+    fallbackScore: Double?
+  ) -> OverlapCropDecision {
+    if fallbackCropPx > 0 {
+      return OverlapCropDecision(
+        cropTopPx: fallbackCropPx,
+        score: fallbackScore,
+        strategy: .fallback
+      )
+    }
+    return OverlapCropDecision(cropTopPx: 0, score: fallbackScore, strategy: .none)
+  }
+
+  private func sanitizedTopCropPx(_ topCropPx: Int, imagePixelHeight: Int) -> Int {
+    let maxCropPx = max(imagePixelHeight - Self.minPdfContentHeightPx, 0)
+    return min(max(topCropPx, 0), maxCropPx)
+  }
+
+  private func pixelHeight(for image: UIImage) -> Int {
+    max(Int((image.size.height * image.scale).rounded()), 1)
+  }
+
+  private func formatOverlapScore(_ score: Double?) -> String {
+    guard let score else {
+      return "n/a"
+    }
+    return String(format: "%.2f", score)
+  }
+
+  private func ceilDiv(_ value: Int, _ divisor: Int) -> Int {
+    guard divisor > 0 else {
+      return 0
+    }
+    return (value + divisor - 1) / divisor
   }
 
   private func estimateRequiredPages(
