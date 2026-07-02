@@ -3,9 +3,11 @@ import 'package:flutter/material.dart';
 import '../../l10n/app_localizations.dart';
 import '../../models/cruise.dart';
 import '../../models/documents/document_import_draft.dart';
+import '../../models/documents/document_import_source_reference.dart';
 import '../../models/identifiable.dart';
 import '../../models/period.dart';
 import '../../services/documents/cruise_import_draft_prefill_service.dart';
+import '../../services/documents/cruise_saved_document_attachment_service.dart';
 import '../../store/cruise_store.dart';
 import '../../utils/format.dart';
 import '../../widgets/documents/cruise_documents_section.dart';
@@ -15,17 +17,20 @@ class CruiseEditScreen extends StatefulWidget {
     super.key,
     required this.cruiseId,
     this.initialDraft,
+    this.sourceReference,
   }) : fallbackPeriod = null;
 
   const CruiseEditScreen.create({
     super.key,
     this.initialDraft,
     this.fallbackPeriod,
+    this.sourceReference,
   }) : cruiseId = null;
 
   final String? cruiseId;
   final CruiseImportDraft? initialDraft;
   final Period? fallbackPeriod;
+  final DocumentImportSourceReference? sourceReference;
 
   @override
   State<CruiseEditScreen> createState() => _CruiseEditScreenState();
@@ -33,6 +38,8 @@ class CruiseEditScreen extends StatefulWidget {
 
 class _CruiseEditScreenState extends State<CruiseEditScreen> {
   final _draftPrefillService = const CruiseImportDraftPrefillService();
+  final _savedDocumentAttachmentService =
+      CruiseSavedDocumentAttachmentService();
   final _formKey = GlobalKey<FormState>();
   final _title = TextEditingController();
   final _shipName = TextEditingController();
@@ -143,6 +150,10 @@ class _CruiseEditScreenState extends State<CruiseEditScreen> {
       deckname: _emptyToNull(_deckName.text),
     );
     await store.upsertCruise(next);
+    await _savedDocumentAttachmentService.attachImportedDocumentIfPresent(
+      cruiseId: next.id,
+      sourceReference: widget.sourceReference,
+    );
 
     if (!mounted) {
       return;
