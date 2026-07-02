@@ -20,25 +20,17 @@ class DocumentImportAssistantActionService {
         break;
     }
 
-    if (draft.targetType != DocumentDraftTargetType.excursion) {
-      if (!draft.targetType.isTravelTarget) {
-        return DocumentImportAssistantAction.unsupported(
-          sourceReference: draft.sourceReference,
-        );
-      }
-
+    if (draft.targetType == DocumentDraftTargetType.excursion) {
       if (matchResult.action == DocumentDraftMatchAction.useExisting) {
-        final travelItemId = matchResult.matchedItemId;
-        if (travelItemId == null || travelItemId.isEmpty) {
+        final excursionId = matchResult.matchedItemId;
+        if (excursionId == null || excursionId.isEmpty) {
           return DocumentImportAssistantAction.unsupported(
             sourceReference: draft.sourceReference,
           );
         }
-
-        return DocumentImportAssistantAction.editExistingTravel(
-          travelItemId: travelItemId,
-          draftTargetType: draft.targetType,
-          initialTravelDraft: draft.travel,
+        return DocumentImportAssistantAction.editExistingExcursion(
+          excursionId: excursionId,
+          initialDraft: draft.excursion,
           sourceReference: draft.sourceReference,
         );
       }
@@ -50,24 +42,68 @@ class DocumentImportAssistantActionService {
         );
       }
 
-      return DocumentImportAssistantAction.createNewTravel(
+      return DocumentImportAssistantAction.createNewExcursion(
+        cruiseId: cruiseId,
+        initialDraft: draft.excursion,
+        sourceReference: draft.sourceReference,
+      );
+    }
+
+    if (draft.targetType.isRouteItemTarget) {
+      if (matchResult.action == DocumentDraftMatchAction.useExisting) {
+        final cruiseId = matchResult.matchedCruiseId;
+        final routeItemId = matchResult.matchedRouteItemId;
+        if (cruiseId == null ||
+            cruiseId.isEmpty ||
+            routeItemId == null ||
+            routeItemId.isEmpty) {
+          return DocumentImportAssistantAction.unsupported(
+            sourceReference: draft.sourceReference,
+          );
+        }
+
+        return DocumentImportAssistantAction.editExistingRouteItem(
+          cruiseId: cruiseId,
+          routeItemId: routeItemId,
+          draftTargetType: draft.targetType,
+          initialRouteItemDraft: draft.routeItem,
+          sourceReference: draft.sourceReference,
+        );
+      }
+
+      final cruiseId = matchResult.matchedCruiseId;
+      if (cruiseId == null || cruiseId.isEmpty) {
+        return DocumentImportAssistantAction.unsupported(
+          sourceReference: draft.sourceReference,
+        );
+      }
+
+      return DocumentImportAssistantAction.createNewRouteItem(
         cruiseId: cruiseId,
         draftTargetType: draft.targetType,
-        initialTravelDraft: draft.travel,
+        initialRouteItemDraft: draft.routeItem,
+        sourceReference: draft.sourceReference,
+      );
+    }
+
+    if (!draft.targetType.isTravelTarget) {
+      return DocumentImportAssistantAction.unsupported(
         sourceReference: draft.sourceReference,
       );
     }
 
     if (matchResult.action == DocumentDraftMatchAction.useExisting) {
-      final excursionId = matchResult.matchedItemId;
-      if (excursionId == null || excursionId.isEmpty) {
+      final travelItemId = matchResult.matchedItemId;
+      if (travelItemId == null || travelItemId.isEmpty) {
         return DocumentImportAssistantAction.unsupported(
           sourceReference: draft.sourceReference,
         );
       }
-      return DocumentImportAssistantAction.editExistingExcursion(
-        excursionId: excursionId,
-        initialDraft: draft.excursion,
+
+      return DocumentImportAssistantAction.editExistingTravel(
+        travelItemId: travelItemId,
+        draftTargetType: draft.targetType,
+        initialTravelDraft: draft.travel,
         sourceReference: draft.sourceReference,
       );
     }
@@ -78,9 +114,11 @@ class DocumentImportAssistantActionService {
         sourceReference: draft.sourceReference,
       );
     }
-    return DocumentImportAssistantAction.createNewExcursion(
+
+    return DocumentImportAssistantAction.createNewTravel(
       cruiseId: cruiseId,
-      initialDraft: draft.excursion,
+      draftTargetType: draft.targetType,
+      initialTravelDraft: draft.travel,
       sourceReference: draft.sourceReference,
     );
   }

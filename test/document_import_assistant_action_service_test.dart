@@ -62,6 +62,100 @@ void main() {
       expect(action.initialDraft, excursionDraft);
     });
 
+    test('maps existing port call match to editExistingRouteItem', () {
+      final routeDraft = RouteItemImportDraft(
+        date: DateTime(2026, 7, 9),
+        portName: 'Palma',
+        arrival: DateTime(2026, 7, 9, 8),
+        departure: DateTime(2026, 7, 9, 18),
+      );
+      const sourceReference = DocumentImportSourceReference(
+        documentId: 'doc-route-1',
+      );
+      final result = _buildMatchResult(
+        draft: DocumentImportDraft(
+          targetType: DocumentDraftTargetType.portCall,
+          sourceReference: sourceReference,
+          routeItem: routeDraft,
+        ),
+        action: DocumentDraftMatchAction.useExisting,
+        matchedCruiseId: 'cruise-route-1',
+        matchedRouteItemId: 'route-1',
+        matchedTargetType: DocumentDraftTargetType.portCall,
+      );
+
+      final action = service.buildAction(result);
+
+      expect(
+        action.type,
+        DocumentImportAssistantActionType.editExistingRouteItem,
+      );
+      expect(action.cruiseId, 'cruise-route-1');
+      expect(action.routeItemId, 'route-1');
+      expect(action.draftTargetType, DocumentDraftTargetType.portCall);
+      expect(action.targetType, DocumentDraftTargetType.portCall);
+      expect(action.initialRouteItemDraft, routeDraft);
+      expect(action.sourceReference, sourceReference);
+    });
+
+    test('maps new port call draft with cruiseId to createNewRouteItem', () {
+      final routeDraft = RouteItemImportDraft(
+        date: DateTime(2026, 7, 10),
+        portName: 'Marseille',
+        notes: 'Shuttle timings on ticket',
+      );
+      final result = _buildMatchResult(
+        draft: DocumentImportDraft(
+          targetType: DocumentDraftTargetType.portCall,
+          routeItem: routeDraft,
+        ),
+        action: DocumentDraftMatchAction.createNew,
+        matchedCruiseId: 'cruise-route-2',
+        matchedTargetType: DocumentDraftTargetType.portCall,
+      );
+
+      final action = service.buildAction(result);
+
+      expect(
+        action.type,
+        DocumentImportAssistantActionType.createNewRouteItem,
+      );
+      expect(action.cruiseId, 'cruise-route-2');
+      expect(action.routeItemId, isNull);
+      expect(action.draftTargetType, DocumentDraftTargetType.portCall);
+      expect(action.targetType, DocumentDraftTargetType.portCall);
+      expect(action.initialRouteItemDraft, routeDraft);
+    });
+
+    test('maps existing sea day match to editExistingRouteItem', () {
+      final routeDraft = RouteItemImportDraft(
+        date: DateTime(2026, 7, 11),
+        notes: 'Formal night',
+      );
+      final result = _buildMatchResult(
+        draft: DocumentImportDraft(
+          targetType: DocumentDraftTargetType.seaDay,
+          routeItem: routeDraft,
+        ),
+        action: DocumentDraftMatchAction.useExisting,
+        matchedCruiseId: 'cruise-route-3',
+        matchedRouteItemId: 'sea-1',
+        matchedTargetType: DocumentDraftTargetType.seaDay,
+      );
+
+      final action = service.buildAction(result);
+
+      expect(
+        action.type,
+        DocumentImportAssistantActionType.editExistingRouteItem,
+      );
+      expect(action.cruiseId, 'cruise-route-3');
+      expect(action.routeItemId, 'sea-1');
+      expect(action.draftTargetType, DocumentDraftTargetType.seaDay);
+      expect(action.targetType, DocumentDraftTargetType.seaDay);
+      expect(action.initialRouteItemDraft, routeDraft);
+    });
+
     test('useExisting travel match becomes an edit-existing travel action', () {
       final travelDraft = TravelImportDraft(
         start: DateTime(2026, 7, 7, 10),
@@ -167,6 +261,25 @@ void main() {
       expect(action.isSupported, isFalse);
     });
 
+    test('does not create route item action without cruiseId', () {
+      final result = _buildMatchResult(
+        draft: DocumentImportDraft(
+          targetType: DocumentDraftTargetType.seaDay,
+          routeItem: RouteItemImportDraft(
+            date: DateTime(2026, 7, 12),
+            notes: 'At sea all day',
+          ),
+        ),
+        action: DocumentDraftMatchAction.createNew,
+        matchedTargetType: DocumentDraftTargetType.seaDay,
+      );
+
+      final action = service.buildAction(result);
+
+      expect(action.type, DocumentImportAssistantActionType.unsupported);
+      expect(action.isSupported, isFalse);
+    });
+
     test('sourceReference is preserved', () {
       const sourceReference = DocumentImportSourceReference(
         documentId: 'doc-1',
@@ -198,11 +311,13 @@ DocumentDraftMatchResult _buildMatchResult({
   required DocumentDraftMatchAction action,
   DocumentDraftTargetType? matchedTargetType,
   String? matchedCruiseId,
+  String? matchedRouteItemId,
   String? matchedItemId,
 }) {
   return DocumentDraftMatchResult(
     draft: draft,
     matchedCruiseId: matchedCruiseId,
+    matchedRouteItemId: matchedRouteItemId,
     matchedItemId: matchedItemId,
     matchedTargetType: matchedTargetType ?? draft.targetType,
     action: action,
