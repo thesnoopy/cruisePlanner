@@ -44,26 +44,29 @@ class Excursion extends Identifiable {
     String? id,
     String? title,
     DateTime? date,
-    String? port,
-    String? meetingPoint,
-    String? notes,
-    num? price,
-    String? currency,
+    Object? port = _unset,
+    Object? meetingPoint = _unset,
+    Object? notes = _unset,
+    Object? price = _unset,
+    Object? currency = _unset,
     List<ExcursionStop>? stops,
     List<String>? documentIds,
     Object? updatedAtUtc = _unset,
     Object? deletedAtUtc = _unset,
-    ExcursionPaymentPlan? paymentPlan,
+    Object? paymentPlan = _unset,
   }) {
     return Excursion(
       id: id ?? this.id,
       title: title ?? this.title,
       date: date ?? this.date,
-      port: port ?? this.port,
-      meetingPoint: meetingPoint ?? this.meetingPoint,
-      notes: notes ?? this.notes,
-      price: price ?? this.price,
-      currency: currency ?? this.currency,
+      port: identical(port, _unset) ? this.port : port as String?,
+      meetingPoint: identical(meetingPoint, _unset)
+          ? this.meetingPoint
+          : meetingPoint as String?,
+      notes: identical(notes, _unset) ? this.notes : notes as String?,
+      price: identical(price, _unset) ? this.price : price as num?,
+      currency:
+          identical(currency, _unset) ? this.currency : currency as String?,
       stops: stops ?? this.stops,
       documentIds: documentIds ?? this.documentIds,
       updatedAtUtc: identical(updatedAtUtc, _unset)
@@ -72,7 +75,9 @@ class Excursion extends Identifiable {
       deletedAtUtc: identical(deletedAtUtc, _unset)
           ? this.deletedAtUtc
           : deletedAtUtc as DateTime?,
-      paymentPlan: paymentPlan ?? this.paymentPlan,
+      paymentPlan: identical(paymentPlan, _unset)
+          ? this.paymentPlan
+          : paymentPlan as ExcursionPaymentPlan?,
     );
   }
 

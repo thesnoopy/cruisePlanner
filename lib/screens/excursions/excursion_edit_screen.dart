@@ -1,28 +1,39 @@
-// ExcursionEditScreen mit Payment-Plan Bearbeitung.
+// ExcursionEditScreen with payment plan editing.
 
 import 'package:flutter/material.dart';
 
-import '../../models/identifiable.dart';
-import '../../store/cruise_store.dart';
-import '../../models/excursion.dart';
-import '../../models/excursions/excursion_stop.dart';
-import '../../models/excursions/excursion_payment_mode.dart';
-import '../../models/excursions/excursion_payment_plan.dart';
-import '../../models/excursions/excursion_payment_part.dart';
-import '../../models/excursions/excursion_payment_trigger.dart';
-import '../../models/excursions/excursion_payment_method.dart';
-import '../../models/excursions/cash_currency_preference.dart';
-import '../../utils/format.dart';
 import '../../l10n/app_localizations.dart';
+import '../../models/documents/document_import_draft.dart';
+import '../../models/excursion.dart';
+import '../../models/excursions/cash_currency_preference.dart';
+import '../../models/excursions/excursion_payment_method.dart';
+import '../../models/excursions/excursion_payment_mode.dart';
+import '../../models/excursions/excursion_payment_part.dart';
+import '../../models/excursions/excursion_payment_plan.dart';
+import '../../models/excursions/excursion_payment_trigger.dart';
+import '../../models/excursions/excursion_stop.dart';
+import '../../models/identifiable.dart';
+import '../../services/documents/excursion_import_draft_prefill_service.dart';
+import '../../store/cruise_store.dart';
+import '../../utils/format.dart';
 import '../../widgets/documents/excursion_documents_section.dart';
 
 class ExcursionEditScreen extends StatefulWidget {
-  final String excursionId;
+  final String? excursionId;
+  final String? cruiseId;
+  final ExcursionImportDraft? initialDraft;
 
   const ExcursionEditScreen({
     super.key,
     required this.excursionId,
-  });
+    this.initialDraft,
+  }) : cruiseId = null;
+
+  const ExcursionEditScreen.create({
+    super.key,
+    required this.cruiseId,
+    this.initialDraft,
+  }) : excursionId = null;
 
   @override
   State<ExcursionEditScreen> createState() => _ExcursionEditScreenState();
@@ -30,11 +41,12 @@ class ExcursionEditScreen extends StatefulWidget {
 
 class _ExcursionEditScreenState extends State<ExcursionEditScreen> {
   final _formKey = GlobalKey<FormState>();
+  final _draftPrefillService = const ExcursionImportDraftPrefillService();
 
   Excursion? _ex;
   String? _cruiseId;
+  bool _loading = true;
 
-  // Basis-Felder
   final _title = TextEditingController();
   DateTime? _date;
   final _port = TextEditingController();
@@ -44,23 +56,21 @@ class _ExcursionEditScreenState extends State<ExcursionEditScreen> {
   final _currency = TextEditingController();
   final List<_EditableExcursionStop> _stops = [];
 
-  // Payment-State (max. 2 Teile: Anzahlung + Rest)
   ExcursionPaymentMode _paymentMode = ExcursionPaymentMode.fullOnBooking;
 
-  // Teil 1 (immer vorhanden)
   bool _part1Paid = false;
 
-  // Teil 2 (nur bei den 3 Modi mit zweitem Teil)
-  final _depositAmount = TextEditingController(); // Anzahlung
-  final _restAmount = TextEditingController();    // Restbetrag (optional, sonst auto)
+  final _depositAmount = TextEditingController();
+  final _restAmount = TextEditingController();
   DateTime? _restDueDate;
   bool _depositPaid = false;
   bool _restPaid = false;
 
-  // Vor-Ort-Infos
   bool _onSiteCash = true;
   bool _onSiteCard = false;
   CashCurrencyPreference _cashPref = CashCurrencyPreference.localOnly;
+
+  bool get _isCreateMode => widget.excursionId == null;
 
   @override
   void initState() {
@@ -88,17 +98,38 @@ class _ExcursionEditScreenState extends State<ExcursionEditScreen> {
     final store = CruiseStore();
     await store.load();
 
-    final ex = store.getById<Excursion>(widget.excursionId);
+    Excursion? ex;
     String? cruiseId;
 
-    // Finde Excursion + zugehörige Cruise
-    outer:
-    for (final cruise in store.activeCruises) {
-      for (final excursion in cruise.excursions) {
-        if (excursion.id == widget.excursionId) {
-          cruiseId = cruise.id;
-          break outer;
+    final excursionId = widget.excursionId;
+    if (excursionId != null) {
+      final storedExcursion = store.getById<Excursion>(excursionId);
+      ex = storedExcursion == null
+          ? null
+          : _draftPrefillService.mergeIntoExisting(
+              base: storedExcursion,
+              draft: widget.initialDraft,
+            );
+
+      outer:
+      for (final cruise in store.activeCruises) {
+        for (final excursion in cruise.excursions) {
+          if (excursion.id == excursionId) {
+            cruiseId = cruise.id;
+            break outer;
+          }
         }
+      }
+    } else {
+      final targetCruiseId = widget.cruiseId;
+      final cruise = targetCruiseId == null ? null : store.getCruise(targetCruiseId);
+      if (cruise != null) {
+        cruiseId = cruise.id;
+        ex = _draftPrefillService.buildNewExcursion(
+          excursionId: Identifiable.newId(),
+          fallbackDate: cruise.period.start,
+          draft: widget.initialDraft,
+        );
       }
     }
 
@@ -106,15 +137,19 @@ class _ExcursionEditScreenState extends State<ExcursionEditScreen> {
       return;
     }
 
+    if (ex != null) {
+      _applyExcursionToForm(ex);
+      _initPaymentFromExcursion(ex);
+    }
+
     setState(() {
       _ex = ex;
       _cruiseId = cruiseId;
+      _loading = false;
     });
+  }
 
-    if (ex == null) {
-      return;
-    }
-
+  void _applyExcursionToForm(Excursion ex) {
     _title.text = ex.title;
     _date = ex.date;
     _port.text = ex.port ?? '';
@@ -123,8 +158,6 @@ class _ExcursionEditScreenState extends State<ExcursionEditScreen> {
     _price.text = fmtNumber(context, ex.price);
     _currency.text = ex.currency ?? '';
     _setStops(ex.stops);
-
-    _initPaymentFromExcursion(ex);
   }
 
   void _setStops(List<ExcursionStop> stops) {
@@ -133,9 +166,7 @@ class _ExcursionEditScreenState extends State<ExcursionEditScreen> {
     }
     _stops
       ..clear()
-      ..addAll(
-        stops.map(_EditableExcursionStop.fromStop),
-      );
+      ..addAll(stops.map(_EditableExcursionStop.fromStop));
   }
 
   void _initPaymentFromExcursion(Excursion ex) {
@@ -192,30 +223,28 @@ class _ExcursionEditScreenState extends State<ExcursionEditScreen> {
 
         _depositAmount.text =
             deposit != null ? fmtNumber(context, deposit.amount) : '';
-        _restAmount.text =
-            rest != null ? fmtNumber(context, rest.amount) : '';
+        _restAmount.text = rest != null ? fmtNumber(context, rest.amount) : '';
         _restDueDate = rest?.dueDate;
         _depositPaid = deposit?.isPaid ?? false;
         _restPaid = rest?.isPaid ?? false;
-        _part1Paid = false; // wird hier nicht genutzt
+        _part1Paid = false;
         break;
 
       case ExcursionPaymentMode.depositAndRestOnSite:
-        final deposit2 = partOnBooking;
-        final rest2 = partOnSite;
+        final deposit = partOnBooking;
+        final rest = partOnSite;
 
         _depositAmount.text =
-            deposit2 != null ? fmtNumber(context, deposit2.amount) : '';
-        _restAmount.text =
-            rest2 != null ? fmtNumber(context, rest2.amount) : '';
-        _depositPaid = deposit2?.isPaid ?? false;
-        _restPaid = rest2?.isPaid ?? false;
+            deposit != null ? fmtNumber(context, deposit.amount) : '';
+        _restAmount.text = rest != null ? fmtNumber(context, rest.amount) : '';
+        _depositPaid = deposit?.isPaid ?? false;
+        _restPaid = rest?.isPaid ?? false;
 
-        final methods = rest2?.paymentMethods ?? {};
+        final methods = rest?.paymentMethods ?? {};
         _onSiteCash = methods.contains(ExcursionPaymentMethod.cash);
         _onSiteCard = methods.contains(ExcursionPaymentMethod.creditCard);
-        _cashPref = rest2?.cashCurrencyPreference ??
-            CashCurrencyPreference.localOnly;
+        _cashPref =
+            rest?.cashCurrencyPreference ?? CashCurrencyPreference.localOnly;
         _part1Paid = false;
         break;
 
@@ -227,11 +256,11 @@ class _ExcursionEditScreenState extends State<ExcursionEditScreen> {
             );
         _part1Paid = p.isPaid;
         final methods = p.paymentMethods;
-        _onSiteCash = methods.contains(ExcursionPaymentMethod.cash) ||
-            methods.isEmpty;
+        _onSiteCash =
+            methods.contains(ExcursionPaymentMethod.cash) || methods.isEmpty;
         _onSiteCard = methods.contains(ExcursionPaymentMethod.creditCard);
-        _cashPref = p.cashCurrencyPreference ??
-            CashCurrencyPreference.localOnly;
+        _cashPref =
+            p.cashCurrencyPreference ?? CashCurrencyPreference.localOnly;
         break;
     }
   }
@@ -306,8 +335,7 @@ class _ExcursionEditScreenState extends State<ExcursionEditScreen> {
       case ExcursionPaymentMode.depositAndRestDate:
         final deposit =
             parseLocalizedNumber(context, _depositAmount.text) ?? 0;
-        final restExplicit =
-            parseLocalizedNumber(context, _restAmount.text);
+        final restExplicit = parseLocalizedNumber(context, _restAmount.text);
         final rest =
             restExplicit ?? (totalPrice - deposit).clamp(0, double.infinity);
         return ExcursionPaymentPlan(
@@ -330,8 +358,7 @@ class _ExcursionEditScreenState extends State<ExcursionEditScreen> {
       case ExcursionPaymentMode.depositAndRestOnSite:
         final deposit =
             parseLocalizedNumber(context, _depositAmount.text) ?? 0;
-        final restExplicit =
-            parseLocalizedNumber(context, _restAmount.text);
+        final restExplicit = parseLocalizedNumber(context, _restAmount.text);
         final rest =
             restExplicit ?? (totalPrice - deposit).clamp(0, double.infinity);
 
@@ -357,7 +384,8 @@ class _ExcursionEditScreenState extends State<ExcursionEditScreen> {
               isPaid: _restPaid,
               paymentMethods: methods,
               cashCurrencyPreference: methods.contains(
-                      ExcursionPaymentMethod.cash)
+                ExcursionPaymentMethod.cash,
+              )
                   ? _cashPref
                   : null,
             ),
@@ -382,7 +410,8 @@ class _ExcursionEditScreenState extends State<ExcursionEditScreen> {
               isPaid: _part1Paid,
               paymentMethods: methods,
               cashCurrencyPreference: methods.contains(
-                      ExcursionPaymentMethod.cash)
+                ExcursionPaymentMethod.cash,
+              )
                   ? _cashPref
                   : null,
             ),
@@ -408,30 +437,35 @@ class _ExcursionEditScreenState extends State<ExcursionEditScreen> {
 
     final plan = _buildPaymentPlan(totalPrice);
     final stops = _stops
-        .map((stop) => ExcursionStop(
-              id: stop.id,
-              name: stop.nameController.text.trim(),
-              address: stop.addressController.text.trim().isEmpty
-                  ? null
-                  : stop.addressController.text.trim(),
-              visited: stop.visited,
-            ))
+        .map(
+          (stop) => ExcursionStop(
+            id: stop.id,
+            name: stop.nameController.text.trim(),
+            address: stop.addressController.text.trim().isEmpty
+                ? null
+                : stop.addressController.text.trim(),
+            visited: stop.visited,
+          ),
+        )
         .toList(growable: false);
 
     final store = CruiseStore();
     await store.load();
     final latestCruise = store.getCruise(cid);
-    final latestExcursion = latestCruise?.excursions.where((item) => item.id == ex.id).firstOrNull ?? ex;
+    final latestExcursion = _isCreateMode
+        ? ex
+        : latestCruise?.excursions
+                .where((item) => item.id == ex.id)
+                .firstOrNull ??
+            ex;
     final updated = latestExcursion.copyWith(
       title: _title.text.trim(),
       date: _date ?? latestExcursion.date,
       port: _port.text.trim().isEmpty ? null : _port.text.trim(),
-      meetingPoint:
-          _meeting.text.trim().isEmpty ? null : _meeting.text.trim(),
+      meetingPoint: _meeting.text.trim().isEmpty ? null : _meeting.text.trim(),
       notes: _notes.text.trim().isEmpty ? null : _notes.text.trim(),
       price: priceValue,
-      currency:
-          _currency.text.trim().isEmpty ? null : _currency.text.trim(),
+      currency: _currency.text.trim().isEmpty ? null : _currency.text.trim(),
       stops: stops,
       paymentPlan: plan,
     );
@@ -444,7 +478,7 @@ class _ExcursionEditScreenState extends State<ExcursionEditScreen> {
 
   Widget _buildPaymentSection(BuildContext context) {
     final theme = Theme.of(context);
-		final loc = AppLocalizations.of(context)!;
+    final loc = AppLocalizations.of(context)!;
 
     return Card(
       margin: const EdgeInsets.only(top: 16),
@@ -616,7 +650,7 @@ class _ExcursionEditScreenState extends State<ExcursionEditScreen> {
   }
 
   Widget _buildPaymentDetails(BuildContext context) {
-		final loc = AppLocalizations.of(context)!;
+    final loc = AppLocalizations.of(context)!;
     switch (_paymentMode) {
       case ExcursionPaymentMode.fullOnBooking:
         return Column(
@@ -626,8 +660,7 @@ class _ExcursionEditScreenState extends State<ExcursionEditScreen> {
               contentPadding: EdgeInsets.zero,
               title: Text(loc.amountAlreadyPayed),
               value: _part1Paid,
-              onChanged: (v) =>
-                  setState(() => _part1Paid = v ?? false),
+              onChanged: (v) => setState(() => _part1Paid = v ?? false),
             ),
           ],
         );
@@ -638,8 +671,7 @@ class _ExcursionEditScreenState extends State<ExcursionEditScreen> {
           children: [
             TextFormField(
               controller: _depositAmount,
-              decoration:
-                  InputDecoration(labelText: loc.deposit),
+              decoration: InputDecoration(labelText: loc.deposit),
               keyboardType: const TextInputType.numberWithOptions(
                 decimal: true,
               ),
@@ -648,16 +680,14 @@ class _ExcursionEditScreenState extends State<ExcursionEditScreen> {
               contentPadding: EdgeInsets.zero,
               title: Text(loc.depositAlreadyPayed),
               value: _depositPaid,
-              onChanged: (v) =>
-                  setState(() => _depositPaid = v ?? false),
+              onChanged: (v) => setState(() => _depositPaid = v ?? false),
             ),
             const SizedBox(height: 8),
             TextFormField(
               controller: _restAmount,
               decoration: InputDecoration(
                 labelText: loc.remainingAmountOptional,
-                helperText:
-                    loc.leaveEmptyForAutomaticCalculation,
+                helperText: loc.leaveEmptyForAutomaticCalculation,
               ),
               keyboardType: const TextInputType.numberWithOptions(
                 decimal: true,
@@ -679,8 +709,7 @@ class _ExcursionEditScreenState extends State<ExcursionEditScreen> {
               contentPadding: EdgeInsets.zero,
               title: Text(loc.remainingAmountAlreadyPaied),
               value: _restPaid,
-              onChanged: (v) =>
-                  setState(() => _restPaid = v ?? false),
+              onChanged: (v) => setState(() => _restPaid = v ?? false),
             ),
           ],
         );
@@ -691,8 +720,7 @@ class _ExcursionEditScreenState extends State<ExcursionEditScreen> {
           children: [
             TextFormField(
               controller: _depositAmount,
-              decoration:
-                  InputDecoration(labelText: loc.deposit),
+              decoration: InputDecoration(labelText: loc.deposit),
               keyboardType: const TextInputType.numberWithOptions(
                 decimal: true,
               ),
@@ -701,8 +729,7 @@ class _ExcursionEditScreenState extends State<ExcursionEditScreen> {
               contentPadding: EdgeInsets.zero,
               title: Text(loc.depositAlreadyPayed),
               value: _depositPaid,
-              onChanged: (v) =>
-                  setState(() => _depositPaid = v ?? false),
+              onChanged: (v) => setState(() => _depositPaid = v ?? false),
             ),
             const SizedBox(height: 8),
             TextFormField(
@@ -723,15 +750,13 @@ class _ExcursionEditScreenState extends State<ExcursionEditScreen> {
               contentPadding: EdgeInsets.zero,
               title: Text(loc.cash),
               value: _onSiteCash,
-              onChanged: (v) =>
-                  setState(() => _onSiteCash = v ?? false),
+              onChanged: (v) => setState(() => _onSiteCash = v ?? false),
             ),
             CheckboxListTile(
               contentPadding: EdgeInsets.zero,
               title: Text(loc.credit),
               value: _onSiteCard,
-              onChanged: (v) =>
-                  setState(() => _onSiteCard = v ?? false),
+              onChanged: (v) => setState(() => _onSiteCard = v ?? false),
             ),
             if (_onSiteCash) ...[
               const SizedBox(height: 4),
@@ -764,8 +789,7 @@ class _ExcursionEditScreenState extends State<ExcursionEditScreen> {
               contentPadding: EdgeInsets.zero,
               title: Text(loc.finalPaymentAlreadyPayed),
               value: _restPaid,
-              onChanged: (v) =>
-                  setState(() => _restPaid = v ?? false),
+              onChanged: (v) => setState(() => _restPaid = v ?? false),
             ),
           ],
         );
@@ -787,15 +811,13 @@ class _ExcursionEditScreenState extends State<ExcursionEditScreen> {
               contentPadding: EdgeInsets.zero,
               title: Text(loc.cash),
               value: _onSiteCash,
-              onChanged: (v) =>
-                  setState(() => _onSiteCash = v ?? false),
+              onChanged: (v) => setState(() => _onSiteCash = v ?? false),
             ),
             CheckboxListTile(
               contentPadding: EdgeInsets.zero,
               title: Text(loc.credit),
               value: _onSiteCard,
-              onChanged: (v) =>
-                  setState(() => _onSiteCard = v ?? false),
+              onChanged: (v) => setState(() => _onSiteCard = v ?? false),
             ),
             if (_onSiteCash) ...[
               const SizedBox(height: 4),
@@ -828,8 +850,7 @@ class _ExcursionEditScreenState extends State<ExcursionEditScreen> {
               contentPadding: EdgeInsets.zero,
               title: Text(loc.amountAlreadyPayed),
               value: _part1Paid,
-              onChanged: (v) =>
-                  setState(() => _part1Paid = v ?? false),
+              onChanged: (v) => setState(() => _part1Paid = v ?? false),
             ),
           ],
         );
@@ -842,81 +863,88 @@ class _ExcursionEditScreenState extends State<ExcursionEditScreen> {
     final loc = AppLocalizations.of(context)!;
 
     return Scaffold(
-      appBar: AppBar(title: Text(loc.editExcursion)),
-      body: ex == null
+      appBar: AppBar(
+        title: Text(_isCreateMode ? loc.newExcursion : loc.editExcursion),
+      ),
+      body: _loading
           ? const Center(child: CircularProgressIndicator())
-          : Form(
-              key: _formKey,
-              child: ListView(
-                padding: const EdgeInsets.all(16),
-                children: [
-                  TextFormField(
-                    controller: _title,
-                    decoration: InputDecoration(labelText: loc.excursion),
-                    validator: (v) => (v == null || v.trim().isEmpty)
-                        ? loc.requiredField
-                        : null,
+          : ex == null
+              ? Center(child: Text(loc.excursionNotFound))
+              : Form(
+                  key: _formKey,
+                  child: ListView(
+                    padding: const EdgeInsets.all(16),
+                    children: [
+                      TextFormField(
+                        controller: _title,
+                        decoration: InputDecoration(labelText: loc.excursion),
+                        validator: (v) => (v == null || v.trim().isEmpty)
+                            ? loc.requiredField
+                            : null,
+                      ),
+                      const SizedBox(height: 12),
+                      ListTile(
+                        contentPadding: EdgeInsets.zero,
+                        leading: const Icon(Icons.event),
+                        title: Text(loc.dateAndTime),
+                        subtitle: Text(
+                          fmtDate(context, _date, includeTime: true),
+                        ),
+                        trailing: const Icon(Icons.edit_calendar),
+                        onTap: _pickDateTime,
+                      ),
+                      const SizedBox(height: 12),
+                      TextFormField(
+                        controller: _port,
+                        decoration: InputDecoration(
+                          labelText: loc.harbour,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      TextFormField(
+                        controller: _meeting,
+                        decoration: InputDecoration(
+                          labelText: loc.meetingPoint,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      TextFormField(
+                        controller: _notes,
+                        decoration: InputDecoration(
+                          labelText: loc.notesOptional,
+                        ),
+                        maxLines: 3,
+                      ),
+                      const SizedBox(height: 12),
+                      TextFormField(
+                        controller: _price,
+                        decoration: InputDecoration(labelText: loc.price),
+                        keyboardType: const TextInputType.numberWithOptions(
+                          decimal: true,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      TextFormField(
+                        controller: _currency,
+                        decoration: InputDecoration(
+                          labelText: loc.currencyOptional,
+                        ),
+                      ),
+                      if (!_isCreateMode) ...[
+                        const SizedBox(height: 24),
+                        ExcursionDocumentsSection(excursionId: ex.id),
+                      ],
+                      _buildStopsSection(context),
+                      _buildPaymentSection(context),
+                      const SizedBox(height: 24),
+                      FilledButton.icon(
+                        onPressed: _save,
+                        icon: const Icon(Icons.save),
+                        label: Text(loc.save),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 12),
-                  ListTile(
-                    contentPadding: EdgeInsets.zero,
-                    leading: const Icon(Icons.event),
-                    title: Text(loc.dateAndTime),
-                    subtitle: Text(
-                      fmtDate(context, _date, includeTime: true),
-                    ),
-                    trailing: const Icon(Icons.edit_calendar),
-                    onTap: _pickDateTime,
-                  ),
-                  const SizedBox(height: 12),
-                  TextFormField(
-                    controller: _port,
-                    decoration: InputDecoration(
-                      labelText: loc.harbour,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  TextFormField(
-                    controller: _meeting,
-                    decoration: InputDecoration(
-                      labelText: loc.meetingPoint,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  TextFormField(
-                    controller: _notes,
-                    decoration: InputDecoration(
-                      labelText: loc.notesOptional,
-                    ),
-                    maxLines: 3,
-                  ),
-                  const SizedBox(height: 12),
-                  TextFormField(
-                    controller: _price,
-                    decoration: InputDecoration(labelText: loc.price),
-                    keyboardType:
-                        const TextInputType.numberWithOptions(decimal: true),
-                  ),
-                  const SizedBox(height: 12),
-                  TextFormField(
-                    controller: _currency,
-                    decoration: InputDecoration(
-                      labelText: loc.currencyOptional,
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  ExcursionDocumentsSection(excursionId: ex.id),
-                  _buildStopsSection(context),
-                  _buildPaymentSection(context),
-                  const SizedBox(height: 24),
-                  FilledButton.icon(
-                    onPressed: _save,
-                    icon: const Icon(Icons.save),
-                    label: Text(loc.save),
-                  ),
-                ],
-              ),
-            ),
+                ),
     );
   }
 }
