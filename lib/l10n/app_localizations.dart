@@ -209,6 +209,114 @@ abstract class AppLocalizations {
   /// **'No provider is configured yet. This area is prepared for a later phase.'**
   String get aiDocumentAnalysisNotConfiguredHint;
 
+  /// Status headline when cloud AI document analysis is enabled
+  ///
+  /// In en, this message translates to:
+  /// **'Enabled'**
+  String get aiDocumentAnalysisStatusEnabled;
+
+  /// Label for enabling optional cloud AI document analysis
+  ///
+  /// In en, this message translates to:
+  /// **'Enable cloud AI document analysis'**
+  String get aiDocumentAnalysisEnabledLabel;
+
+  /// Label for the AI provider selection
+  ///
+  /// In en, this message translates to:
+  /// **'Provider'**
+  String get aiDocumentAnalysisProviderLabel;
+
+  /// Provider label for OpenAI
+  ///
+  /// In en, this message translates to:
+  /// **'OpenAI'**
+  String get aiDocumentAnalysisProviderOpenAi;
+
+  /// Provider label for Gemini
+  ///
+  /// In en, this message translates to:
+  /// **'Gemini'**
+  String get aiDocumentAnalysisProviderGemini;
+
+  /// Provider label for a custom AI provider
+  ///
+  /// In en, this message translates to:
+  /// **'Custom'**
+  String get aiDocumentAnalysisProviderCustom;
+
+  /// Label for the AI provider API key input
+  ///
+  /// In en, this message translates to:
+  /// **'API key'**
+  String get aiDocumentAnalysisApiKeyLabel;
+
+  /// Label for the AI model input
+  ///
+  /// In en, this message translates to:
+  /// **'Model'**
+  String get aiDocumentAnalysisModelLabel;
+
+  /// Option label for sending the original PDF when local OCR text is insufficient
+  ///
+  /// In en, this message translates to:
+  /// **'Send the PDF when OCR text is insufficient'**
+  String get aiDocumentAnalysisSendPdfLabel;
+
+  /// Headline for the privacy warning on the AI document analysis settings screen
+  ///
+  /// In en, this message translates to:
+  /// **'Privacy warning'**
+  String get aiDocumentAnalysisPrivacyTitle;
+
+  /// Warning that cloud AI analysis may send document contents to the selected provider
+  ///
+  /// In en, this message translates to:
+  /// **'Cloud AI analysis may send document contents to the selected provider.'**
+  String get aiDocumentAnalysisPrivacyCloudWarning;
+
+  /// Warning that imported documents may contain personal data or PII
+  ///
+  /// In en, this message translates to:
+  /// **'Documents can contain personal data such as names, booking numbers, travel dates, addresses, payment references, and passenger details.'**
+  String get aiDocumentAnalysisPrivacyPiiWarning;
+
+  /// Hint that local OCR remains available without cloud AI
+  ///
+  /// In en, this message translates to:
+  /// **'Local OCR can remain available without sending data to cloud AI.'**
+  String get aiDocumentAnalysisPrivacyLocalOcrHint;
+
+  /// Snack bar shown after saving AI document analysis settings
+  ///
+  /// In en, this message translates to:
+  /// **'AI document analysis settings saved.'**
+  String get aiDocumentAnalysisSettingsSaved;
+
+  /// Snack bar shown after clearing AI document analysis settings
+  ///
+  /// In en, this message translates to:
+  /// **'AI document analysis settings deleted.'**
+  String get aiDocumentAnalysisSettingsDeleted;
+
+  /// Title of the confirmation dialog for clearing AI document analysis settings
+  ///
+  /// In en, this message translates to:
+  /// **'Delete settings'**
+  String get aiDocumentAnalysisSettingsDeleteTitle;
+
+  /// Message of the confirmation dialog for clearing AI document analysis settings
+  ///
+  /// In en, this message translates to:
+  /// **'Do you really want to delete the saved AI document analysis settings?'**
+  String get aiDocumentAnalysisSettingsDeleteMessage;
+
+  /// Helper text at the bottom of the AI document analysis settings screen
+  ///
+  /// In en, this message translates to:
+  /// **'The settings are stored locally and encrypted. Cloud AI remains disabled by default until you save a configuration.'**
+  String get aiDocumentAnalysisStorageHint;
+
   /// Edit Travel
   ///
   /// In en, this message translates to:

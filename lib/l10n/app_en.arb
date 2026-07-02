@@ -81,6 +81,78 @@
   "@aiDocumentAnalysisNotConfiguredHint": {
     "description": "Short helper text explaining that AI document analysis is not configured in this phase"
   },
+  "aiDocumentAnalysisStatusEnabled": "Enabled",
+  "@aiDocumentAnalysisStatusEnabled": {
+    "description": "Status headline when cloud AI document analysis is enabled"
+  },
+  "aiDocumentAnalysisEnabledLabel": "Enable cloud AI document analysis",
+  "@aiDocumentAnalysisEnabledLabel": {
+    "description": "Label for enabling optional cloud AI document analysis"
+  },
+  "aiDocumentAnalysisProviderLabel": "Provider",
+  "@aiDocumentAnalysisProviderLabel": {
+    "description": "Label for the AI provider selection"
+  },
+  "aiDocumentAnalysisProviderOpenAi": "OpenAI",
+  "@aiDocumentAnalysisProviderOpenAi": {
+    "description": "Provider label for OpenAI"
+  },
+  "aiDocumentAnalysisProviderGemini": "Gemini",
+  "@aiDocumentAnalysisProviderGemini": {
+    "description": "Provider label for Gemini"
+  },
+  "aiDocumentAnalysisProviderCustom": "Custom",
+  "@aiDocumentAnalysisProviderCustom": {
+    "description": "Provider label for a custom AI provider"
+  },
+  "aiDocumentAnalysisApiKeyLabel": "API key",
+  "@aiDocumentAnalysisApiKeyLabel": {
+    "description": "Label for the AI provider API key input"
+  },
+  "aiDocumentAnalysisModelLabel": "Model",
+  "@aiDocumentAnalysisModelLabel": {
+    "description": "Label for the AI model input"
+  },
+  "aiDocumentAnalysisSendPdfLabel": "Send the PDF when OCR text is insufficient",
+  "@aiDocumentAnalysisSendPdfLabel": {
+    "description": "Option label for sending the original PDF when local OCR text is insufficient"
+  },
+  "aiDocumentAnalysisPrivacyTitle": "Privacy warning",
+  "@aiDocumentAnalysisPrivacyTitle": {
+    "description": "Headline for the privacy warning on the AI document analysis settings screen"
+  },
+  "aiDocumentAnalysisPrivacyCloudWarning": "Cloud AI analysis may send document contents to the selected provider.",
+  "@aiDocumentAnalysisPrivacyCloudWarning": {
+    "description": "Warning that cloud AI analysis may send document contents to the selected provider"
+  },
+  "aiDocumentAnalysisPrivacyPiiWarning": "Documents can contain personal data such as names, booking numbers, travel dates, addresses, payment references, and passenger details.",
+  "@aiDocumentAnalysisPrivacyPiiWarning": {
+    "description": "Warning that imported documents may contain personal data or PII"
+  },
+  "aiDocumentAnalysisPrivacyLocalOcrHint": "Local OCR can remain available without sending data to cloud AI.",
+  "@aiDocumentAnalysisPrivacyLocalOcrHint": {
+    "description": "Hint that local OCR remains available without cloud AI"
+  },
+  "aiDocumentAnalysisSettingsSaved": "AI document analysis settings saved.",
+  "@aiDocumentAnalysisSettingsSaved": {
+    "description": "Snack bar shown after saving AI document analysis settings"
+  },
+  "aiDocumentAnalysisSettingsDeleted": "AI document analysis settings deleted.",
+  "@aiDocumentAnalysisSettingsDeleted": {
+    "description": "Snack bar shown after clearing AI document analysis settings"
+  },
+  "aiDocumentAnalysisSettingsDeleteTitle": "Delete settings",
+  "@aiDocumentAnalysisSettingsDeleteTitle": {
+    "description": "Title of the confirmation dialog for clearing AI document analysis settings"
+  },
+  "aiDocumentAnalysisSettingsDeleteMessage": "Do you really want to delete the saved AI document analysis settings?",
+  "@aiDocumentAnalysisSettingsDeleteMessage": {
+    "description": "Message of the confirmation dialog for clearing AI document analysis settings"
+  },
+  "aiDocumentAnalysisStorageHint": "The settings are stored locally and encrypted. Cloud AI remains disabled by default until you save a configuration.",
+  "@aiDocumentAnalysisStorageHint": {
+    "description": "Helper text at the bottom of the AI document analysis settings screen"
+  },
   "homeDeleteTooltip": "Delete",
   "@homeDeleteTooltip": {
     "description": "Edit Travel"

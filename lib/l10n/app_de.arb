@@ -92,6 +92,79 @@
     "description": "Kurzer Hinweis, dass die KI-Dokumentanalyse in dieser Phase noch nicht konfiguriert ist"
   },
 
+  "aiDocumentAnalysisStatusEnabled": "Aktiviert",
+  "@aiDocumentAnalysisStatusEnabled": {
+    "description": "Statusüberschrift, wenn die Cloud-KI-Dokumentanalyse aktiviert ist"
+  },
+  "aiDocumentAnalysisEnabledLabel": "Cloud-KI-Dokumentanalyse aktivieren",
+  "@aiDocumentAnalysisEnabledLabel": {
+    "description": "Label zum Aktivieren der optionalen Cloud-KI-Dokumentanalyse"
+  },
+  "aiDocumentAnalysisProviderLabel": "Anbieter",
+  "@aiDocumentAnalysisProviderLabel": {
+    "description": "Label für die Auswahl des KI-Anbieters"
+  },
+  "aiDocumentAnalysisProviderOpenAi": "OpenAI",
+  "@aiDocumentAnalysisProviderOpenAi": {
+    "description": "Anbieter-Label für OpenAI"
+  },
+  "aiDocumentAnalysisProviderGemini": "Gemini",
+  "@aiDocumentAnalysisProviderGemini": {
+    "description": "Anbieter-Label für Gemini"
+  },
+  "aiDocumentAnalysisProviderCustom": "Benutzerdefiniert",
+  "@aiDocumentAnalysisProviderCustom": {
+    "description": "Anbieter-Label für einen benutzerdefinierten KI-Anbieter"
+  },
+  "aiDocumentAnalysisApiKeyLabel": "API-Schlüssel",
+  "@aiDocumentAnalysisApiKeyLabel": {
+    "description": "Label für das API-Schlüssel-Eingabefeld des KI-Anbieters"
+  },
+  "aiDocumentAnalysisModelLabel": "Modell",
+  "@aiDocumentAnalysisModelLabel": {
+    "description": "Label für das KI-Modell-Eingabefeld"
+  },
+  "aiDocumentAnalysisSendPdfLabel": "PDF senden, wenn der OCR-Text nicht ausreicht",
+  "@aiDocumentAnalysisSendPdfLabel": {
+    "description": "Optionslabel zum Senden des Original-PDFs, wenn lokaler OCR-Text nicht ausreicht"
+  },
+  "aiDocumentAnalysisPrivacyTitle": "Datenschutzwarnung",
+  "@aiDocumentAnalysisPrivacyTitle": {
+    "description": "Überschrift der Datenschutzwarnung im Screen für KI-Dokumentanalyse-Einstellungen"
+  },
+  "aiDocumentAnalysisPrivacyCloudWarning": "Die Cloud-KI-Analyse kann Dokumentinhalte an den ausgewählten Anbieter senden.",
+  "@aiDocumentAnalysisPrivacyCloudWarning": {
+    "description": "Warnung, dass die Cloud-KI-Analyse Dokumentinhalte an den ausgewählten Anbieter senden kann"
+  },
+  "aiDocumentAnalysisPrivacyPiiWarning": "Dokumente können personenbezogene Daten wie Namen, Buchungsnummern, Reisedaten, Adressen, Zahlungsreferenzen und Passagierdetails enthalten.",
+  "@aiDocumentAnalysisPrivacyPiiWarning": {
+    "description": "Warnung, dass importierte Dokumente personenbezogene Daten oder PII enthalten können"
+  },
+  "aiDocumentAnalysisPrivacyLocalOcrHint": "Lokales OCR kann weiterhin verfügbar bleiben, ohne Daten an Cloud-KI zu senden.",
+  "@aiDocumentAnalysisPrivacyLocalOcrHint": {
+    "description": "Hinweis, dass lokales OCR ohne Cloud-KI verfügbar bleiben kann"
+  },
+  "aiDocumentAnalysisSettingsSaved": "Einstellungen für die KI-Dokumentanalyse gespeichert.",
+  "@aiDocumentAnalysisSettingsSaved": {
+    "description": "SnackBar nach dem Speichern der KI-Dokumentanalyse-Einstellungen"
+  },
+  "aiDocumentAnalysisSettingsDeleted": "Einstellungen für die KI-Dokumentanalyse gelöscht.",
+  "@aiDocumentAnalysisSettingsDeleted": {
+    "description": "SnackBar nach dem Löschen der KI-Dokumentanalyse-Einstellungen"
+  },
+  "aiDocumentAnalysisSettingsDeleteTitle": "Einstellungen löschen",
+  "@aiDocumentAnalysisSettingsDeleteTitle": {
+    "description": "Titel des Bestätigungsdialogs zum Löschen der KI-Dokumentanalyse-Einstellungen"
+  },
+  "aiDocumentAnalysisSettingsDeleteMessage": "Möchtest du die gespeicherten Einstellungen für die KI-Dokumentanalyse wirklich löschen?",
+  "@aiDocumentAnalysisSettingsDeleteMessage": {
+    "description": "Text des Bestätigungsdialogs zum Löschen der KI-Dokumentanalyse-Einstellungen"
+  },
+  "aiDocumentAnalysisStorageHint": "Die Einstellungen werden lokal und verschlüsselt gespeichert. Cloud-KI bleibt standardmäßig deaktiviert, bis du eine Konfiguration speicherst.",
+  "@aiDocumentAnalysisStorageHint": {
+    "description": "Hinweistext am unteren Rand des Screens für KI-Dokumentanalyse-Einstellungen"
+  },
+
   "@homeDeleteTooltip": {
     "description": "Tooltip für den Lösch-Button in der Cruise-Kachel"
   },

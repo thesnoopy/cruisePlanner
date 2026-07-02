@@ -75,6 +75,69 @@ class AppLocalizationsDe extends AppLocalizations {
       'Es ist noch kein Anbieter konfiguriert. Dieser Bereich wird in einer späteren Phase vorbereitet.';
 
   @override
+  String get aiDocumentAnalysisStatusEnabled => 'Aktiviert';
+
+  @override
+  String get aiDocumentAnalysisEnabledLabel =>
+      'Cloud-KI-Dokumentanalyse aktivieren';
+
+  @override
+  String get aiDocumentAnalysisProviderLabel => 'Anbieter';
+
+  @override
+  String get aiDocumentAnalysisProviderOpenAi => 'OpenAI';
+
+  @override
+  String get aiDocumentAnalysisProviderGemini => 'Gemini';
+
+  @override
+  String get aiDocumentAnalysisProviderCustom => 'Benutzerdefiniert';
+
+  @override
+  String get aiDocumentAnalysisApiKeyLabel => 'API-SchlÃ¼ssel';
+
+  @override
+  String get aiDocumentAnalysisModelLabel => 'Modell';
+
+  @override
+  String get aiDocumentAnalysisSendPdfLabel =>
+      'PDF senden, wenn der OCR-Text nicht ausreicht';
+
+  @override
+  String get aiDocumentAnalysisPrivacyTitle => 'Datenschutzwarnung';
+
+  @override
+  String get aiDocumentAnalysisPrivacyCloudWarning =>
+      'Die Cloud-KI-Analyse kann Dokumentinhalte an den ausgewÃ¤hlten Anbieter senden.';
+
+  @override
+  String get aiDocumentAnalysisPrivacyPiiWarning =>
+      'Dokumente kÃ¶nnen personenbezogene Daten wie Namen, Buchungsnummern, Reisedaten, Adressen, Zahlungsreferenzen und Passagierdetails enthalten.';
+
+  @override
+  String get aiDocumentAnalysisPrivacyLocalOcrHint =>
+      'Lokales OCR kann weiterhin verfÃ¼gbar bleiben, ohne Daten an Cloud-KI zu senden.';
+
+  @override
+  String get aiDocumentAnalysisSettingsSaved =>
+      'Einstellungen fÃ¼r die KI-Dokumentanalyse gespeichert.';
+
+  @override
+  String get aiDocumentAnalysisSettingsDeleted =>
+      'Einstellungen fÃ¼r die KI-Dokumentanalyse gelÃ¶scht.';
+
+  @override
+  String get aiDocumentAnalysisSettingsDeleteTitle => 'Einstellungen lÃ¶schen';
+
+  @override
+  String get aiDocumentAnalysisSettingsDeleteMessage =>
+      'MÃ¶chtest du die gespeicherten Einstellungen fÃ¼r die KI-Dokumentanalyse wirklich lÃ¶schen?';
+
+  @override
+  String get aiDocumentAnalysisStorageHint =>
+      'Die Einstellungen werden lokal und verschlÃ¼sselt gespeichert. Cloud-KI bleibt standardmÃ¤ÃŸig deaktiviert, bis du eine Konfiguration speicherst.';
+
+  @override
   String get cruisePlanner => 'Cruise Planer';
 
   @override

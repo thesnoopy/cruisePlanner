@@ -68,6 +68,69 @@ class AppLocalizationsEn extends AppLocalizations {
   String get aiDocumentAnalysisNotConfiguredHint => 'No provider is configured yet. This area is prepared for a later phase.';
 
   @override
+  String get aiDocumentAnalysisStatusEnabled => 'Enabled';
+
+  @override
+  String get aiDocumentAnalysisEnabledLabel =>
+      'Enable cloud AI document analysis';
+
+  @override
+  String get aiDocumentAnalysisProviderLabel => 'Provider';
+
+  @override
+  String get aiDocumentAnalysisProviderOpenAi => 'OpenAI';
+
+  @override
+  String get aiDocumentAnalysisProviderGemini => 'Gemini';
+
+  @override
+  String get aiDocumentAnalysisProviderCustom => 'Custom';
+
+  @override
+  String get aiDocumentAnalysisApiKeyLabel => 'API key';
+
+  @override
+  String get aiDocumentAnalysisModelLabel => 'Model';
+
+  @override
+  String get aiDocumentAnalysisSendPdfLabel =>
+      'Send the PDF when OCR text is insufficient';
+
+  @override
+  String get aiDocumentAnalysisPrivacyTitle => 'Privacy warning';
+
+  @override
+  String get aiDocumentAnalysisPrivacyCloudWarning =>
+      'Cloud AI analysis may send document contents to the selected provider.';
+
+  @override
+  String get aiDocumentAnalysisPrivacyPiiWarning =>
+      'Documents can contain personal data such as names, booking numbers, travel dates, addresses, payment references, and passenger details.';
+
+  @override
+  String get aiDocumentAnalysisPrivacyLocalOcrHint =>
+      'Local OCR can remain available without sending data to cloud AI.';
+
+  @override
+  String get aiDocumentAnalysisSettingsSaved =>
+      'AI document analysis settings saved.';
+
+  @override
+  String get aiDocumentAnalysisSettingsDeleted =>
+      'AI document analysis settings deleted.';
+
+  @override
+  String get aiDocumentAnalysisSettingsDeleteTitle => 'Delete settings';
+
+  @override
+  String get aiDocumentAnalysisSettingsDeleteMessage =>
+      'Do you really want to delete the saved AI document analysis settings?';
+
+  @override
+  String get aiDocumentAnalysisStorageHint =>
+      'The settings are stored locally and encrypted. Cloud AI remains disabled by default until you save a configuration.';
+
+  @override
   String get homeDeleteTooltip => 'Delete';
 
   @override
