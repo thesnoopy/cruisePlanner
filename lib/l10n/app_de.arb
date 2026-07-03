@@ -834,6 +834,14 @@
   "@documentOpenFailed": {
     "description": "SnackBar, wenn ein verknüpftes Dokument nicht geöffnet werden kann"
   },
+  "documentImportAssistantUse": "Assistent verwenden",
+  "@documentImportAssistantUse": {
+    "description": "Tooltip zum manuellen Starten des Dokumentimport-Assistenten für ein vorhandenes Dokument"
+  },
+  "documentImportAssistantStartFailed": "Assistent konnte nicht gestartet werden.",
+  "@documentImportAssistantStartFailed": {
+    "description": "SnackBar, wenn die manuelle Dokumentanalyse für den Assistenten fehlschlägt"
+  },
   "documentImportAssistantReviewTitle": "Assistent-Vorschlag",
   "@documentImportAssistantReviewTitle": {
     "description": "Titel des Review-Dialogs für eine Aktion des Dokumentimport-Assistenten"

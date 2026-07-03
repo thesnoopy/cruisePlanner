@@ -545,6 +545,14 @@
   "@documentOpenFailed": {
     "description": "Snack bar shown when opening a linked document fails"
   },
+  "documentImportAssistantUse": "Use assistant",
+  "@documentImportAssistantUse": {
+    "description": "Tooltip for manually starting the document import assistant for an existing document"
+  },
+  "documentImportAssistantStartFailed": "Assistant could not be started.",
+  "@documentImportAssistantStartFailed": {
+    "description": "Snack bar shown when manual document assistant analysis fails"
+  },
   "documentImportAssistantReviewTitle": "Assistant suggestion",
   "@documentImportAssistantReviewTitle": {
     "description": "Title of the review dialog for a document import assistant action"

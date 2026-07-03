@@ -1229,6 +1229,18 @@ abstract class AppLocalizations {
   /// **'Document could not be opened.'**
   String get documentOpenFailed;
 
+  /// Tooltip for manually starting the document import assistant for an existing document
+  ///
+  /// In en, this message translates to:
+  /// **'Use assistant'**
+  String get documentImportAssistantUse;
+
+  /// Snack bar shown when manual document assistant analysis fails
+  ///
+  /// In en, this message translates to:
+  /// **'Assistant could not be started.'**
+  String get documentImportAssistantStartFailed;
+
   /// Title of the review dialog for a document import assistant action
   ///
   /// In en, this message translates to:

@@ -1,11 +1,15 @@
 import 'dart:async';
 
 import 'package:cruiseplanner/l10n/app_localizations.dart';
+import 'package:cruiseplanner/models/documents/document_analysis_input.dart';
 import 'package:cruiseplanner/models/documents/document_analysis_result.dart';
 import 'package:cruiseplanner/models/documents/document_draft_target_type.dart';
 import 'package:cruiseplanner/models/documents/document_import_assistant_action.dart';
 import 'package:cruiseplanner/models/documents/document_import_draft.dart';
 import 'package:cruiseplanner/models/documents/document_import_source_reference.dart';
+import 'package:cruiseplanner/models/documents/document_kind.dart';
+import 'package:cruiseplanner/models/documents/document_record.dart';
+import 'package:cruiseplanner/services/documents/document_analysis_service.dart';
 import 'package:cruiseplanner/services/documents/document_import_assistant_action_navigator.dart';
 import 'package:cruiseplanner/services/documents/document_import_assistant_flow_service.dart';
 import 'package:cruiseplanner/widgets/documents/document_import_assistant_launcher.dart';
@@ -218,6 +222,87 @@ void main() {
     expect(navigator.openCallCount, 0);
     expect(result, isFalse);
   });
+
+  testWidgets(
+    'existing document launcher analyzes the selected document and shows the review dialog',
+    (tester) async {
+      final analysisService = _FakeDocumentAnalysisService(
+        analyzeResult: const DocumentAnalysisResult(
+          sourceReference: DocumentImportSourceReference(documentId: 'doc-9'),
+        ),
+      );
+      final flowService = _FakeDocumentImportAssistantFlowService(
+        buildActionResult: const DocumentImportAssistantAction.createNewCruise(
+          initialCruiseDraft: CruiseImportDraft(title: 'Baltic Voyage'),
+          sourceReference: DocumentImportSourceReference(documentId: 'doc-9'),
+        ),
+      );
+      final launcher = DocumentImportAssistantDocumentLauncher(
+        analysisService: analysisService,
+        flowService: flowService,
+      );
+      bool? result;
+
+      await _pumpDocumentLauncher(
+        tester,
+        document: _sampleDocument(documentId: 'doc-9'),
+        launcher: launcher,
+        onResult: (value) => result = value,
+      );
+
+      await tester.tap(find.text('Show'));
+      await tester.pumpAndSettle();
+
+      expect(analysisService.analyzeCallCount, 1);
+      expect(
+        analysisService.lastInput,
+        const DocumentAnalysisInput(
+          sourceReference: DocumentImportSourceReference(documentId: 'doc-9'),
+          documentId: 'doc-9',
+          originalFileName: 'doc-9.pdf',
+          title: 'Boarding Pass',
+          mimeType: 'application/pdf',
+          localRelativePath: 'documents/doc-9/original.pdf',
+        ),
+      );
+      expect(flowService.buildActionCallCount, 1);
+      expect(
+        flowService.lastAnalysisResult,
+        const DocumentAnalysisResult(
+          sourceReference: DocumentImportSourceReference(documentId: 'doc-9'),
+        ),
+      );
+      expect(find.byType(AlertDialog), findsOneWidget);
+      expect(result, isNull);
+    },
+  );
+
+  testWidgets('existing document launcher shows a snackbar when analysis fails', (
+    tester,
+  ) async {
+    final analysisService = _FakeDocumentAnalysisService(
+      analyzeError: StateError('analysis failed'),
+    );
+    final launcher = DocumentImportAssistantDocumentLauncher(
+      analysisService: analysisService,
+    );
+    bool? result;
+
+    await _pumpDocumentLauncher(
+      tester,
+      document: _sampleDocument(documentId: 'doc-10'),
+      launcher: launcher,
+      onResult: (value) => result = value,
+    );
+
+    await tester.tap(find.text('Show'));
+    await tester.pumpAndSettle();
+
+    expect(analysisService.analyzeCallCount, 1);
+    expect(find.byType(AlertDialog), findsNothing);
+    expect(find.text('Assistant could not be started.'), findsOneWidget);
+    expect(result, isFalse);
+  });
 }
 
 Future<void> _pumpLauncher(
@@ -257,6 +342,39 @@ Future<void> _pumpLauncher(
   );
 }
 
+Future<void> _pumpDocumentLauncher(
+  WidgetTester tester, {
+  required DocumentRecord document,
+  required DocumentImportAssistantDocumentLauncher launcher,
+  ValueChanged<bool>? onResult,
+}) async {
+  await tester.pumpWidget(
+    MaterialApp(
+      locale: const Locale('en'),
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
+      home: Scaffold(
+        body: Builder(
+          builder: (context) {
+            return Center(
+              child: TextButton(
+                onPressed: () async {
+                  final result = await launcher.startForDocument(
+                    context: context,
+                    document: document,
+                  );
+                  onResult?.call(result);
+                },
+                child: const Text('Show'),
+              ),
+            );
+          },
+        ),
+      ),
+    ),
+  );
+}
+
 class _FakeDocumentImportAssistantFlowService
     extends DocumentImportAssistantFlowService {
   _FakeDocumentImportAssistantFlowService({
@@ -277,6 +395,31 @@ class _FakeDocumentImportAssistantFlowService
     buildActionCallCount += 1;
     lastAnalysisResult = analysisResult;
     return _buildActionFuture;
+  }
+}
+
+class _FakeDocumentAnalysisService extends DocumentAnalysisService {
+  _FakeDocumentAnalysisService({
+    this.analyzeResult,
+    this.analyzeError,
+  });
+
+  final DocumentAnalysisResult? analyzeResult;
+  final Object? analyzeError;
+
+  int analyzeCallCount = 0;
+  DocumentAnalysisInput? lastInput;
+
+  @override
+  Future<DocumentAnalysisResult> analyze(
+    DocumentAnalysisInput input,
+  ) async {
+    analyzeCallCount += 1;
+    lastInput = input;
+    if (analyzeError != null) {
+      throw analyzeError!;
+    }
+    return analyzeResult!;
   }
 }
 
@@ -360,4 +503,24 @@ class _UnmountableLauncherHarnessState
           : const SizedBox.shrink(),
     );
   }
+}
+
+DocumentRecord _sampleDocument({
+  required String documentId,
+}) {
+  final timestamp = DateTime.utc(2026, 7, 1, 12);
+  return DocumentRecord(
+    id: documentId,
+    kind: DocumentKind.pdf,
+    title: 'Boarding Pass',
+    originalFileName: '$documentId.pdf',
+    mimeType: 'application/pdf',
+    fileExtension: 'pdf',
+    localRelativePath: 'documents/$documentId/original.pdf',
+    byteSize: 3,
+    contentHash: 'hash-$documentId',
+    createdAt: timestamp,
+    updatedAt: timestamp,
+    deleted: false,
+  );
 }

@@ -591,6 +591,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get documentOpenFailed => 'Document could not be opened.';
 
   @override
+  String get documentImportAssistantUse => 'Use assistant';
+
+  @override
+  String get documentImportAssistantStartFailed =>
+      'Assistant could not be started.';
+
+  @override
   String get documentImportAssistantReviewTitle => 'Assistant suggestion';
 
   @override

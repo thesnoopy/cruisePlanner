@@ -9,6 +9,7 @@ import '../../screens/documents/url_snapshot_capture_screen.dart';
 import '../../services/documents/document_open_service.dart';
 import '../../services/documents/port_call_document_section_service.dart';
 import '../../services/documents/url_document_service.dart';
+import 'document_import_assistant_launcher.dart';
 import 'document_title_prompt_dialog.dart';
 
 class PortCallDocumentsSection extends StatefulWidget {
@@ -17,11 +18,15 @@ class PortCallDocumentsSection extends StatefulWidget {
     required this.portCallId,
     this.isReadOnly = false,
     this.service,
+    this.openService,
+    this.assistantLauncher,
   });
 
   final String portCallId;
   final bool isReadOnly;
   final PortCallDocumentSectionService? service;
+  final DocumentOpenService? openService;
+  final DocumentImportAssistantDocumentLauncher? assistantLauncher;
 
   @override
   State<PortCallDocumentsSection> createState() =>
@@ -31,6 +36,7 @@ class PortCallDocumentsSection extends StatefulWidget {
 class _PortCallDocumentsSectionState extends State<PortCallDocumentsSection> {
   late final PortCallDocumentSectionService _service;
   late final DocumentOpenService _openService;
+  late final DocumentImportAssistantDocumentLauncher _assistantLauncher;
   PortCallDocumentSectionData? _data;
   bool _isLoading = true;
   bool _isMutating = false;
@@ -39,7 +45,9 @@ class _PortCallDocumentsSectionState extends State<PortCallDocumentsSection> {
   void initState() {
     super.initState();
     _service = widget.service ?? PortCallDocumentSectionService();
-    _openService = DocumentOpenService();
+    _openService = widget.openService ?? DocumentOpenService();
+    _assistantLauncher =
+        widget.assistantLauncher ?? const DocumentImportAssistantDocumentLauncher();
     _reload();
   }
 
@@ -111,6 +119,13 @@ class _PortCallDocumentsSectionState extends State<PortCallDocumentsSection> {
         SnackBar(content: Text(loc.documentOpenFailed)),
       );
     }
+  }
+
+  Future<void> _startAssistant(DocumentRecord document) async {
+    await _assistantLauncher.startForDocument(
+      context: context,
+      document: document,
+    );
   }
 
   Future<void> _showAttachSheet() async {
@@ -383,10 +398,6 @@ class _PortCallDocumentsSectionState extends State<PortCallDocumentsSection> {
     DocumentRecord document,
   ) {
     final hasSourceUrl = document.sourceUrl?.trim().isNotEmpty == true;
-    if (!hasSourceUrl && widget.isReadOnly) {
-      return null;
-    }
-
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -396,6 +407,11 @@ class _PortCallDocumentsSectionState extends State<PortCallDocumentsSection> {
             onPressed: () => _openSourceUrl(document),
             icon: const Icon(Icons.open_in_browser_outlined),
           ),
+        IconButton(
+          tooltip: loc.documentImportAssistantUse,
+          onPressed: _isMutating ? null : () => _startAssistant(document),
+          icon: const Icon(Icons.auto_awesome_outlined),
+        ),
         if (!widget.isReadOnly)
           IconButton(
             tooltip: loc.detachDocument,

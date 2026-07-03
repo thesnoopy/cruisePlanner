@@ -9,6 +9,7 @@ import '../../screens/documents/url_snapshot_capture_screen.dart';
 import '../../services/documents/document_open_service.dart';
 import '../../services/documents/excursion_document_section_service.dart';
 import '../../services/documents/url_document_service.dart';
+import 'document_import_assistant_launcher.dart';
 import 'document_title_prompt_dialog.dart';
 
 class ExcursionDocumentsSection extends StatefulWidget {
@@ -17,11 +18,15 @@ class ExcursionDocumentsSection extends StatefulWidget {
     required this.excursionId,
     this.isReadOnly = false,
     this.service,
+    this.openService,
+    this.assistantLauncher,
   });
 
   final String excursionId;
   final bool isReadOnly;
   final ExcursionDocumentSectionService? service;
+  final DocumentOpenService? openService;
+  final DocumentImportAssistantDocumentLauncher? assistantLauncher;
 
   @override
   State<ExcursionDocumentsSection> createState() =>
@@ -31,6 +36,7 @@ class ExcursionDocumentsSection extends StatefulWidget {
 class _ExcursionDocumentsSectionState extends State<ExcursionDocumentsSection> {
   late final ExcursionDocumentSectionService _service;
   late final DocumentOpenService _openService;
+  late final DocumentImportAssistantDocumentLauncher _assistantLauncher;
   ExcursionDocumentSectionData? _data;
   bool _isLoading = true;
   bool _isMutating = false;
@@ -39,7 +45,9 @@ class _ExcursionDocumentsSectionState extends State<ExcursionDocumentsSection> {
   void initState() {
     super.initState();
     _service = widget.service ?? ExcursionDocumentSectionService();
-    _openService = DocumentOpenService();
+    _openService = widget.openService ?? DocumentOpenService();
+    _assistantLauncher =
+        widget.assistantLauncher ?? const DocumentImportAssistantDocumentLauncher();
     _reload();
   }
 
@@ -111,6 +119,13 @@ class _ExcursionDocumentsSectionState extends State<ExcursionDocumentsSection> {
         SnackBar(content: Text(loc.documentOpenFailed)),
       );
     }
+  }
+
+  Future<void> _startAssistant(DocumentRecord document) async {
+    await _assistantLauncher.startForDocument(
+      context: context,
+      document: document,
+    );
   }
 
   Future<void> _showAttachSheet() async {
@@ -387,10 +402,6 @@ class _ExcursionDocumentsSectionState extends State<ExcursionDocumentsSection> {
     DocumentRecord document,
   ) {
     final hasSourceUrl = document.sourceUrl?.trim().isNotEmpty == true;
-    if (!hasSourceUrl && widget.isReadOnly) {
-      return null;
-    }
-
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -400,6 +411,11 @@ class _ExcursionDocumentsSectionState extends State<ExcursionDocumentsSection> {
             onPressed: () => _openSourceUrl(document),
             icon: const Icon(Icons.open_in_browser_outlined),
           ),
+        IconButton(
+          tooltip: loc.documentImportAssistantUse,
+          onPressed: _isMutating ? null : () => _startAssistant(document),
+          icon: const Icon(Icons.auto_awesome_outlined),
+        ),
         if (!widget.isReadOnly)
           IconButton(
             tooltip: loc.detachDocument,
