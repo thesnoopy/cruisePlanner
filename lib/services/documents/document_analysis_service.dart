@@ -13,7 +13,7 @@ class DocumentAnalysisService {
   })  : _textExtractionService =
             textExtractionService ?? const NoOpDocumentTextExtractionService(),
         _semanticAnalyzer =
-            semanticAnalyzer ?? const NoOpDocumentSemanticAnalyzer();
+            semanticAnalyzer ?? const LocalRuleBasedDocumentSemanticAnalyzer();
 
   final DocumentTextExtractionService _textExtractionService;
   final DocumentSemanticAnalyzer _semanticAnalyzer;
