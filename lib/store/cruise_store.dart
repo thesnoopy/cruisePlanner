@@ -22,6 +22,7 @@ import '../services/documents/document_reference_cleanup_service.dart';
 import '../sync/app_sync_service.dart';
 import '../sync/app_sync_progress.dart';
 import '../sync/cruise_persistence_migration.dart';
+import '../sync/cruise_sync_service.dart';
 
 class _IndexRef {
   final String cruiseId;
@@ -116,7 +117,9 @@ class CruiseStore extends ChangeNotifier {
     return _runAppSync();
   }
 
-  Future<void> load() async {
+  Future<void> load() => _load();
+
+  Future<void> _load({bool shouldNotifyListeners = true}) async {
     final prefs = await SharedPreferences.getInstance();
     final v3JsonStr = prefs.getString(_spKeyV3);
     if (v3JsonStr != null && v3JsonStr.trim().isNotEmpty) {
@@ -141,7 +144,9 @@ class CruiseStore extends ChangeNotifier {
     }
     _rebuildIndex();
     _loaded = true;
-    notifyListeners();
+    if (shouldNotifyListeners) {
+      notifyListeners();
+    }
   }
 
   Future<void> _persist() async {
@@ -631,8 +636,11 @@ class CruiseStore extends ChangeNotifier {
 
   Future<AppSyncResult> _performAppSync() async {
     try {
+      // Other screens and attachment services use their own store instances.
+      await _load(shouldNotifyListeners: false);
+      final syncInput = _cruises;
       final result = await _appSyncService.sync(
-        localCruises: _cruises,
+        localCruises: syncInput,
         onProgress: _handleAppSyncProgress,
       );
       final mergedCruises = result.mergedCruises;
@@ -640,11 +648,21 @@ class CruiseStore extends ChangeNotifier {
         return result;
       }
 
-      _cruises = List<Cruise>.unmodifiable(mergedCruises);
+      // Reload persisted edits before applying a potentially older result.
+      await _load(shouldNotifyListeners: false);
+      _cruises = CruiseSyncService.reconcileLocalChanges(
+        syncInput: result.localCruisesAtSyncStart ?? syncInput,
+        currentLocal: _cruises,
+        synced: mergedCruises,
+      );
+      final hasPendingLocalChanges = !listEquals(_cruises, mergedCruises);
       _rebuildIndex();
       await _persist();
       if (!_isDisposed) {
         notifyListeners();
+        if (hasPendingLocalChanges) {
+          _scheduleAutoSync();
+        }
       }
       return result;
     } catch (error) {

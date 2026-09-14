@@ -23,39 +23,47 @@ class AppSyncResult {
     required this.mergedCruises,
     required this.documentSyncResult,
     required this.failureMessage,
+    this.localCruisesAtSyncStart,
   });
 
   const AppSyncResult.skipped()
       : outcome = AppSyncOutcome.skipped,
         mergedCruises = null,
         documentSyncResult = null,
-        failureMessage = null;
+        failureMessage = null,
+        localCruisesAtSyncStart = null;
 
   const AppSyncResult.succeeded({
     required List<Cruise> mergedCruises,
     required DocumentFullSyncExecutionResult documentSyncResult,
+    List<Cruise>? localCruisesAtSyncStart,
   }) : this(
          outcome: AppSyncOutcome.succeeded,
          mergedCruises: mergedCruises,
          documentSyncResult: documentSyncResult,
          failureMessage: null,
+         localCruisesAtSyncStart: localCruisesAtSyncStart,
        );
 
   const AppSyncResult.failed({
     required String failureMessage,
     List<Cruise>? mergedCruises,
     DocumentFullSyncExecutionResult? documentSyncResult,
+    List<Cruise>? localCruisesAtSyncStart,
   }) : this(
          outcome: AppSyncOutcome.failed,
          mergedCruises: mergedCruises,
          documentSyncResult: documentSyncResult,
          failureMessage: failureMessage,
+         localCruisesAtSyncStart: localCruisesAtSyncStart,
        );
 
   final AppSyncOutcome outcome;
   final List<Cruise>? mergedCruises;
   final DocumentFullSyncExecutionResult? documentSyncResult;
   final String? failureMessage;
+  // Shared sync callers must all reconcile against the actual sync input.
+  final List<Cruise>? localCruisesAtSyncStart;
 
   bool get wasSkipped => outcome == AppSyncOutcome.skipped;
   bool get hasFailures => outcome == AppSyncOutcome.failed;
@@ -120,7 +128,9 @@ class AppSyncService {
       }
     }
 
-    final syncFuture = _performSync(localCruises: localCruises);
+    final syncFuture = _performSync(
+      localCruises: List<Cruise>.unmodifiable(localCruises),
+    );
     _inFlightSync = syncFuture;
 
     try {
@@ -168,6 +178,7 @@ class AppSyncService {
           ),
           mergedCruises: mergedCruises,
           documentSyncResult: documentSyncResult,
+          localCruisesAtSyncStart: localCruises,
         );
       }
 
@@ -179,6 +190,7 @@ class AppSyncService {
       return AppSyncResult.succeeded(
         mergedCruises: mergedCruises,
         documentSyncResult: documentSyncResult,
+        localCruisesAtSyncStart: localCruises,
       );
     } catch (error) {
       _emitProgress(

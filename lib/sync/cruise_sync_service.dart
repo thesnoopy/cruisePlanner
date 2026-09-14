@@ -81,7 +81,16 @@ class CruiseSyncService {
     return _mergeThreeWay(baseList, localList, remoteList);
   }
 
-  List<Cruise> _mergeThreeWay(
+  /// Reapplies local changes made while a sync was in flight.
+  static List<Cruise> reconcileLocalChanges({
+    required List<Cruise> syncInput,
+    required List<Cruise> currentLocal,
+    required List<Cruise> synced,
+  }) {
+    return _mergeThreeWay(syncInput, currentLocal, synced);
+  }
+
+  static List<Cruise> _mergeThreeWay(
     List<Cruise> baseList,
     List<Cruise> localList,
     List<Cruise> remoteList,
@@ -105,10 +114,10 @@ class CruiseSyncService {
     return List<Cruise>.unmodifiable(result);
   }
 
-  Map<String, Cruise> _byId(List<Cruise> list) =>
+  static Map<String, Cruise> _byId(List<Cruise> list) =>
       {for (final cruise in list) cruise.id: cruise};
 
-  List<String> _orderedCruiseIds(
+  static List<String> _orderedCruiseIds(
     List<Cruise> baseList,
     List<Cruise> localList,
     List<Cruise> remoteList,
@@ -130,7 +139,7 @@ class CruiseSyncService {
     return ordered;
   }
 
-  Cruise? _mergeCruiseValue({
+  static Cruise? _mergeCruiseValue({
     required Cruise? base,
     required Cruise? local,
     required Cruise? remote,
@@ -206,14 +215,14 @@ class CruiseSyncService {
       return local;
     }
 
-    if (local == null || remote == null) {
-      return local ?? remote;
+    if (local == null) {
+      return remote;
     }
 
     return _mergeCruiseConflict(base: base, local: local, remote: remote);
   }
 
-  Cruise _mergeCruiseConflict({
+  static Cruise _mergeCruiseConflict({
     required Cruise? base,
     required Cruise local,
     required Cruise remote,
@@ -262,7 +271,7 @@ class CruiseSyncService {
     );
   }
 
-  List<T> _mergeEntityCollection<T extends Object>({
+  static List<T> _mergeEntityCollection<T extends Object>({
     required List<T> base,
     required List<T> local,
     required List<T> remote,
@@ -299,7 +308,7 @@ class CruiseSyncService {
     return List<T>.unmodifiable(result);
   }
 
-  List<String> _orderedEntityIds<T extends Object>({
+  static List<String> _orderedEntityIds<T extends Object>({
     required List<T> base,
     required List<T> local,
     required List<T> remote,
@@ -323,7 +332,7 @@ class CruiseSyncService {
     return ordered;
   }
 
-  T? _mergeEntityValue<T extends Object>({
+  static T? _mergeEntityValue<T extends Object>({
     required T? base,
     required T? local,
     required T? remote,
@@ -372,8 +381,8 @@ class CruiseSyncService {
       return local;
     }
 
-    if (local == null || remote == null) {
-      return local ?? remote;
+    if (local == null) {
+      return remote;
     }
 
     return _resolveSameEntity<T>(
@@ -386,7 +395,7 @@ class CruiseSyncService {
     );
   }
 
-  ChangeKind _classifyEntityChange<T extends Object>(T? base, T? next) {
+  static ChangeKind _classifyEntityChange<T extends Object>(T? base, T? next) {
     if (base == null && next == null) {
       return ChangeKind.unchanged;
     }
@@ -399,7 +408,7 @@ class CruiseSyncService {
     return base == next ? ChangeKind.unchanged : ChangeKind.modified;
   }
 
-  T _resolveSameEntity<T extends Object>({
+  static T _resolveSameEntity<T extends Object>({
     required T? base,
     required T local,
     required T remote,
@@ -452,7 +461,7 @@ class CruiseSyncService {
     return legacyMerge(base, local, remote);
   }
 
-  int _compareTimestamps(DateTime? left, DateTime? right) {
+  static int _compareTimestamps(DateTime? left, DateTime? right) {
     if (left == null && right == null) {
       return 0;
     }
@@ -465,7 +474,7 @@ class CruiseSyncService {
     return left.compareTo(right);
   }
 
-  Cruise _mergeCruiseLegacy(Cruise? base, Cruise local, Cruise remote) {
+  static Cruise _mergeCruiseLegacy(Cruise? base, Cruise local, Cruise remote) {
     if (base == null) {
       return local;
     }
@@ -480,7 +489,7 @@ class CruiseSyncService {
     );
   }
 
-  Excursion _mergeExcursionLegacy(
+  static Excursion _mergeExcursionLegacy(
     Excursion? base,
     Excursion local,
     Excursion remote,
@@ -498,7 +507,7 @@ class CruiseSyncService {
     );
   }
 
-  TravelItem _mergeTravelItemLegacy(
+  static TravelItem _mergeTravelItemLegacy(
     TravelItem? base,
     TravelItem local,
     TravelItem remote,
@@ -516,7 +525,7 @@ class CruiseSyncService {
     );
   }
 
-  RouteItem _mergeRouteItemLegacy(
+  static RouteItem _mergeRouteItemLegacy(
     RouteItem? base,
     RouteItem local,
     RouteItem remote,
@@ -534,7 +543,7 @@ class CruiseSyncService {
     );
   }
 
-  T _mergeLegacyEntity<T>({
+  static T _mergeLegacyEntity<T>({
     required T base,
     required T local,
     required T remote,
@@ -566,7 +575,7 @@ class CruiseSyncService {
     return fromMap(mergedMap);
   }
 
-  bool _fieldValueEquals(dynamic a, dynamic b) {
+  static bool _fieldValueEquals(dynamic a, dynamic b) {
     return jsonEncode(a) == jsonEncode(b);
   }
 }
