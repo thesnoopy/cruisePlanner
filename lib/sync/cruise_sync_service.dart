@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/cruise.dart';
@@ -71,6 +72,15 @@ class CruiseSyncService {
     return merged;
   }
 
+  @visibleForTesting
+  List<Cruise> mergeThreeWayForTesting(
+    List<Cruise> baseList,
+    List<Cruise> localList,
+    List<Cruise> remoteList,
+  ) {
+    return _mergeThreeWay(baseList, localList, remoteList);
+  }
+
   List<Cruise> _mergeThreeWay(
     List<Cruise> baseList,
     List<Cruise> localList,
@@ -127,6 +137,49 @@ class CruiseSyncService {
   }) {
     final localChange = _classifyEntityChange(base, local);
     final remoteChange = _classifyEntityChange(base, remote);
+
+    if (remote == null) {
+      if (local == null) {
+        return null;
+      }
+      if (local.deletedAtUtc != null || localChange == ChangeKind.removed) {
+        return null;
+      }
+
+      final mergedExcursions = _mergeEntityCollection<Excursion>(
+        base: base?.excursions ?? const <Excursion>[],
+        local: local.excursions,
+        remote: const <Excursion>[],
+        idOf: (entity) => entity.id,
+        updatedAtOf: (entity) => entity.updatedAtUtc,
+        deletedAtOf: (entity) => entity.deletedAtUtc,
+        legacyMerge: _mergeExcursionLegacy,
+      );
+      final mergedTravel = _mergeEntityCollection<TravelItem>(
+        base: base?.travel ?? const <TravelItem>[],
+        local: local.travel,
+        remote: const <TravelItem>[],
+        idOf: (entity) => entity.id,
+        updatedAtOf: (entity) => entity.updatedAtUtc,
+        deletedAtOf: (entity) => entity.deletedAtUtc,
+        legacyMerge: _mergeTravelItemLegacy,
+      );
+      final mergedRoute = _mergeEntityCollection<RouteItem>(
+        base: base?.route ?? const <RouteItem>[],
+        local: local.route,
+        remote: const <RouteItem>[],
+        idOf: (entity) => entity.id,
+        updatedAtOf: (entity) => entity.updatedAtUtc,
+        deletedAtOf: (entity) => entity.deletedAtUtc,
+        legacyMerge: _mergeRouteItemLegacy,
+      );
+
+      return local.copyWith(
+        excursions: mergedExcursions,
+        travel: mergedTravel,
+        route: mergedRoute,
+      );
+    }
 
     if (localChange == ChangeKind.unchanged &&
         remoteChange == ChangeKind.unchanged) {
@@ -280,6 +333,19 @@ class CruiseSyncService {
   }) {
     final localChange = _classifyEntityChange(base, local);
     final remoteChange = _classifyEntityChange(base, remote);
+
+    // Missing remote entries are stale snapshots, not explicit deletions.
+    // Keep the local item only when it is still active; a local soft delete must
+    // remain a delete even if remote is older or absent.
+    if (remote == null) {
+      if (local == null) {
+        return null;
+      }
+      if (deletedAtOf(local) != null || localChange == ChangeKind.removed) {
+        return null;
+      }
+      return local;
+    }
 
     if (localChange == ChangeKind.unchanged &&
         remoteChange == ChangeKind.unchanged) {

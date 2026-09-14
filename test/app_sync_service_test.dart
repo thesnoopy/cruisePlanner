@@ -3,12 +3,16 @@ import 'dart:async';
 import 'package:cruiseplanner/models/cruise.dart';
 import 'package:cruiseplanner/models/documents/document_full_sync_execution_result.dart';
 import 'package:cruiseplanner/models/documents/document_sync_execution_result.dart';
+import 'package:cruiseplanner/models/excursion.dart';
 import 'package:cruiseplanner/models/period.dart';
+import 'package:cruiseplanner/models/route/port_call_item.dart';
 import 'package:cruiseplanner/models/ship.dart';
 import 'package:cruiseplanner/settings/webdav_settings.dart';
 import 'package:cruiseplanner/settings/webdav_settings_store.dart';
 import 'package:cruiseplanner/sync/app_sync_progress.dart';
 import 'package:cruiseplanner/sync/app_sync_service.dart';
+import 'package:cruiseplanner/sync/cruise_sync_service.dart';
+import 'package:cruiseplanner/sync/webdav_sync.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -324,6 +328,123 @@ void main() {
     expect(result.failureMessage, contains('password=***'));
     expect(result.failureMessage, isNot(contains('topsecret')));
   });
+
+  test('keeps locally known excursions when the remote snapshot is stale or empty', () {
+    final service = CruiseSyncService(const WebDavSync(_validSettings));
+    final baseCruise = _sampleCruise().copyWith(
+      id: 'cruise-1',
+      excursions: <Excursion>[
+        _excursion('A', 'Port A'),
+      ],
+    );
+    final localCruise = baseCruise.copyWith(
+      excursions: <Excursion>[
+        _excursion('A', 'Port A'),
+        _excursion('B', 'Port A'),
+        _excursion('C', 'Port A'),
+      ],
+    );
+
+    final merged = service.mergeThreeWayForTesting(
+      <Cruise>[baseCruise],
+      <Cruise>[localCruise],
+      const <Cruise>[],
+    );
+
+    expect(
+      merged.single.excursions.map((excursion) => excursion.title).toList(),
+      <String>['A', 'B', 'C'],
+    );
+  });
+
+  test('keeps excursions from different port calls when remote is missing them', () {
+    final service = CruiseSyncService(const WebDavSync(_validSettings));
+    final baseCruise = _sampleCruise().copyWith(
+      id: 'cruise-ports',
+      route: <PortCallItem>[
+        PortCallItem(id: 'port-a', date: DateTime.utc(2026, 1, 2), portName: 'Port A'),
+        PortCallItem(id: 'port-b', date: DateTime.utc(2026, 1, 3), portName: 'Port B'),
+      ],
+      excursions: <Excursion>[
+        _excursion('A', 'Port A'),
+      ],
+    );
+    final localCruise = baseCruise.copyWith(
+      excursions: <Excursion>[
+        _excursion('A', 'Port A'),
+        _excursion('B', 'Port A'),
+        _excursion('C', 'Port B'),
+      ],
+    );
+
+    final merged = service.mergeThreeWayForTesting(
+      <Cruise>[baseCruise],
+      <Cruise>[localCruise],
+      const <Cruise>[],
+    );
+
+    expect(
+      merged.single.excursions.map((excursion) => excursion.title).toList(),
+      <String>['A', 'B', 'C'],
+    );
+    expect(
+      merged.single.excursions.map((excursion) => excursion.port).toList(),
+      <String>['Port A', 'Port A', 'Port B'],
+    );
+  });
+
+  test('keeps real local deletes when remote is stale or missing', () {
+    final service = CruiseSyncService(const WebDavSync(_validSettings));
+    final baseCruise = _sampleCruise().copyWith(
+      id: 'cruise-delete',
+      excursions: <Excursion>[
+        _excursion('A', 'Port A'),
+        _excursion('B', 'Port A'),
+      ],
+    );
+    final localCruise = baseCruise.copyWith(
+      excursions: <Excursion>[
+        _excursion('A', 'Port A').copyWith(deletedAtUtc: DateTime.utc(2026, 1, 2, 3)),
+        _excursion('B', 'Port A'),
+      ],
+    );
+
+    final merged = service.mergeThreeWayForTesting(
+      <Cruise>[baseCruise],
+      <Cruise>[localCruise],
+      const <Cruise>[],
+    );
+
+    expect(
+      merged.single.excursions.map((excursion) => excursion.title).toList(),
+      <String>['B'],
+    );
+    expect(
+      merged.single.excursions.single.deletedAtUtc,
+      isNull,
+    );
+  });
+
+  test('round-trips a cruise with multiple excursions without dropping entries', () {
+    final cruise = _sampleCruise().copyWith(
+      id: 'cruise-roundtrip',
+      excursions: <Excursion>[
+        _excursion('A', 'Port A'),
+        _excursion('B', 'Port B'),
+        _excursion('C', 'Port C'),
+      ],
+    );
+
+    final reloaded = Cruise.fromMap(cruise.toMap());
+    expect(
+      reloaded.excursions.map((excursion) => excursion.title).toList(),
+      <String>['A', 'B', 'C'],
+    );
+    expect(
+      reloaded.excursions.map((excursion) => excursion.port).toList(),
+      <String>['Port A', 'Port B', 'Port C'],
+    );
+  });
 }
 
 class _FakeWebDavSettingsStore extends WebDavSettingsStore {
@@ -403,6 +524,15 @@ Cruise _sampleCruise() {
     excursions: const [],
     travel: const [],
     route: const [],
+  );
+}
+
+Excursion _excursion(String title, String port) {
+  return Excursion(
+    id: 'excursion-${title.toLowerCase()}-${port.toLowerCase()}',
+    title: title,
+    date: DateTime.utc(2026, 1, 2),
+    port: port,
   );
 }
 
