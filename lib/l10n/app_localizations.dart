@@ -461,6 +461,18 @@ abstract class AppLocalizations {
   /// **'Excursion not found'**
   String get excursionNotFound;
 
+  /// Message when the requested cruise is missing or deleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Cruise not found'**
+  String get cruiseNotFound;
+
+  /// Message when reading the local cruise data fails.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load cruise. Please try again later.'**
+  String get cruiseLoadFailed;
+
   /// No description provided for @excursions.
   ///
   /// In en, this message translates to:

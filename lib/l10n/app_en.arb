@@ -1,5 +1,13 @@
 {
   "@@locale": "en",
+  "cruiseNotFound": "Cruise not found",
+  "@cruiseNotFound": {
+    "description": "Message when the requested cruise is missing or deleted"
+  },
+  "cruiseLoadFailed": "Could not load cruise. Please try again later.",
+  "@cruiseLoadFailed": {
+    "description": "Message when reading the local cruise data fails"
+  },
   "appTitle": "Cruise Planner",
   "@appTitle": {
     "description": "Main application title"

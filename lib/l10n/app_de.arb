@@ -1,5 +1,13 @@
 {
   "@@locale": "de",
+  "cruiseNotFound": "Kreuzfahrt nicht gefunden",
+  "@cruiseNotFound": {
+    "description": "Meldung bei fehlender oder gelöschter Kreuzfahrt"
+  },
+  "cruiseLoadFailed": "Kreuzfahrt konnte nicht geladen werden. Bitte versuche es später erneut.",
+  "@cruiseLoadFailed": {
+    "description": "Meldung bei einem Fehler beim Lesen der lokalen Kreuzfahrtdaten"
+  },
 
   "appTitle": "Kreuzfahrtplaner",
   "@appTitle": {

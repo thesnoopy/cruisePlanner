@@ -22,6 +22,7 @@ class CruiseDetailsScreen extends StatefulWidget {
 class _CruiseDetailsScreenState extends State<CruiseDetailsScreen> {
   Cruise? _cruise;
   bool _loading = true;
+  bool _loadFailed = false;
 
   @override
   void initState() {
@@ -31,15 +32,26 @@ class _CruiseDetailsScreenState extends State<CruiseDetailsScreen> {
 
   Future<void> _load() async {
     final store = CruiseStore();
-    await store.load();
+    Cruise? cruise;
+    var loadFailed = false;
+    try {
+      await store.load();
+      cruise = store.getCruise(widget.cruiseId);
+    } catch (error) {
+      loadFailed = true;
+      debugPrint('Cruise details load failed: $error');
+    } finally {
+      store.dispose();
+    }
 
     if (!mounted) {
       return;
     }
 
     setState(() {
-      _cruise = store.getCruise(widget.cruiseId);
+      _cruise = cruise;
       _loading = false;
+      _loadFailed = loadFailed;
     });
   }
 
@@ -73,7 +85,9 @@ class _CruiseDetailsScreenState extends State<CruiseDetailsScreen> {
     if (cruise == null) {
       return Scaffold(
         appBar: AppBar(title: Text(loc.cruiseDetails)),
-        body: Center(child: Text(loc.cruise)),
+        body: Center(
+          child: Text(_loadFailed ? loc.cruiseLoadFailed : loc.cruiseNotFound),
+        ),
       );
     }
 

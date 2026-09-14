@@ -1,0 +1,809 @@
+diff --git a/lib/l10n/app_de.arb b/lib/l10n/app_de.arb
+index aa9b956..60e44c0 100644
+--- a/lib/l10n/app_de.arb
++++ b/lib/l10n/app_de.arb
+@@ -1,5 +1,13 @@
+ {
+   "@@locale": "de",
++  "cruiseNotFound": "Kreuzfahrt nicht gefunden",
++  "@cruiseNotFound": {
++    "description": "Meldung bei fehlender oder gelöschter Kreuzfahrt"
++  },
++  "cruiseLoadFailed": "Kreuzfahrt konnte nicht geladen werden. Bitte versuche es später erneut.",
++  "@cruiseLoadFailed": {
++    "description": "Meldung bei einem Fehler beim Lesen der lokalen Kreuzfahrtdaten"
++  },
+ 
+   "appTitle": "Kreuzfahrtplaner",
+   "@appTitle": {
+diff --git a/lib/l10n/app_en.arb b/lib/l10n/app_en.arb
+index abc6dc2..fd5dee8 100644
+--- a/lib/l10n/app_en.arb
++++ b/lib/l10n/app_en.arb
+@@ -1,5 +1,13 @@
+ {
+   "@@locale": "en",
++  "cruiseNotFound": "Cruise not found",
++  "@cruiseNotFound": {
++    "description": "Message when the requested cruise is missing or deleted"
++  },
++  "cruiseLoadFailed": "Could not load cruise. Please try again later.",
++  "@cruiseLoadFailed": {
++    "description": "Message when reading the local cruise data fails"
++  },
+   "appTitle": "Cruise Planner",
+   "@appTitle": {
+     "description": "Main application title"
+diff --git a/lib/l10n/app_localizations.dart b/lib/l10n/app_localizations.dart
+index 177cdf2..bf00693 100644
+--- a/lib/l10n/app_localizations.dart
++++ b/lib/l10n/app_localizations.dart
+@@ -461,6 +461,18 @@ abstract class AppLocalizations {
+   /// **'Excursion not found'**
+   String get excursionNotFound;
+ 
++  /// Message when the requested cruise is missing or deleted.
++  ///
++  /// In en, this message translates to:
++  /// **'Cruise not found'**
++  String get cruiseNotFound;
++
++  /// Message when reading the local cruise data fails.
++  ///
++  /// In en, this message translates to:
++  /// **'Could not load cruise. Please try again later.'**
++  String get cruiseLoadFailed;
++
+   /// No description provided for @excursions.
+   ///
+   /// In en, this message translates to:
+diff --git a/lib/l10n/app_localizations_de.dart b/lib/l10n/app_localizations_de.dart
+index ff84a76..0404304 100644
+--- a/lib/l10n/app_localizations_de.dart
++++ b/lib/l10n/app_localizations_de.dart
+@@ -193,6 +193,13 @@ class AppLocalizationsDe extends AppLocalizations {
+   @override
+   String get excursionNotFound => 'Ausflug nicht gefunden';
+ 
++  @override
++  String get cruiseNotFound => 'Kreuzfahrt nicht gefunden';
++
++  @override
++  String get cruiseLoadFailed =>
++      'Kreuzfahrt konnte nicht geladen werden. Bitte versuche es später erneut.';
++
+   @override
+   String get excursions => 'Ausflüge';
+ 
+diff --git a/lib/l10n/app_localizations_en.dart b/lib/l10n/app_localizations_en.dart
+index eef12ae..e195845 100644
+--- a/lib/l10n/app_localizations_en.dart
++++ b/lib/l10n/app_localizations_en.dart
+@@ -193,6 +193,13 @@ class AppLocalizationsEn extends AppLocalizations {
+   @override
+   String get excursionNotFound => 'Excursion not found';
+ 
++  @override
++  String get cruiseNotFound => 'Cruise not found';
++
++  @override
++  String get cruiseLoadFailed =>
++      'Could not load cruise. Please try again later.';
++
+   @override
+   String get excursions => 'Excursions';
+ 
+diff --git a/lib/screens/cruise_hub_screen.dart b/lib/screens/cruise_hub_screen.dart
+index 09f0f0d..c0e2667 100644
+--- a/lib/screens/cruise_hub_screen.dart
++++ b/lib/screens/cruise_hub_screen.dart
+@@ -33,6 +33,8 @@ class CruiseHubScreen extends StatefulWidget {
+ 
+ class _CruiseHubScreenState extends State<CruiseHubScreen> {
+   Cruise? _cruise;
++  bool _loading = true;
++  bool _loadFailed = false;
+ 
+   @override
+   void initState() {
+@@ -42,8 +44,25 @@ class _CruiseHubScreenState extends State<CruiseHubScreen> {
+ 
+   Future<void> _load() async {
+     final s = CruiseStore();
+-    await s.load();
+-    setState(() => _cruise = s.getCruise(widget.cruiseId));
++    Cruise? cruise;
++    var loadFailed = false;
++    try {
++      await s.load();
++      cruise = s.getCruise(widget.cruiseId);
++    } catch (error) {
++      loadFailed = true;
++      debugPrint('Cruise hub load failed: $error');
++    } finally {
++      s.dispose();
++    }
++    if (!mounted) {
++      return;
++    }
++    setState(() {
++      _cruise = cruise;
++      _loading = false;
++      _loadFailed = loadFailed;
++    });
+   }
+ 
+   int _columnsForWidth(BuildContext context) {
+@@ -57,14 +76,22 @@ class _CruiseHubScreenState extends State<CruiseHubScreen> {
+   Widget build(BuildContext context) {
+     final loc = AppLocalizations.of(context)!;
+     final c = _cruise;
++    if (_loading || c == null) {
++      return Scaffold(
++        appBar: AppBar(title: Text(loc.cruise)),
++        body: Center(
++          child: _loading
++              ? const CircularProgressIndicator()
++              : Text(_loadFailed ? loc.cruiseLoadFailed : loc.cruiseNotFound),
++        ),
++      );
++    }
+     return Scaffold(
+       appBar: AppBar(
+-        title: Text(c?.title ?? loc.cruise, softWrap: true, maxLines: 2, overflow: TextOverflow.visible),
++        title: Text(c.title, softWrap: true, maxLines: 2, overflow: TextOverflow.visible),
+ //        actions: [IconButton(icon: const Icon(Icons.refresh), onPressed: _load)],
+       ),
+-      body: c == null
+-          ? const Center(child: CircularProgressIndicator())
+-          : Padding(
++      body: Padding(
+               padding: const EdgeInsets.all(12),
+               child: MasonryGridView.count(
+                 // gleiche Logik wie im HomeScreen (breiteabhängig)
+diff --git a/lib/screens/details/cruise_details_screen.dart b/lib/screens/details/cruise_details_screen.dart
+index 8e02a20..5db146b 100644
+--- a/lib/screens/details/cruise_details_screen.dart
++++ b/lib/screens/details/cruise_details_screen.dart
+@@ -22,6 +22,7 @@ class CruiseDetailsScreen extends StatefulWidget {
+ class _CruiseDetailsScreenState extends State<CruiseDetailsScreen> {
+   Cruise? _cruise;
+   bool _loading = true;
++  bool _loadFailed = false;
+ 
+   @override
+   void initState() {
+@@ -31,15 +32,26 @@ class _CruiseDetailsScreenState extends State<CruiseDetailsScreen> {
+ 
+   Future<void> _load() async {
+     final store = CruiseStore();
+-    await store.load();
++    Cruise? cruise;
++    var loadFailed = false;
++    try {
++      await store.load();
++      cruise = store.getCruise(widget.cruiseId);
++    } catch (error) {
++      loadFailed = true;
++      debugPrint('Cruise details load failed: $error');
++    } finally {
++      store.dispose();
++    }
+ 
+     if (!mounted) {
+       return;
+     }
+ 
+     setState(() {
+-      _cruise = store.getCruise(widget.cruiseId);
++      _cruise = cruise;
+       _loading = false;
++      _loadFailed = loadFailed;
+     });
+   }
+ 
+@@ -73,7 +85,9 @@ class _CruiseDetailsScreenState extends State<CruiseDetailsScreen> {
+     if (cruise == null) {
+       return Scaffold(
+         appBar: AppBar(title: Text(loc.cruiseDetails)),
+-        body: Center(child: Text(loc.cruise)),
++        body: Center(
++          child: Text(_loadFailed ? loc.cruiseLoadFailed : loc.cruiseNotFound),
++        ),
+       );
+     }
+ 
+diff --git a/lib/screens/home_screen.dart b/lib/screens/home_screen.dart
+index bf0d618..1a8e554 100644
+--- a/lib/screens/home_screen.dart
++++ b/lib/screens/home_screen.dart
+@@ -17,7 +17,10 @@ import 'settings/webdav_settings_screen.dart';
+ import 'sync/sync_progress_screen.dart';
+ 
+ class HomeScreen extends StatefulWidget {
+-  const HomeScreen({super.key});
++  const HomeScreen({super.key, this.store});
++
++  /// An optional caller-owned store; otherwise this screen owns its store.
++  final CruiseStore? store;
+ 
+   @override
+   State<HomeScreen> createState() => _HomeScreenState();
+@@ -25,12 +28,13 @@ class HomeScreen extends StatefulWidget {
+ 
+ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
+   final ShareIntakeService _shareIntakeService = ShareIntakeService();
+-  final CruiseStore _store = CruiseStore();
++  late final CruiseStore _store;
+   bool _loading = true;
+ 
+   @override
+   void initState() {
+     super.initState();
++    _store = widget.store ?? CruiseStore();
+     WidgetsBinding.instance.addObserver(this);
+     WidgetsBinding.instance.addPostFrameCallback((_) {
+       _triggerAutoSyncOnAppOpen();
+@@ -41,7 +45,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
+   @override
+   void dispose() {
+     WidgetsBinding.instance.removeObserver(this);
+-    _store.dispose();
++    if (widget.store == null) {
++      _store.dispose();
++    }
+     super.dispose();
+   }
+ 
+@@ -118,7 +124,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
+     if (_loading) {
+       return const Scaffold(body: Center(child: CircularProgressIndicator()));
+     }
+-    final cruises = _store.activeCruises;
+ 
+     return Scaffold(
+       appBar: AppBar(
+@@ -145,6 +150,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
+       body: AnimatedBuilder(
+         animation: Listenable.merge(<Listenable>[_shareIntakeService, _store]),
+         builder: (context, _) {
++          final cruises = _store.activeCruises;
+           final hasPendingShares = _shareIntakeService.hasPendingBatches;
+ 
+           return Column(
+diff --git a/lib/store/cruise_store.dart b/lib/store/cruise_store.dart
+index aef485e..68b1d9b 100644
+--- a/lib/store/cruise_store.dart
++++ b/lib/store/cruise_store.dart
+@@ -635,16 +635,29 @@ class CruiseStore extends ChangeNotifier {
+   }
+ 
+   Future<AppSyncResult> _performAppSync() async {
++    AppSyncProgress? terminalProgress;
+     try {
+       // Other screens and attachment services use their own store instances.
+       await _load(shouldNotifyListeners: false);
+       final syncInput = _cruises;
+       final result = await _appSyncService.sync(
+         localCruises: syncInput,
+-        onProgress: _handleAppSyncProgress,
++        onProgress: (progress) {
++          // Service completion precedes reconciliation and local persistence.
++          // Publish it only once this store is ready for consumers.
++          if (progress.isTerminal) {
++            terminalProgress = progress;
++          } else {
++            _handleAppSyncProgress(progress);
++          }
++        },
+       );
+       final mergedCruises = result.mergedCruises;
+       if (mergedCruises == null) {
++        if (!_isDisposed) {
++          _appSyncProgress = terminalProgress ?? _appSyncProgress;
++          notifyListeners();
++        }
+         return result;
+       }
+ 
+@@ -659,6 +672,7 @@ class CruiseStore extends ChangeNotifier {
+       _rebuildIndex();
+       await _persist();
+       if (!_isDisposed) {
++        _appSyncProgress = terminalProgress ?? _appSyncProgress;
+         notifyListeners();
+         if (hasPendingLocalChanges) {
+           _scheduleAutoSync();
+diff --git a/test/app_sync_service_test.dart b/test/app_sync_service_test.dart
+index ec9e0c2..6e24793 100644
+--- a/test/app_sync_service_test.dart
++++ b/test/app_sync_service_test.dart
+@@ -10,6 +10,7 @@ import 'package:cruiseplanner/models/excursion.dart';
+ import 'package:cruiseplanner/models/period.dart';
+ import 'package:cruiseplanner/models/route/port_call_item.dart';
+ import 'package:cruiseplanner/models/ship.dart';
++import 'package:cruiseplanner/models/travel/hotel_item.dart';
+ import 'package:cruiseplanner/services/documents/cruise_document_section_service.dart';
+ import 'package:cruiseplanner/services/documents/document_attachment_service.dart';
+ import 'package:cruiseplanner/settings/webdav_settings.dart';
+@@ -459,6 +460,107 @@ void main() {
+     );
+   });
+ 
++  group('Active cruise state after sync', () {
++    setUp(() {
++      SharedPreferences.setMockInitialValues(<String, Object>{});
++    });
++
++    for (final autoSync in <bool>[false, true]) {
++      testWidgets('publishes A and new B with complete lookups '
++          '(auto sync: $autoSync)', (tester) async {
++        final cruiseA = _sampleCruise();
++        final cruiseB = cruiseA.copyWith(
++          id: 'cruise-2',
++          title: 'Remote Cruise B',
++          documentIds: const <String>['doc-b'],
++          excursions: <Excursion>[_excursion('Remote excursion', 'Port B')],
++          route: <PortCallItem>[
++            PortCallItem(
++              id: 'port-b',
++              date: DateTime.utc(2026, 1, 2),
++              portName: 'Port B',
++            ),
++          ],
++          travel: <HotelItem>[
++            HotelItem(
++              id: 'hotel-b',
++              start: DateTime.utc(2026, 1, 1),
++              name: 'Hotel B',
++            ),
++          ],
++        );
++        final prefs = await SharedPreferences.getInstance();
++        await prefs.setString('cruises_json_v3', jsonEncode(<String, Object>{
++          'schemaVersion': 3,
++          'cruises': <Object>[cruiseA.toMap()],
++        }));
++        final webDav = _MemoryCruiseWebDav(<Cruise>[cruiseA, cruiseB]);
++        final documentSyncStarted = Completer<void>();
++        final finishDocuments = Completer<void>();
++        var syncRuns = 0;
++        final service = AppSyncService(
++          settingsStore: const _FakeWebDavSettingsStore(_validSettings),
++          cruiseSyncRunner: (_, cruises) {
++            syncRuns += 1;
++            return CruiseSyncService(webDav).sync(cruises);
++          },
++          documentSyncRunner: (_, _) async {
++            documentSyncStarted.complete();
++            await finishDocuments.future;
++            return const _SuccessfulDocumentSyncResult();
++          },
++        );
++        final store = CruiseStore(appSyncService: service);
++        final reader = CruiseStore();
++        addTearDown(store.dispose);
++        addTearDown(reader.dispose);
++        await store.load();
++        expect(store.activeCruises.map((cruise) => cruise.id), <String>[cruiseA.id]);
++        final publishedWithB = <List<String>>[];
++        var completedNotifications = 0;
++        store.addListener(() {
++          if (store.getCruise(cruiseB.id) != null) {
++            publishedWithB.add(store.activeCruises.map((cruise) => cruise.id).toList());
++            expect(store.getById<Cruise>(cruiseB.id), cruiseB);
++            expect(store.getById<PortCallItem>('port-b'), cruiseB.route.single);
++            expect(store.getById<HotelItem>('hotel-b'), cruiseB.travel.single);
++            expect(store.getById<Excursion>(cruiseB.excursions.single.id),
++                cruiseB.excursions.single);
++            expect(store.getCruise(cruiseB.id)!.documentIds, <String>['doc-b']);
++          }
++          if (store.appSyncProgress?.stage == AppSyncProgressStage.completed) {
++            completedNotifications += 1;
++            expect(store.getCruise(cruiseB.id), cruiseB);
++            final persisted = jsonDecode(prefs.getString('cruises_json_v3')!) as Map;
++            expect((persisted['cruises'] as List).map((value) => value['id']),
++                <String>[cruiseA.id, cruiseB.id]);
++          }
++        });
++
++        final sync = autoSync
++            ? store.triggerAutoSyncOnAppOpen()
++            : store.runAppSync();
++        var finished = false;
++        final completion = sync.then((_) { finished = true; });
++        await documentSyncStarted.future;
++        expect(finished, isFalse);
++        expect(store.getCruise(cruiseB.id), isNull);
++        expect(completedNotifications, 0);
++        finishDocuments.complete();
++        await completion;
++
++        expect(store.activeCruises, <Cruise>[cruiseA, cruiseB]);
++        expect(store.getCruise(cruiseB.id), cruiseB);
++        expect(publishedWithB, <List<String>>[<String>[cruiseA.id, cruiseB.id]]);
++        expect(completedNotifications, 1);
++        await reader.load();
++        expect(reader.getCruise(cruiseB.id), cruiseB);
++        await tester.pump(const Duration(seconds: 2));
++        expect(syncRuns, 1);
++      });
++    }
++  });
++
+   group('Cruise document references', () {
+     setUp(() {
+       SharedPreferences.setMockInitialValues(<String, Object>{});
+diff --git a/test/cruise_sync_refresh_test.dart b/test/cruise_sync_refresh_test.dart
+new file mode 100644
+index 0000000..fcbf9a9
+--- /dev/null
++++ b/test/cruise_sync_refresh_test.dart
+@@ -0,0 +1,209 @@
++import 'dart:async';
++import 'dart:convert';
++
++import 'package:cruiseplanner/l10n/app_localizations.dart';
++import 'package:cruiseplanner/models/cruise.dart';
++import 'package:cruiseplanner/models/documents/document_full_sync_execution_result.dart';
++import 'package:cruiseplanner/models/period.dart';
++import 'package:cruiseplanner/models/ship.dart';
++import 'package:cruiseplanner/screens/cruise_hub_screen.dart';
++import 'package:cruiseplanner/screens/details/cruise_details_screen.dart';
++import 'package:cruiseplanner/screens/home_screen.dart';
++import 'package:cruiseplanner/settings/webdav_settings.dart';
++import 'package:cruiseplanner/settings/webdav_settings_store.dart';
++import 'package:cruiseplanner/store/cruise_store.dart';
++import 'package:cruiseplanner/sync/app_sync_service.dart';
++import 'package:flutter/material.dart';
++import 'package:flutter_test/flutter_test.dart';
++import 'package:shared_preferences/shared_preferences.dart';
++
++void main() {
++  setUp(() {
++    SharedPreferences.setMockInitialValues(<String, Object>{});
++    AppSyncService.resetDebugState();
++  });
++  tearDown(AppSyncService.resetDebugState);
++
++  for (final manualSync in <bool>[true, false]) {
++    testWidgets('Home displays synced B and opens its details '
++        '(manual sync: $manualSync)', (tester) async {
++      final cruiseA = _cruise('a', 'Cruise A');
++      final cruiseB = _cruise('b', 'Cruise B');
++      await _seedCruises(<Cruise>[cruiseA]);
++      final settings = _SwitchableSettingsStore();
++      final documentSyncStarted = Completer<void>();
++      final finishDocuments = Completer<void>();
++      var syncRuns = 0;
++      final store = CruiseStore(
++        appSyncService: AppSyncService(
++          settingsStore: settings,
++          cruiseSyncRunner: (_, cruises) async {
++            syncRuns += 1;
++            expect(cruises, <Cruise>[cruiseA]);
++            return <Cruise>[cruiseA.copyWith(title: 'Updated Cruise A'), cruiseB];
++          },
++          documentSyncRunner: (_, _) async {
++            documentSyncStarted.complete();
++            await finishDocuments.future;
++            return const _SuccessfulDocumentSyncResult();
++          },
++        ),
++      );
++      addTearDown(store.dispose);
++      await tester.pumpWidget(_app(HomeScreen(store: store)));
++      await tester.pumpAndSettle();
++      expect(find.text('Cruise A'), findsOneWidget);
++      expect(find.text('Cruise B'), findsNothing);
++      settings.enabled = true;
++
++      if (manualSync) {
++        await tester.tap(find.byTooltip('Cloud sync'));
++        await tester.pump();
++        await tester.pump(const Duration(milliseconds: 350));
++      } else {
++        tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
++        tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
++        await tester.pump();
++      }
++      await documentSyncStarted.future;
++      expect(find.text('Cruise B', skipOffstage: false), findsNothing);
++      if (manualSync) {
++        expect(find.byType(LinearProgressIndicator), findsOneWidget);
++        expect(find.text('Close'), findsNothing);
++      }
++      finishDocuments.complete();
++      await tester.pumpAndSettle();
++
++      // Check before returning from the sync route: a route rebuild must not
++      // hide a stale snapshot captured outside Home's listener builder.
++      expect(find.text('Cruise B', skipOffstage: false), findsOneWidget);
++      expect(find.text('Updated Cruise A', skipOffstage: false), findsOneWidget);
++      expect(find.text('Cruise A', skipOffstage: false), findsNothing);
++      expect(store.getCruise('b'), cruiseB);
++      if (manualSync) {
++        expect(find.byType(LinearProgressIndicator), findsNothing);
++        await tester.tap(find.text('Close'));
++        await tester.pumpAndSettle();
++      }
++      await tester.tap(find.text('Cruise B'));
++      await tester.pumpAndSettle();
++      expect(find.byType(CruiseHubScreen), findsOneWidget);
++      expect(find.byType(CircularProgressIndicator), findsNothing);
++
++      final loc = AppLocalizations.of(
++        tester.element(find.byType(CruiseHubScreen)),
++      )!;
++      await tester.tap(find.text(loc.cruiseDetails));
++      await tester.pumpAndSettle();
++      expect(find.byType(CruiseDetailsScreen), findsOneWidget);
++      expect(find.text('Cruise B'), findsWidgets);
++      expect(find.byType(CircularProgressIndicator), findsNothing);
++      expect(tester.takeException(), isNull);
++      await tester.pump(const Duration(seconds: 2));
++      expect(syncRuns, 1);
++      await tester.pumpWidget(const SizedBox.shrink());
++    });
++  }
++
++  testWidgets('Home leaves its empty state after launch sync', (tester) async {
++    final cruiseB = _cruise('b', 'Cruise B');
++    final finishDownload = Completer<List<Cruise>>();
++    final settings = _SwitchableSettingsStore()..enabled = true;
++    final store = CruiseStore(
++      appSyncService: AppSyncService(
++        settingsStore: settings,
++        cruiseSyncRunner: (_, _) => finishDownload.future,
++        documentSyncRunner: (_, _) async => const _SuccessfulDocumentSyncResult(),
++      ),
++    );
++    addTearDown(store.dispose);
++    await tester.pumpWidget(_app(HomeScreen(store: store)));
++    await tester.pumpAndSettle();
++    expect(find.text('No cruises yet. Tap + to add one.'), findsOneWidget);
++    finishDownload.complete(<Cruise>[cruiseB]);
++    await tester.pumpAndSettle();
++    expect(find.text('Cruise B'), findsOneWidget);
++    expect(find.text('No cruises yet. Tap + to add one.'), findsNothing);
++    await tester.pumpWidget(const SizedBox.shrink());
++  });
++
++  for (final details in <bool>[false, true]) {
++    for (final scenario in <String>['missing', 'deleted', 'invalid JSON']) {
++      testWidgets('Cruise lookup ends for $scenario (details: $details)',
++          (tester) async {
++        if (scenario == 'deleted') {
++          await _seedCruises(<Cruise>[
++            _cruise('missing-id', 'Deleted Cruise').copyWith(
++              deletedAtUtc: DateTime.utc(2026, 9, 1),
++            ),
++          ]);
++        } else if (scenario == 'invalid JSON') {
++          final prefs = await SharedPreferences.getInstance();
++          await prefs.setString('cruises_json_v3', '{invalid JSON');
++        }
++        final screen = details
++            ? const CruiseDetailsScreen(cruiseId: 'missing-id')
++            : const CruiseHubScreen(cruiseId: 'missing-id');
++        await tester.pumpWidget(_app(screen));
++        await tester.pumpAndSettle();
++        expect(find.byType(CircularProgressIndicator), findsNothing);
++        expect(find.text(scenario == 'invalid JSON'
++            ? 'Could not load cruise. Please try again later.'
++            : 'Cruise not found'), findsOneWidget);
++        expect(tester.takeException(), isNull);
++      });
++    }
++  }
++}
++
++Widget _app(Widget home) => MaterialApp(
++      locale: const Locale('en'),
++      localizationsDelegates: AppLocalizations.localizationsDelegates,
++      supportedLocales: AppLocalizations.supportedLocales,
++      home: home,
++    );
++
++Future<void> _seedCruises(List<Cruise> cruises) async {
++  final prefs = await SharedPreferences.getInstance();
++  await prefs.setString('cruises_json_v3', jsonEncode(<String, Object>{
++    'schemaVersion': 3,
++    'cruises': cruises.map((cruise) => cruise.toMap()).toList(),
++  }));
++}
++
++Cruise _cruise(String id, String title) => Cruise(
++      id: id,
++      title: title,
++      ship: Ship(name: 'Test Ship'),
++      period: Period(start: DateTime(2026, 9, 1), end: DateTime(2026, 9, 8)),
++      excursions: const [],
++      travel: const [],
++      route: const [],
++    );
++
++class _SwitchableSettingsStore extends WebDavSettingsStore {
++  bool enabled = false;
++
++  @override
++  Future<WebDavSettings?> load() async => enabled
++      ? const WebDavSettings(
++          baseUrl: 'https://example.com/dav',
++          username: 'user',
++          password: 'secret',
++          remotePath: '/sync/cruises.json',
++        )
++      : null;
++}
++
++class _SuccessfulDocumentSyncResult extends DocumentFullSyncExecutionResult {
++  const _SuccessfulDocumentSyncResult()
++      : super(
++          analysis: null,
++          analysisErrorMessage: null,
++          executedPhases: const <DocumentSyncExecutionPhase>[],
++          phase3Result: null,
++          phase4Result: null,
++          phase5Result: null,
++          phase6Result: null,
++        );
++}
+diff --git a/docs/cruise_sync_refresh_result.md b/docs/cruise_sync_refresh_result.md
+new file mode 100644
+index 0000000..3ce8c5d
+--- /dev/null
++++ b/docs/cruise_sync_refresh_result.md
+@@ -0,0 +1,152 @@
++State-Aktualisierung nach WebDAV-Sync – externe Prüfung
++
++Stand: 14.09.2026. Implementiert, aber nicht auf iPhone/iPad reproduziert und
++nicht mit Flutter/Dart ausgeführt. Aussagen zum bisherigen Verhalten beruhen
++auf Codeanalyse. Die neuen Regressionstests sind für die externe Ausführung
++vorbereitet.
++
++Eine `AGENTS.md` existiert weder im Projekt noch in den geprüften übergeordneten
++Projektverzeichnissen. Die vorhandene [agent.md](../agent.md) wurde vollständig
++gelesen und befolgt. Abschnitt 16 untersagt Flutter-/Dart-Kommandos; deshalb
++wurden weder Tests, Analyzer, Formatter, L10n-Generator, Paketinstallation noch
++Builds ausgeführt. Die Anleitung schreibt keine Ergebnis-/Diff-Dateinamen vor.
++Dieser Bericht und [cruise_sync_refresh.diff](cruise_sync_refresh.diff) folgen
++dem vorhandenen Muster unter `docs/`. Kein Commit, keine Änderung am Git-Index.
++Die bisherigen `cruise_documents`-Prüfdateien bleiben erhalten.
++
++1. Root Cause und Neustart
++
++`HomeScreen.build()` las `_store.activeCruises` vor dem `AnimatedBuilder` in
++eine lokale Variable. `activeCruises` erzeugt eine neue unveränderliche Liste
++mit sichtbaren Cruise-Kopien. Der Builder und die Tile-Callbacks hielten diese
++Aufnahme fest. `notifyListeners()` baute nur den Builder-Inhalt neu auf, der
++weiterhin dieselbe alte Liste verwendete. Damit konnten neue Cruises fehlen,
++vorhandene Cruise-Texte veraltet bleiben und entfernte Cruises sichtbar bleiben.
++
++Der aktive, synchronisierende `CruiseStore` übernimmt das Ergebnis im vorhandenen
++Code bereits: Reload konkurrierender lokaler Änderungen, Reconciliation,
++Ersetzen von `_cruises`, Neuaufbau von `_index`, abgewartete Persistenz und
++Notification. Es fehlte hier kein allgemeiner Post-Sync-Reload. Der entscheidende
++fehlende Schritt war das erneute Lesen dieses Store-Zustands innerhalb des
++benachrichtigten Home-Builders.
++
++Ein Neustart lädt die bereits gespeicherten Daten in eine neue Store-Instanz
++und führt einen neuen äußeren Home-Build aus. Dadurch entsteht eine aktuelle
++Listenaufnahme. Dies erklärt das Verschwinden des Home-Anzeigefehlers.
++
++Unabhängig davon verwendete `CruiseHubScreen` `_cruise == null` als einziges
++Ladekriterium. Nach einem abgeschlossenen Lookup ohne Treffer blieb der Spinner
++deshalb unbegrenzt sichtbar. Auch ein Fehler beim Laden beendete diesen Zustand
++nicht. `CruiseDetailsScreen` unterschied bereits Laden und Null-Lookup, fing
++Ladefehler aber nicht ab und zeigte bei fehlender Cruise nur den Text „Cruise“.
++
++Die konkrete Ursache für den gemeldeten erfolglosen Lookup ist ohne Gerätelogs
++nicht bewiesen: Eine korrekt persistierte, nicht gelöschte Cruise sollte nach
++abgeschlossenem `runAppSync()` in der neu ladenden Hub-Instanz auffindbar sein.
++Die veraltete Home-Liste allein beweist keinen fehlenden Datensatz. Der Fix
++beseitigt den nachgewiesenen Anzeige- und Endlos-Loading-Fehler; die vollständige
++Zwei-Geräte-Reproduktion bleibt Bestandteil der externen Prüfung.
++
++2. Nachverfolgter Datenfluss und Prüfung A–F
++
++| Station / Hypothese | Befund und Änderung |
++| --- | --- |
++| Sync-Button | `HomeScreen._runCloudSync()` übergibt seinen aktiven Store an `SyncProgressScreen`. Kein zweiter Store für manuellen Sync. |
++| Progress-Screen / E | Start nach dem ersten Frame; `_startSync()` wartet auf `store.runAppSync()`. Der Abschluss-/Schließen-Zustand hängt bereits an diesem Future. Zurücknavigation während eines laufenden Syncs bleibt möglich; sie beendet den Store-Sync nicht. |
++| `runAppSync()` | Lädt bei Bedarf und verwendet `_runAppSync()` mit einer laufenden Operation pro Store. `AppSyncService` teilt außerdem den laufenden Netzwerksync zwischen Aufrufern. |
++| WebDAV / Merge | `CruiseSyncService.sync()` lädt Baseline und Remote-Cruises, führt den Drei-Wege-Merge aus, lädt das Ergebnis hoch und speichert die Baseline. `WebDavSync` deserialisiert die gesamte Cruise einschließlich Unterobjekten und sichert die Remote-Datei vor Überschreiben. |
++| App-Service | Führt Cruise- und Dokument-Sync aus. Die lokale Cruise-Persistenz ist Aufgabe des aufrufenden Stores; die gespeicherte Sync-Baseline ist keine zweite UI-Datenquelle. |
++| Store / A | `_performAppSync()` lädt vor und nach dem Service lokale Daten, bewahrt zwischenzeitliche Änderungen durch `reconcileLocalChanges`, persistiert und benachrichtigt. Kein fehlender Reload auf dem manuellen Erfolgspfad. |
++| Unterobjekte / B | Cruise, Route, Travel, Excursions und Dokument-IDs werden gemeinsam übernommen. `_rebuildIndex()` stellt Cruise- und Unterobjekt-Lookups bereit. Kein eigener unaktualisierter Route-Cache in diesem Pfad gefunden. |
++| Home / C und D | Listener war vorhanden, sein Closure las aber eine veraltete Liste. Der Store-Zugriff liegt jetzt im Builder. Die Navigation verwendet weiterhin IDs. |
++| Abschlussmeldung / E | Der Service meldete `completed`, bevor der Store Reconciliation/Persistenz beendet hatte. Der Progress-Screen maskierte dies bereits bis zum Future-Abschluss; andere Store-Listener konnten dennoch zu früh Erfolg sehen. Der Store hält terminale Service-Meldungen nun bis zur eigenen Ergebnisübernahme zurück. |
++| Hub und Details / F | Beide laden aus einer eigenen Store-Instanz und suchen über die Cruise-ID. Fehlend/gelöscht und Ladefehler führen jetzt zu lokalisierten Meldungen statt unbegrenztem Laden. `mounted`-Prüfung und Freigabe der temporären Stores schützen den asynchronen Abschluss. |
++| Weitere Datenhaltung | Cruise-Persistenz liegt in SharedPreferences unter `cruises_json_v3`. Alle hier betrachteten Cruise-Zugriffe nutzen denselben bestehenden Preferences-Zugang; es wurde kein zusätzlicher Cruise-Repository-Cache gefunden. `DocumentStore` liest Metadaten separat aus Preferences, Dateizugriffe bleiben im bestehenden Dokumentservice. |
++
++3. Umfang des Fixes
++
++Die Daten werden für Store-Listener gemeinsam mit dem terminalen Sync-Status
++veröffentlicht, nachdem Liste und ID-Index aktualisiert und die Persistenz
++abgewartet wurden. „Atomar“ bezieht sich hier auf diese Veröffentlichung; es
++wird keine neue globale Transaktion zwischen allen Store-Instanzen eingeführt.
++Fortschrittsmeldungen während des Syncs bleiben erhalten. Übersprungene/fehlende
++Ergebnisse benachrichtigen ebenfalls nach dem bereits ausgeführten Store-Load.
++
++Es gibt keinen zusätzlichen Reload nach Navigation, keinen Neustart-Mechanismus
++und keinen künstlichen Full-Screen-Rebuild. Der Home-Konstruktor erhält lediglich
++eine optionale Store-Injektion für Tests; regulär erstellt und besitzt Home
++weiterhin seine eigene Store-Instanz. Ein injizierter Store gehört dem Aufrufer.
++
++Unverändert bleiben Drei-Wege-Merge, Zeitstempel-/Löschkonflikte, Remote-Backup,
++Baseline-Format, Schema und Serialisierung. Die vorhandenen Fälle „nur lokal“,
++„nur remote“, „beide geändert“ und „gelöscht gegen geändert“ verwenden dieselben
++Merge-/Reconciliation-Funktionen. Es gibt keinen neuen Sync-Trigger oder Timer.
++Ein Folge-Sync bleibt ausschließlich bei bereits erkannten lokalen Änderungen
++ausstehend, wie im bisherigen Code.
++
++4. Geänderte Dateien
++
++- `lib/screens/home_screen.dart`: Live-Liste innerhalb des Listener-Builders;
++  optionale Store-Injektion mit klarer Ownership für Widgettests.
++- `lib/store/cruise_store.dart`: terminalen Sync-Status erst mit dem lokal
++  übernommenen Ergebnis an Listener veröffentlichen.
++- `lib/screens/cruise_hub_screen.dart`: Laden, fehlende/gelöschte Cruise und
++  Ladefehler unterscheiden; asynchronen Abschluss absichern.
++- `lib/screens/details/cruise_details_screen.dart`: Ladefehler beenden und
++  fehlende Cruise mit passender Meldung anzeigen.
++- `lib/l10n/app_en.arb`, `lib/l10n/app_de.arb`: `cruiseNotFound` und
++  `cruiseLoadFailed`. Die drei eingecheckten `app_localizations*.dart`-Dateien
++  wurden dazu konsistent ergänzt, da der Generator nicht ausgeführt werden darf.
++  ARB bleibt die Source of Truth.
++- `test/app_sync_service_test.dart`: zwei zusätzliche Store-Regressionstests.
++- `test/cruise_sync_refresh_test.dart`: neun neue Widgettest-Fälle.
++- Dieser Bericht und `docs/cruise_sync_refresh.diff`: externe Prüfartefakte.
++
++5. Regressionstests und Validierung
++
++Die zwei Store-Tests laufen über den echten `CruiseStore`, `AppSyncService` und
++`CruiseSyncService`, mit In-Memory-WebDAV an der Netzwerkgrenze. Sie prüfen für
++manuellen und App-Open-Sync: zunächst A, danach A+B; blockierte Dokumentphase;
++vollständige Listener-Snapshots; genau eine Abschlussmeldung mit bereits
++persistiertem B; unmittelbare ID-Lookups von Cruise, Route, Hotel und Ausflug;
++Erhalt der Dokument-IDs; unabhängiges Laden aus der Persistenz; kein unnötiger
++Folge-Sync nach zwei Sekunden virtueller Zeit.
++
++Die Widgettests verwenden einen echten aktiven Store mit simuliertem
++Service-I/O. Sie prüfen den manuellen Button-/Progress-Screen-Pfad und den
++Resume-Callback, aktualisieren zusätzlich Cruise A unter gleicher ID und
++öffnen B über Home → Hub → Details. Die Home-Inhalte werden beim manuellen
++Test bereits vor dem Zurückkehren vom Progress-Screen geprüft. Ein weiterer
++Fall prüft die leere Home-Liste während eines verzögerten Launch-Syncs. Für
++Hub und Details werden jeweils fehlende ID, Soft Delete und ungültiges lokales
++JSON geprüft: Meldung vorhanden, kein Spinner, keine unbehandelte Exception.
++
++Bestehende Tests zu parallelen Sync-Aufrufern, zwischenzeitlichen lokalen
++Änderungen, Dokumentfehlern und Folge-Sync bleiben erhalten. Ebenso bleiben die
++Tests in `test/sync_progress_screen_test.dart` zur aktiven Anzeige bis zum
++Future-Abschluss erhalten und sollten extern mit ausgeführt werden.
++
++Lokal geprüft: `git diff --check`, Syntax beider ARB-Dateien per JSON-Parser,
++Übereinstimmung der neuen deutschen/englischen Texte mit ihren Dart-Gettern,
++gezielte Code-/Aufruferprüfung. Keine Flutter-/Dart-Ausführung. Deshalb keine
++Aussage, dass Tests oder Analyzer bereits bestanden hätten.
++
++6. Andere Sync-Einstiegspunkte und verbleibende Grenzen
++
++Launch, Resume und der verzögerte Store-Auto-Sync verwenden denselben
++`_runAppSync()`-Pfad. Der Home-Listenfehler konnte bei allen Notifications seines
++aktiven Stores auftreten und ist durch den gemeinsamen Builder-Fix adressiert.
++Screen-Rückkehr verwendet weiter die bestehenden Loads. Der WebDAV-Settings-
++Screen hat keinen eigenen vollständigen Cruise-Sync-Einstieg.
++
++Die App besitzt mehrere unabhängige `CruiseStore`-Instanzen. Ein Store, der an
++einem anderen Store-Sync nicht teilnimmt, erhält dessen Notifications nicht.
++Bereits geöffnete Hub-/Details-Screens halten außerdem lokale Cruise-Snapshots
++bis zu ihrem nächsten bestehenden Load. Solche übergreifenden stale-state-
++Situationen bleiben architektonisch möglich; eine globale Store-Umstellung
++oder automatische Reload-Schleifen sind nicht Teil dieses gezielten Fixes.
++Die externe Zwei-Geräte-Prüfung sollte sowohl manuellen Sync als auch Resume
++und das unmittelbare Öffnen der neuen Cruise umfassen.
++
++Vorgeschlagene Commit-Message für eine spätere Übernahme (nicht ausgeführt):
++`Fix cruise state refresh and missing-cruise loading after sync`

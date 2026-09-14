@@ -10,6 +10,7 @@ import 'package:cruiseplanner/models/excursion.dart';
 import 'package:cruiseplanner/models/period.dart';
 import 'package:cruiseplanner/models/route/port_call_item.dart';
 import 'package:cruiseplanner/models/ship.dart';
+import 'package:cruiseplanner/models/travel/hotel_item.dart';
 import 'package:cruiseplanner/services/documents/cruise_document_section_service.dart';
 import 'package:cruiseplanner/services/documents/document_attachment_service.dart';
 import 'package:cruiseplanner/settings/webdav_settings.dart';
@@ -457,6 +458,107 @@ void main() {
       reloaded.excursions.map((excursion) => excursion.port).toList(),
       <String>['Port A', 'Port B', 'Port C'],
     );
+  });
+
+  group('Active cruise state after sync', () {
+    setUp(() {
+      SharedPreferences.setMockInitialValues(<String, Object>{});
+    });
+
+    for (final autoSync in <bool>[false, true]) {
+      testWidgets('publishes A and new B with complete lookups '
+          '(auto sync: $autoSync)', (tester) async {
+        final cruiseA = _sampleCruise();
+        final cruiseB = cruiseA.copyWith(
+          id: 'cruise-2',
+          title: 'Remote Cruise B',
+          documentIds: const <String>['doc-b'],
+          excursions: <Excursion>[_excursion('Remote excursion', 'Port B')],
+          route: <PortCallItem>[
+            PortCallItem(
+              id: 'port-b',
+              date: DateTime.utc(2026, 1, 2),
+              portName: 'Port B',
+            ),
+          ],
+          travel: <HotelItem>[
+            HotelItem(
+              id: 'hotel-b',
+              start: DateTime.utc(2026, 1, 1),
+              name: 'Hotel B',
+            ),
+          ],
+        );
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('cruises_json_v3', jsonEncode(<String, Object>{
+          'schemaVersion': 3,
+          'cruises': <Object>[cruiseA.toMap()],
+        }));
+        final webDav = _MemoryCruiseWebDav(<Cruise>[cruiseA, cruiseB]);
+        final documentSyncStarted = Completer<void>();
+        final finishDocuments = Completer<void>();
+        var syncRuns = 0;
+        final service = AppSyncService(
+          settingsStore: const _FakeWebDavSettingsStore(_validSettings),
+          cruiseSyncRunner: (_, cruises) {
+            syncRuns += 1;
+            return CruiseSyncService(webDav).sync(cruises);
+          },
+          documentSyncRunner: (_, _) async {
+            documentSyncStarted.complete();
+            await finishDocuments.future;
+            return const _SuccessfulDocumentSyncResult();
+          },
+        );
+        final store = CruiseStore(appSyncService: service);
+        final reader = CruiseStore();
+        addTearDown(store.dispose);
+        addTearDown(reader.dispose);
+        await store.load();
+        expect(store.activeCruises.map((cruise) => cruise.id), <String>[cruiseA.id]);
+        final publishedWithB = <List<String>>[];
+        var completedNotifications = 0;
+        store.addListener(() {
+          if (store.getCruise(cruiseB.id) != null) {
+            publishedWithB.add(store.activeCruises.map((cruise) => cruise.id).toList());
+            expect(store.getById<Cruise>(cruiseB.id), cruiseB);
+            expect(store.getById<PortCallItem>('port-b'), cruiseB.route.single);
+            expect(store.getById<HotelItem>('hotel-b'), cruiseB.travel.single);
+            expect(store.getById<Excursion>(cruiseB.excursions.single.id),
+                cruiseB.excursions.single);
+            expect(store.getCruise(cruiseB.id)!.documentIds, <String>['doc-b']);
+          }
+          if (store.appSyncProgress?.stage == AppSyncProgressStage.completed) {
+            completedNotifications += 1;
+            expect(store.getCruise(cruiseB.id), cruiseB);
+            final persisted = jsonDecode(prefs.getString('cruises_json_v3')!) as Map;
+            expect((persisted['cruises'] as List).map((value) => value['id']),
+                <String>[cruiseA.id, cruiseB.id]);
+          }
+        });
+
+        final sync = autoSync
+            ? store.triggerAutoSyncOnAppOpen()
+            : store.runAppSync();
+        var finished = false;
+        final completion = sync.then((_) { finished = true; });
+        await documentSyncStarted.future;
+        expect(finished, isFalse);
+        expect(store.getCruise(cruiseB.id), isNull);
+        expect(completedNotifications, 0);
+        finishDocuments.complete();
+        await completion;
+
+        expect(store.activeCruises, <Cruise>[cruiseA, cruiseB]);
+        expect(store.getCruise(cruiseB.id), cruiseB);
+        expect(publishedWithB, <List<String>>[<String>[cruiseA.id, cruiseB.id]]);
+        expect(completedNotifications, 1);
+        await reader.load();
+        expect(reader.getCruise(cruiseB.id), cruiseB);
+        await tester.pump(const Duration(seconds: 2));
+        expect(syncRuns, 1);
+      });
+    }
   });
 
   group('Cruise document references', () {

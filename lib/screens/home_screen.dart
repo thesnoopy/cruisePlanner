@@ -17,7 +17,10 @@ import 'settings/webdav_settings_screen.dart';
 import 'sync/sync_progress_screen.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+  const HomeScreen({super.key, this.store});
+
+  /// An optional caller-owned store; otherwise this screen owns its store.
+  final CruiseStore? store;
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -25,12 +28,13 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   final ShareIntakeService _shareIntakeService = ShareIntakeService();
-  final CruiseStore _store = CruiseStore();
+  late final CruiseStore _store;
   bool _loading = true;
 
   @override
   void initState() {
     super.initState();
+    _store = widget.store ?? CruiseStore();
     WidgetsBinding.instance.addObserver(this);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _triggerAutoSyncOnAppOpen();
@@ -41,7 +45,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
-    _store.dispose();
+    if (widget.store == null) {
+      _store.dispose();
+    }
     super.dispose();
   }
 
@@ -118,7 +124,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     if (_loading) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
-    final cruises = _store.activeCruises;
 
     return Scaffold(
       appBar: AppBar(
@@ -145,6 +150,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       body: AnimatedBuilder(
         animation: Listenable.merge(<Listenable>[_shareIntakeService, _store]),
         builder: (context, _) {
+          final cruises = _store.activeCruises;
           final hasPendingShares = _shareIntakeService.hasPendingBatches;
 
           return Column(

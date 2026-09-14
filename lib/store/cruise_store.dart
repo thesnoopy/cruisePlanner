@@ -635,16 +635,29 @@ class CruiseStore extends ChangeNotifier {
   }
 
   Future<AppSyncResult> _performAppSync() async {
+    AppSyncProgress? terminalProgress;
     try {
       // Other screens and attachment services use their own store instances.
       await _load(shouldNotifyListeners: false);
       final syncInput = _cruises;
       final result = await _appSyncService.sync(
         localCruises: syncInput,
-        onProgress: _handleAppSyncProgress,
+        onProgress: (progress) {
+          // Service completion precedes reconciliation and local persistence.
+          // Publish it only once this store is ready for consumers.
+          if (progress.isTerminal) {
+            terminalProgress = progress;
+          } else {
+            _handleAppSyncProgress(progress);
+          }
+        },
       );
       final mergedCruises = result.mergedCruises;
       if (mergedCruises == null) {
+        if (!_isDisposed) {
+          _appSyncProgress = terminalProgress ?? _appSyncProgress;
+          notifyListeners();
+        }
         return result;
       }
 
@@ -659,6 +672,7 @@ class CruiseStore extends ChangeNotifier {
       _rebuildIndex();
       await _persist();
       if (!_isDisposed) {
+        _appSyncProgress = terminalProgress ?? _appSyncProgress;
         notifyListeners();
         if (hasPendingLocalChanges) {
           _scheduleAutoSync();

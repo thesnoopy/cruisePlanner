@@ -33,6 +33,8 @@ class CruiseHubScreen extends StatefulWidget {
 
 class _CruiseHubScreenState extends State<CruiseHubScreen> {
   Cruise? _cruise;
+  bool _loading = true;
+  bool _loadFailed = false;
 
   @override
   void initState() {
@@ -42,8 +44,25 @@ class _CruiseHubScreenState extends State<CruiseHubScreen> {
 
   Future<void> _load() async {
     final s = CruiseStore();
-    await s.load();
-    setState(() => _cruise = s.getCruise(widget.cruiseId));
+    Cruise? cruise;
+    var loadFailed = false;
+    try {
+      await s.load();
+      cruise = s.getCruise(widget.cruiseId);
+    } catch (error) {
+      loadFailed = true;
+      debugPrint('Cruise hub load failed: $error');
+    } finally {
+      s.dispose();
+    }
+    if (!mounted) {
+      return;
+    }
+    setState(() {
+      _cruise = cruise;
+      _loading = false;
+      _loadFailed = loadFailed;
+    });
   }
 
   int _columnsForWidth(BuildContext context) {
@@ -57,14 +76,22 @@ class _CruiseHubScreenState extends State<CruiseHubScreen> {
   Widget build(BuildContext context) {
     final loc = AppLocalizations.of(context)!;
     final c = _cruise;
+    if (_loading || c == null) {
+      return Scaffold(
+        appBar: AppBar(title: Text(loc.cruise)),
+        body: Center(
+          child: _loading
+              ? const CircularProgressIndicator()
+              : Text(_loadFailed ? loc.cruiseLoadFailed : loc.cruiseNotFound),
+        ),
+      );
+    }
     return Scaffold(
       appBar: AppBar(
-        title: Text(c?.title ?? loc.cruise, softWrap: true, maxLines: 2, overflow: TextOverflow.visible),
+        title: Text(c.title, softWrap: true, maxLines: 2, overflow: TextOverflow.visible),
 //        actions: [IconButton(icon: const Icon(Icons.refresh), onPressed: _load)],
       ),
-      body: c == null
-          ? const Center(child: CircularProgressIndicator())
-          : Padding(
+      body: Padding(
               padding: const EdgeInsets.all(12),
               child: MasonryGridView.count(
                 // gleiche Logik wie im HomeScreen (breiteabhängig)

@@ -194,6 +194,13 @@ class AppLocalizationsDe extends AppLocalizations {
   String get excursionNotFound => 'Ausflug nicht gefunden';
 
   @override
+  String get cruiseNotFound => 'Kreuzfahrt nicht gefunden';
+
+  @override
+  String get cruiseLoadFailed =>
+      'Kreuzfahrt konnte nicht geladen werden. Bitte versuche es später erneut.';
+
+  @override
   String get excursions => 'Ausflüge';
 
   @override

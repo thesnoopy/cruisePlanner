@@ -194,6 +194,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get excursionNotFound => 'Excursion not found';
 
   @override
+  String get cruiseNotFound => 'Cruise not found';
+
+  @override
+  String get cruiseLoadFailed =>
+      'Could not load cruise. Please try again later.';
+
+  @override
   String get excursions => 'Excursions';
 
   @override
