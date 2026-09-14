@@ -115,7 +115,7 @@ class _CruiseHubScreenState extends State<CruiseHubScreen> {
                       final preview = _routePreview(c.route);
                       return _HubTile(
                         title: loc.route,
-                        subtitleWidget: _buildRouteSubtitleWidget(preview, context),
+                        subtitleWidget: _buildRouteSubtitleWidget(preview, context, c),
                         icon: Icons.map_outlined,
                         color: Colors.blue,
                         onTap: () async {
@@ -128,7 +128,7 @@ class _CruiseHubScreenState extends State<CruiseHubScreen> {
                     case 2:
                       return _HubTile(
                         title: loc.excursion,
-                        subtitleWidget: _buildExcursionPreview(context, c.excursions),
+                        subtitleWidget: _buildExcursionPreview(context, c),
                         icon: Icons.directions_walk,
                         color: Colors.teal,
                         onTap: () async {
@@ -330,7 +330,7 @@ _RoutePreview _routePreview(List<RouteItem> items) {
 
 // ----- Iconisierte Subtitle-Widgets (Route) ---------------------------------
 
-Widget _buildRouteSubtitleWidget(_RoutePreview p, BuildContext context) {
+Widget _buildRouteSubtitleWidget(_RoutePreview p, BuildContext context, Cruise cruise) {
   final rows = <Widget>[];
   final loc = AppLocalizations.of(context)!;
 
@@ -346,7 +346,7 @@ Widget _buildRouteSubtitleWidget(_RoutePreview p, BuildContext context) {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                (port.portName.isEmpty ? loc.unknownHarbour : port.portName),
+                (cruise.locationName(port.locationId).isEmpty ? loc.unknownHarbour : cruise.locationName(port.locationId)),
                 style: Theme.of(context).textTheme.bodyMedium,
               ),
               const SizedBox(height: 4),
@@ -483,7 +483,8 @@ Widget _timeRow(
 
 
 // ----- Excursions preview (today or next) -----------------------------------
-Widget _buildExcursionPreview(BuildContext context, List<Excursion> list) {
+Widget _buildExcursionPreview(BuildContext context, Cruise cruise) {
+  final list = cruise.excursions;
   final loc = AppLocalizations.of(context)!;
   if (list.isEmpty) {
     return Text(loc.noFutureExcursions, style: Theme.of(context).textTheme.bodyMedium);
@@ -536,13 +537,13 @@ Widget _buildExcursionPreview(BuildContext context, List<Excursion> list) {
   ));
 
   // Port chip
-  if ((e.port ?? '').trim().isNotEmpty) {
+  if (cruise.locationName(e.locationId).trim().isNotEmpty) {
     chips.add(const SizedBox(width: 8));
     chips.add(_iconTextChip(
       context: context,
       icon: Icons.location_on_outlined,
-      text: e.port!.trim(),
-      tooltip: loc.harbour,
+      text: cruise.locationName(e.locationId).trim(),
+      tooltip: loc.cruiseLocation,
     ));
   }
 

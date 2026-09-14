@@ -12,7 +12,7 @@ class Excursion extends Identifiable {
   final String id;
   final String title;
   final DateTime date;
-  final String? port;
+  final String? locationId;
   final String? meetingPoint;
   final String? notes;
   final num? price;
@@ -28,7 +28,7 @@ class Excursion extends Identifiable {
     required this.id,
     required this.title,
     required this.date,
-    this.port,
+    this.locationId,
     this.meetingPoint,
     this.notes,
     this.price,
@@ -44,7 +44,7 @@ class Excursion extends Identifiable {
     String? id,
     String? title,
     DateTime? date,
-    String? port,
+    Object? locationId = _unset,
     String? meetingPoint,
     String? notes,
     num? price,
@@ -59,7 +59,8 @@ class Excursion extends Identifiable {
       id: id ?? this.id,
       title: title ?? this.title,
       date: date ?? this.date,
-      port: port ?? this.port,
+      locationId: identical(locationId, _unset)
+          ? this.locationId : locationId as String?,
       meetingPoint: meetingPoint ?? this.meetingPoint,
       notes: notes ?? this.notes,
       price: price ?? this.price,
@@ -81,7 +82,7 @@ class Excursion extends Identifiable {
       id: map['id'],
       title: map['title'],
       date: DateTime.parse(map['date']),
-      port: map['port'],
+      locationId: map['locationId'],
       meetingPoint: map['meetingPoint'],
       notes: map['notes'],
       price: map['price'],
@@ -102,7 +103,7 @@ class Excursion extends Identifiable {
         'id': id,
         'title': title,
         'date': date.toIso8601String(),
-        'port': port,
+        'locationId': locationId,
         'meetingPoint': meetingPoint,
         'notes': notes,
         'price': price,
@@ -119,7 +120,7 @@ class Excursion extends Identifiable {
         id,
         title,
         date,
-        port,
+        locationId,
         meetingPoint,
         notes,
         price,

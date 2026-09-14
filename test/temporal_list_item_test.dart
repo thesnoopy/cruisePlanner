@@ -79,7 +79,7 @@ void main() {
       final portCall = PortCallItem(
         id: 'port-1',
         date: DateTime(2026, 7, 4),
-        portName: 'Palma',
+        locationId: 'Palma',
         arrival: DateTime(2026, 7, 4, 8, 0),
         departure: DateTime(2026, 7, 4, 17, 0),
       );
@@ -132,14 +132,14 @@ void main() {
         PortCallItem(
           id: 'port-1',
           date: DateTime(2026, 7, 4),
-          portName: 'Morning Port',
+          locationId: 'Morning Port',
           arrival: DateTime(2026, 7, 4, 8, 0),
           departure: DateTime(2026, 7, 4, 12, 0),
         ),
         PortCallItem(
           id: 'port-2',
           date: DateTime(2026, 7, 4),
-          portName: 'Afternoon Port',
+          locationId: 'Afternoon Port',
           arrival: DateTime(2026, 7, 4, 14, 0),
           departure: DateTime(2026, 7, 4, 18, 0),
         ),

@@ -1,3 +1,4 @@
+import 'cruise_location.dart';
 import 'identifiable.dart';
 import 'period.dart';
 import 'ship.dart';
@@ -23,6 +24,7 @@ class Cruise extends Identifiable {
   final List<Excursion> excursions;
   final List<TravelItem> travel;
   final List<RouteItem> route;
+  final List<CruiseLocation> locations;
   final List<String> documentIds;
   final DateTime? updatedAtUtc;
   final DateTime? deletedAtUtc;
@@ -38,6 +40,7 @@ class Cruise extends Identifiable {
     this.excursions = const [],
     this.travel = const [],
     this.route = const [],
+    this.locations = const [],
     List<String> documentIds = const [],
     this.updatedAtUtc,
     this.deletedAtUtc,
@@ -54,6 +57,7 @@ class Cruise extends Identifiable {
     List<Excursion>? excursions,
     List<TravelItem>? travel,
     List<RouteItem>? route,
+    List<CruiseLocation>? locations,
     List<String>? documentIds,
     Object? updatedAtUtc = _unset,
     Object? deletedAtUtc = _unset,
@@ -69,6 +73,7 @@ class Cruise extends Identifiable {
         excursions: excursions ?? this.excursions,
         travel: travel ?? this.travel,
         route: route ?? this.route,
+        locations: locations ?? this.locations,
         documentIds: documentIds ?? this.documentIds,
         updatedAtUtc: identical(updatedAtUtc, _unset)
             ? this.updatedAtUtc
@@ -89,6 +94,7 @@ class Cruise extends Identifiable {
         'excursions': excursions.map((e) => e.toMap()).toList(),
         'travel': travel.map((t) => t.toMap()).toList(),
         'route': route.map((r) => r.toMap()).toList(),
+        'locations': locations.map((l) => l.toMap()).toList(),
         'documentIds': documentIds,
         'updatedAtUtc': writeNullableUtcDateTime(updatedAtUtc),
         'deletedAtUtc': writeNullableUtcDateTime(deletedAtUtc),
@@ -111,10 +117,22 @@ class Cruise extends Identifiable {
         route: (map['route'] as List? ?? const [])
             .map((e) => rf.routeItemFromMap(Map<String, dynamic>.from(e)))
             .toList(growable: false),
+        locations: (map['locations'] as List? ?? const [])
+            .map((e) => CruiseLocation.fromMap(Map<String, dynamic>.from(e)))
+            .toList(growable: false),
         documentIds: DocumentIds.fromJsonValue(map['documentIds']),
         updatedAtUtc: readNullableUtcDateTime(map, 'updatedAtUtc'),
         deletedAtUtc: readNullableUtcDateTime(map, 'deletedAtUtc'),
       );
+
+  CruiseLocation? locationById(String? id) {
+    for (final location in locations) {
+      if (location.id == id) return location;
+    }
+    return null;
+  }
+
+  String locationName(String? id) => locationById(id)?.name ?? '';
 
   @override
   List<Object?> get props => [
@@ -127,6 +145,7 @@ class Cruise extends Identifiable {
         excursions,
         travel,
         route,
+        locations,
         documentIds,
         updatedAtUtc,
         deletedAtUtc,

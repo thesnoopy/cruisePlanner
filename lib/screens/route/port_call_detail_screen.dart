@@ -23,6 +23,7 @@ class PortCallDetailScreen extends StatefulWidget {
 class _PortCallDetailScreenState extends State<PortCallDetailScreen> {
   PortCallItem? _item;
   String? _cruiseId;
+  String _locationName = '';
   bool _loading = true;
 
   @override
@@ -53,6 +54,8 @@ class _PortCallDetailScreenState extends State<PortCallDetailScreen> {
     setState(() {
       _item = item;
       _cruiseId = cruiseId;
+      _locationName = cruiseId == null ? '' :
+          store.getCruise(cruiseId)?.locationName(item?.locationId) ?? '';
       _loading = false;
     });
   }
@@ -109,7 +112,7 @@ class _PortCallDetailScreenState extends State<PortCallDetailScreen> {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          _PortCallInfoSection(item: item),
+          _PortCallInfoSection(item: item, locationName: _locationName),
           const SizedBox(height: 16),
           PortCallDocumentsSection(
             key: ValueKey('port-call-documents-${item.id}-${item.documentIds.join('|')}'),
@@ -129,14 +132,15 @@ class _PortCallDetailScreenState extends State<PortCallDetailScreen> {
 
   String _screenTitle(BuildContext context, PortCallItem item) {
     final loc = AppLocalizations.of(context)!;
-    return item.portName.trim().isEmpty ? loc.harbour : item.portName.trim();
+    return _locationName.trim().isEmpty ? loc.harbour : _locationName.trim();
   }
 }
 
 class _PortCallInfoSection extends StatelessWidget {
-  const _PortCallInfoSection({required this.item});
+  const _PortCallInfoSection({required this.item, required this.locationName});
 
   final PortCallItem item;
+  final String locationName;
 
   @override
   Widget build(BuildContext context) {
@@ -150,14 +154,14 @@ class _PortCallInfoSection extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              item.portName.trim().isEmpty ? loc.unknownHarbour : item.portName.trim(),
+              locationName.trim().isEmpty ? loc.unknownHarbour : locationName.trim(),
               style: theme.textTheme.titleLarge,
             ),
             const SizedBox(height: 12),
             _InfoTile(
               icon: Icons.place_outlined,
               label: loc.harbour,
-              value: item.portName.trim().isEmpty ? loc.unknownHarbour : item.portName.trim(),
+              value: locationName.trim().isEmpty ? loc.unknownHarbour : locationName.trim(),
             ),
             _InfoTile(
               icon: Icons.event_outlined,

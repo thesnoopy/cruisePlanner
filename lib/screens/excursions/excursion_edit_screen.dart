@@ -1,6 +1,7 @@
 // ExcursionEditScreen mit Payment-Plan Bearbeitung.
 
 import 'package:flutter/material.dart';
+import '../../widgets/cruise_location_selector.dart';
 
 import '../../models/identifiable.dart';
 import '../../store/cruise_store.dart';
@@ -37,7 +38,7 @@ class _ExcursionEditScreenState extends State<ExcursionEditScreen> {
   // Basis-Felder
   final _title = TextEditingController();
   DateTime? _date;
-  final _port = TextEditingController();
+  String? _locationId;
   final _meeting = TextEditingController();
   final _notes = TextEditingController();
   final _price = TextEditingController();
@@ -71,7 +72,6 @@ class _ExcursionEditScreenState extends State<ExcursionEditScreen> {
   @override
   void dispose() {
     _title.dispose();
-    _port.dispose();
     _meeting.dispose();
     _notes.dispose();
     _price.dispose();
@@ -117,7 +117,7 @@ class _ExcursionEditScreenState extends State<ExcursionEditScreen> {
 
     _title.text = ex.title;
     _date = ex.date;
-    _port.text = ex.port ?? '';
+    _locationId = ex.locationId;
     _meeting.text = ex.meetingPoint ?? '';
     _notes.text = ex.notes ?? '';
     _price.text = fmtNumber(context, ex.price);
@@ -425,7 +425,7 @@ class _ExcursionEditScreenState extends State<ExcursionEditScreen> {
     final updated = latestExcursion.copyWith(
       title: _title.text.trim(),
       date: _date ?? latestExcursion.date,
-      port: _port.text.trim().isEmpty ? null : _port.text.trim(),
+      locationId: _locationId,
       meetingPoint:
           _meeting.text.trim().isEmpty ? null : _meeting.text.trim(),
       notes: _notes.text.trim().isEmpty ? null : _notes.text.trim(),
@@ -869,11 +869,10 @@ class _ExcursionEditScreenState extends State<ExcursionEditScreen> {
                     onTap: _pickDateTime,
                   ),
                   const SizedBox(height: 12),
-                  TextFormField(
-                    controller: _port,
-                    decoration: InputDecoration(
-                      labelText: loc.harbour,
-                    ),
+                  CruiseLocationSelector(
+                    cruiseId: _cruiseId!,
+                    locationId: _locationId,
+                    onChanged: (id) => setState(() => _locationId = id),
                   ),
                   const SizedBox(height: 12),
                   TextFormField(

@@ -33,13 +33,19 @@ void main() {
       final settings = _SwitchableSettingsStore();
       final documentSyncStarted = Completer<void>();
       final finishDocuments = Completer<void>();
+      addTearDown(() {
+        if (!finishDocuments.isCompleted) {
+          finishDocuments.complete();
+        }
+      });
       var syncRuns = 0;
+      List<Cruise>? cruisesAtSyncStart;
       final store = CruiseStore(
         appSyncService: AppSyncService(
           settingsStore: settings,
           cruiseSyncRunner: (_, cruises) async {
             syncRuns += 1;
-            expect(cruises, <Cruise>[cruiseA]);
+            cruisesAtSyncStart = cruises;
             return <Cruise>[cruiseA.copyWith(title: 'Updated Cruise A'), cruiseB];
           },
           documentSyncRunner: (_, _) async {
@@ -66,6 +72,7 @@ void main() {
         await tester.pump();
       }
       await documentSyncStarted.future;
+      expect(cruisesAtSyncStart, <Cruise>[cruiseA]);
       expect(find.text('Cruise B', skipOffstage: false), findsNothing);
       if (manualSync) {
         expect(find.byType(LinearProgressIndicator), findsOneWidget);
@@ -108,6 +115,11 @@ void main() {
   testWidgets('Home leaves its empty state after launch sync', (tester) async {
     final cruiseB = _cruise('b', 'Cruise B');
     final finishDownload = Completer<List<Cruise>>();
+    addTearDown(() {
+      if (!finishDownload.isCompleted) {
+        finishDownload.complete(<Cruise>[]);
+      }
+    });
     final settings = _SwitchableSettingsStore()..enabled = true;
     final store = CruiseStore(
       appSyncService: AppSyncService(
@@ -166,7 +178,7 @@ Widget _app(Widget home) => MaterialApp(
 Future<void> _seedCruises(List<Cruise> cruises) async {
   final prefs = await SharedPreferences.getInstance();
   await prefs.setString('cruises_json_v3', jsonEncode(<String, Object>{
-    'schemaVersion': 3,
+    'schemaVersion': 4,
     'cruises': cruises.map((cruise) => cruise.toMap()).toList(),
   }));
 }

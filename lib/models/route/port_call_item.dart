@@ -15,7 +15,7 @@ class PortCallItem extends RouteItem {
   @override
   final DateTime? deletedAtUtc;
 
-  final String portName;
+  final String locationId;
   final DateTime? arrival;
   final DateTime? departure;
   /// Neue Zusatzzeit: Alle Mann an Bord
@@ -26,7 +26,7 @@ class PortCallItem extends RouteItem {
   PortCallItem({
     required this.id,
     required this.date,
-    required this.portName,
+    required this.locationId,
     this.arrival,
     this.departure,
     this.allAboard,
@@ -39,7 +39,7 @@ class PortCallItem extends RouteItem {
   PortCallItem copyWith({
     String? id,
     DateTime? date,
-    String? portName,
+    String? locationId,
     DateTime? arrival,
     DateTime? departure,
     DateTime? allAboard,
@@ -51,7 +51,7 @@ class PortCallItem extends RouteItem {
       PortCallItem(
         id: id ?? this.id,
         date: date ?? this.date,
-        portName: portName ?? this.portName,
+        locationId: locationId ?? this.locationId,
         arrival: arrival ?? this.arrival,
         departure: departure ?? this.departure,
         allAboard: allAboard ?? this.allAboard,
@@ -70,7 +70,7 @@ class PortCallItem extends RouteItem {
         'type': type,
         'id': id,
         'date': date.toIso8601String(),
-        'portName': portName,
+        'locationId': locationId,
         'arrival': arrival?.toIso8601String(),
         'departure': departure?.toIso8601String(),
         'allAboard': allAboard?.toIso8601String(),
@@ -83,7 +83,7 @@ class PortCallItem extends RouteItem {
   factory PortCallItem.fromMap(Map<String, dynamic> map) => PortCallItem(
         id: map['id'],
         date: DateTime.parse(map['date']),
-        portName: map['portName'],
+        locationId: map['locationId'],
         arrival: map['arrival'] != null ? DateTime.parse(map['arrival']) : null,
         departure: map['departure'] != null ? DateTime.parse(map['departure']) : null,
         allAboard: map['allAboard'] != null ? DateTime.parse(map['allAboard']) : null,
@@ -94,5 +94,5 @@ class PortCallItem extends RouteItem {
       );
 
   @override
-  List<Object?> get props => [id, type, date, portName, arrival, departure, allAboard, notes, documentIds, updatedAtUtc, deletedAtUtc];
+  List<Object?> get props => [id, type, date, locationId, arrival, departure, allAboard, notes, documentIds, updatedAtUtc, deletedAtUtc];
 }
