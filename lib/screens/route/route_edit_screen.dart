@@ -1,5 +1,6 @@
 // RouteEditScreen – supports Date+Time and 'Alle Mann an Bord'; fixes getRef, mounted.
 import 'package:flutter/material.dart';
+import '../../widgets/cruise_location_selector.dart';
 import '../../store/cruise_store.dart';
 import '../../models/route/route_item.dart';
 import '../../models/route/port_call_item.dart';
@@ -20,7 +21,7 @@ class RouteEditScreen extends StatefulWidget {
 
 class _RouteEditScreenState extends State<RouteEditScreen> {
   RouteItem? _item;
-  final _portName = TextEditingController();
+  String? _locationId;
   final _notes = TextEditingController();
 
   DateTime? _date; // anchor day
@@ -47,7 +48,7 @@ class _RouteEditScreenState extends State<RouteEditScreen> {
       _item = it;
       _date = it?.date;
       if (it is PortCallItem) {
-        _portName.text = it.portName;
+        _locationId = it.locationId;
         _arrival = it.arrival;
         _departure = it.departure;
         _allAboard = it.allAboard;
@@ -70,7 +71,7 @@ class _RouteEditScreenState extends State<RouteEditScreen> {
     if (latestItem is PortCallItem) {
       next = latestItem.copyWith(
         date: _date ?? latestItem.date,
-        portName: _portName.text.trim(),
+        locationId: _locationId,
         arrival: _arrival,
         departure: _departure,
         allAboard: _allAboard,
@@ -173,7 +174,11 @@ class _RouteEditScreenState extends State<RouteEditScreen> {
           ),
           const SizedBox(height: 12),
           if (isPort) ...[
-            TextField(controller: _portName, decoration: InputDecoration(labelText: loc.harbour)),
+            CruiseLocationSelector(
+              cruiseId: widget.cruiseId,
+              locationId: _locationId,
+              onChanged: (id) => setState(() => _locationId = id),
+            ),
             const SizedBox(height: 12),
             ListTile(
               title: Text('${loc.arrivalOptional} – ${loc.dateAndTime}'),

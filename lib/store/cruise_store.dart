@@ -8,6 +8,7 @@ import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/cruise.dart';
+import '../models/cruise_location.dart';
 import '../models/excursion.dart';
 import '../models/identifiable.dart';
 import '../models/route/port_call_item.dart';
@@ -53,7 +54,6 @@ class CruiseStore extends ChangeNotifier {
 
   static const String _spKeyV3 = 'cruises_json_v3';
   static const String _legacySpKey = 'cruises_json_v1';
-  static const int _currentSchemaVersion = 3;
 
   final AppSyncService _appSyncService;
   late final DocumentReferenceCleanupService _documentReferenceCleanupService;
@@ -156,52 +156,15 @@ class CruiseStore extends ChangeNotifier {
   }
 
   _StoredCruisesData _decodeStoredCruises(String jsonStr) {
-    final decoded = jsonDecode(jsonStr);
-
-    if (decoded is List) {
-      return _StoredCruisesData(
-        cruises: _parseCruises(decoded),
-        needsMigration: true,
-      );
-    }
-
-    if (decoded is Map<String, dynamic>) {
-      final schemaVersion = decoded['schemaVersion'];
-      final cruises = decoded['cruises'];
-
-      if (schemaVersion == _currentSchemaVersion && cruises is List) {
-        return _StoredCruisesData(
-          cruises: _parseCruises(cruises),
-          needsMigration: false,
-        );
-      }
-
-      if (cruises is List) {
-        return _StoredCruisesData(
-          cruises: _parseCruises(cruises),
-          needsMigration: true,
-        );
-      }
-    }
-
-    return const _StoredCruisesData(
-      cruises: <Cruise>[],
-      needsMigration: false,
+    final data = decodeCruisePersistenceData(jsonDecode(jsonStr));
+    return _StoredCruisesData(
+      cruises: data.cruises,
+      needsMigration: data.wasMigrated,
     );
   }
 
-  List<Cruise> _parseCruises(List<dynamic> list) {
-    return list
-        .map((e) => Cruise.fromMap(Map<String, dynamic>.from(e)))
-        .toList(growable: false);
-  }
-
-  Map<String, dynamic> _buildStoragePayload(List<Cruise> cruises) {
-    return <String, dynamic>{
-      'schemaVersion': _currentSchemaVersion,
-      'cruises': cruises.map((c) => c.toMap()).toList(growable: false),
-    };
-  }
+  Map<String, dynamic> _buildStoragePayload(List<Cruise> cruises) =>
+      cruiseStoragePayload(cruises);
 
   Cruise? getCruise(String id) {
     for (final c in _cruises) {
@@ -238,6 +201,11 @@ class CruiseStore extends ChangeNotifier {
     if (ref.type == Excursion) {
       return cruise.excursions.firstWhereOrNull((e) => e.id == id) as T?;
     }
+    if (ref.type == CruiseLocation) {
+      return cruise.locations.firstWhereOrNull(
+        (location) => location.id == id && location.deletedAtUtc == null,
+      ) as T?;
+    }
     if (ref.type == FlightItem ||
         ref.type == TrainItem ||
         ref.type == TransferItem ||
@@ -261,6 +229,63 @@ class CruiseStore extends ChangeNotifier {
         deletedAtUtc: cruise.deletedAtUtc,
       ),
     );
+  }
+
+  /// Route locations first (visit order), followed by other active locations.
+  List<CruiseLocation> locationChoices(String cruiseId) {
+    final cruise = getCruise(cruiseId);
+    if (cruise == null) return const [];
+    final routeIds = cruise.route.whereType<PortCallItem>()
+        .map((item) => item.locationId).toSet();
+    final active = cruise.locations.where((item) => item.deletedAtUtc == null);
+    return List.unmodifiable([
+      for (final id in routeIds)
+        ...active.where((item) => item.id == id),
+      ...active.where((item) => !routeIds.contains(item.id)),
+    ]);
+  }
+
+  Set<String> routeLocationIds(String cruiseId) => getCruise(cruiseId)?.route
+      .whereType<PortCallItem>().map((item) => item.locationId).toSet() ?? {};
+
+  Future<CruiseLocation> createLocation({
+    required String cruiseId,
+    required String name,
+    required CruiseLocationType type,
+  }) async {
+    final cruise = _getStoredCruise(cruiseId);
+    if (cruise == null || cruise.deletedAtUtc != null || name.trim().isEmpty) {
+      throw ArgumentError('A location requires an active cruise and a name');
+    }
+    final location = CruiseLocation(
+      id: Identifiable.newId(), name: name.trim(), type: type,
+      updatedAtUtc: _nowUtc(),
+    );
+    await _upsertCruise(cruise.copyWith(
+      locations: List.unmodifiable([...cruise.locations, location]),
+    ));
+    return location;
+  }
+
+  /// Includes tombstoned references: retaining their identity permits safe sync.
+  Future<bool> deleteLocation(String cruiseId, String locationId) async {
+    final cruise = _getStoredCruise(cruiseId);
+    if (cruise == null ||
+        cruise.route.whereType<PortCallItem>()
+            .any((item) => item.locationId == locationId) ||
+        cruise.excursions.any((item) => item.locationId == locationId)) {
+      return false;
+    }
+    final location = cruise.locationById(locationId);
+    if (location == null || location.deletedAtUtc != null) return false;
+    final now = _nowUtc();
+    await _upsertCruise(cruise.copyWith(locations: [
+      for (final item in cruise.locations)
+        if (item.id == locationId)
+          item.copyWith(updatedAtUtc: now, deletedAtUtc: now)
+        else item,
+    ]));
+    return true;
   }
 
   Future<void> upsertExcursion({
@@ -555,6 +580,7 @@ class CruiseStore extends ChangeNotifier {
     bool shouldNotifyListeners = true,
     bool shouldScheduleAutoSync = true,
   }) async {
+    validateCruiseLocations([cruise]);
     final i = _cruises.indexWhere((c) => c.id == cruise.id);
     if (i >= 0) {
       await _replaceCruises([
@@ -596,6 +622,9 @@ class CruiseStore extends ChangeNotifier {
     _index.clear();
     for (final c in _cruises) {
       _index[c.id] = _IndexRef(c.id, Cruise);
+      for (final location in c.locations) {
+        _index[location.id] = _IndexRef(c.id, CruiseLocation);
+      }
       for (final e in c.excursions) {
         _index[e.id] = _IndexRef(c.id, Excursion);
       }
@@ -609,6 +638,7 @@ class CruiseStore extends ChangeNotifier {
   }
 
   Future<void> replaceAll(List<Cruise> cruises) async {
+    validateCruiseLocations(cruises);
     _cruises = List.unmodifiable(cruises);
     _rebuildIndex();
     await _persist();

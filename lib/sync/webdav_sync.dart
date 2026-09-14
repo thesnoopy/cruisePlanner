@@ -6,6 +6,11 @@ import 'package:webdav_client/webdav_client.dart' as webdav;
 import '../models/cruise.dart';
 import '../settings/webdav_settings.dart';
 import 'webdav_client_factory.dart';
+import 'cruise_persistence_migration.dart';
+import 'cruise_sync_service.dart';
+
+export 'cruise_persistence_migration.dart'
+    show RemoteCruiseSchemaTooNewException;
 
 /// Metadaten zur Remote-Datei (für spätere Erweiterungen wie ETag / mTime)
 class RemoteInfo {
@@ -15,20 +20,11 @@ class RemoteInfo {
   const RemoteInfo({this.mTimeUtc, this.eTag});
 }
 
-class RemoteCruiseSchemaTooNewException implements Exception {
-  const RemoteCruiseSchemaTooNewException({
-    required this.remoteSchemaVersion,
-    required this.supportedSchemaVersion,
-  });
-
-  final int remoteSchemaVersion;
-  final int supportedSchemaVersion;
+class RemoteCruiseConflictException implements Exception {
+  const RemoteCruiseConflictException();
 
   @override
-  String toString() {
-    return 'Remote cruise schema version $remoteSchemaVersion is newer than '
-        'supported version $supportedSchemaVersion. Sync aborted.';
-  }
+  String toString() => 'Remote cruise data changed during sync. Sync aborted; retry.';
 }
 
 /// Low-Level WebDAV‑Zugriff für die Cruise-JSON-Datei.
@@ -39,11 +35,17 @@ class RemoteCruiseSchemaTooNewException implements Exception {
 ///
 /// Die eigentliche Merge-Logik steckt in [CruiseSyncService].
 class WebDavSync {
-  static const int supportedCruiseSchemaVersion = 3;
+  static const int supportedCruiseSchemaVersion = currentCruiseSchemaVersion;
 
   final WebDavSettings settings;
 
-  const WebDavSync(this.settings);
+  WebDavSync(this.settings);
+  bool _hasValidatedDownload = false;
+  String? _downloadETag;
+  Uint8List? _downloadBytes;
+
+  /// Updated after a successful write; never reuse the pre-upload ETag.
+  String? get currentETag => _downloadETag;
 
   webdav.Client _createClient() {
     return createConfiguredWebDavClient(
@@ -55,23 +57,8 @@ class WebDavSync {
     );
   }
 
-  /// Ließt die Properties der Remote-Datei (falls vorhanden).
-  ///
-  /// Aktuell noch nicht im Merge genutzt, aber vorbereitet für ETag-basierte
-  /// Optimierungen.
-  Future<RemoteInfo?> stat() async {
-    final client = _createClient();
-    try {
-      final file = await client.readProps(settings.remotePath);
-      return RemoteInfo(
-        mTimeUtc: file.mTime,
-        eTag: file.eTag,
-      );
-    } catch (_) {
-      // z.B. 404 -> Datei existiert (noch) nicht
-      return null;
-    }
-  }
+  /// Reads remote properties; only HTTP 404 represents a missing document.
+  Future<RemoteInfo?> stat() => _readRemoteInfo(_createClient());
 
   /// Lädt die Cruises aus der Remote-Datei.
   ///
@@ -80,71 +67,97 @@ class WebDavSync {
   ///
   /// Falls die Datei nicht existiert, wird eine leere Liste zurückgegeben.
   Future<List<Cruise>> downloadCruises() async {
+    _hasValidatedDownload = false;
+    _downloadETag = null;
+    _downloadBytes = null;
     final client = _createClient();
+    // Properties bracket the GET so the captured ETag belongs to these bytes.
+    final before = await _readRemoteInfo(client);
+    if (before == null) {
+      _hasValidatedDownload = true;
+      return const [];
+    }
+    final bytes = Uint8List.fromList(await client.read(settings.remotePath));
+    final after = await _readRemoteInfo(client);
+    if (after == null || before.eTag != after.eTag) {
+      throw const RemoteCruiseConflictException();
+    }
+    final data = decodeCruisePersistenceData(jsonDecode(utf8.decode(bytes)));
+    _downloadETag = after.eTag;
+    _downloadBytes = bytes;
+    _hasValidatedDownload = true;
+    return data.cruises;
+  }
+
+  Future<RemoteInfo?> _readRemoteInfo(webdav.Client client) async {
     try {
-      final bytes = await client.read(settings.remotePath);
-      if (bytes.isEmpty) {
-        return const <Cruise>[];
-      }
-
-      final data = Uint8List.fromList(bytes);
-      final jsonStr = utf8.decode(data);
-      final decoded = jsonDecode(jsonStr);
-
-      final List<dynamic> list;
-      if (decoded is Map<String, dynamic>) {
-        final schemaVersion = decoded['schemaVersion'];
-        if (schemaVersion is int &&
-            schemaVersion > supportedCruiseSchemaVersion) {
-          throw RemoteCruiseSchemaTooNewException(
-            remoteSchemaVersion: schemaVersion,
-            supportedSchemaVersion: supportedCruiseSchemaVersion,
-          );
-        }
-
-        if (decoded['cruises'] is! List) {
-          return const <Cruise>[];
-        }
-
-        list = decoded['cruises'] as List<dynamic>;
-      } else if (decoded is List) {
-        // Fallback: nackte Liste ohne Wrapper
-        list = decoded;
-      } else {
-        return const <Cruise>[];
-      }
-
-      return list
-          .map((e) => Cruise.fromMap(Map<String, dynamic>.from(e as Map)))
-          .toList(growable: false);
-    } catch (e) {
-      // Wenn die Datei (noch) nicht existiert -> leere Liste.
-      // Andere Fehler (Netzwerk, Auth, JSON) sollten nach außen sichtbar sein.
-      final msg = e.toString();
-      if (msg.contains('404') || msg.contains('Not Found')) {
-        return const <Cruise>[];
-      }
+      final file = await client.readProps(settings.remotePath);
+      return RemoteInfo(eTag: file.eTag, mTimeUtc: file.mTime);
+    } catch (error) {
+      // The client's readProps throws a Dio error with the HTTP status.
+      // Never treat authentication, transport or malformed JSON as empty data.
+      if (_httpStatus(error) == 404) return null;
       rethrow;
     }
   }
 
-  /// Schreibt die übergebene Liste von Cruises in die Remote-Datei.
-  ///
-  /// Format wie bei [downloadCruises]: {"cruises":[...]}.
+  int? _httpStatus(Object error) {
+    // webdav_client exposes no typed status exception in its public API.
+    try {
+      return (error as dynamic).response?.statusCode as int?;
+    } catch (_) {
+      return null;
+    }
+  }
+
   Future<void> uploadCruises(List<Cruise> cruises) async {
+    if (!_hasValidatedDownload) {
+      throw StateError('A validated remote download is required before upload');
+    }
+    final payload = cruiseStoragePayload(cruises);
+    final previousBytes = _downloadBytes;
+    final previousETag = _downloadETag;
+    // Fail closed on servers without a strong ETag: an unconditional PUT
+    // could overwrite changes (including a newer schema) made after the GET.
+    if (previousBytes != null &&
+        (previousETag == null || previousETag.isEmpty ||
+            previousETag.startsWith('W/'))) {
+      throw StateError('WebDAV must provide a strong ETag for cruise sync');
+    }
+    _hasValidatedDownload = false;
+    _downloadETag = null;
     final client = _createClient();
-
-    // Bevor wir eine (potenziell) aktuellere Version überschreiben, sichern wir
-    // die bestehende Remote-Datei in einem "old"-Ordner.
-    await _backupCurrentRemoteFileIfExists(client);
-
-    final payload = <String, dynamic>{
-      'schemaVersion': supportedCruiseSchemaVersion,
-      'cruises': cruises.map((c) => c.toMap()).toList(),
-    };
+    if (previousBytes == null) {
+      await client.mkdirAll(_parentDir(settings.remotePath));
+    }
+    await _backupCurrentRemoteFileIfExists(client, previousBytes, previousETag);
     final jsonStr = jsonEncode(payload);
-    final data = Uint8List.fromList(utf8.encode(jsonStr));
-    await client.write(settings.remotePath, data);
+    final bytes = Uint8List.fromList(utf8.encode(jsonStr));
+    // Use the existing authenticated WebDAV transport, with conditions only
+    // on this PUT (not on OPTIONS, MKCOL, or backup writes).
+    final response = await client.c.req(
+      client, 'PUT', settings.remotePath,
+      // A string can be replayed by the client's authentication retry.
+      data: jsonStr,
+      optionsHandler: (options) {
+        options.headers?['content-length'] = bytes.length;
+        options.headers?['content-type'] = 'application/json; charset=utf-8';
+        if (previousBytes == null) {
+          options.headers?['If-None-Match'] = '*';
+        } else {
+          options.headers?['If-Match'] = previousETag;
+        }
+      },
+    );
+    if (response.statusCode == 412) {
+      throw const RemoteCruiseConflictException();
+    }
+    if (![200, 201, 204].contains(response.statusCode)) {
+      throw StateError('Cruise upload failed (HTTP ${response.statusCode})');
+    }
+    _downloadETag = response.headers.value('etag');
+    _downloadBytes = bytes;
+    // The next sync always downloads again before merging/writing.
   }
 
   /// Sichert die aktuell vorhandene Remote-Datei in einem "old"-Ordner,
@@ -153,14 +166,10 @@ class WebDavSync {
   /// Zielpfad: `<parent>/old/<filename>_<yyyyMMdd_HHmmss>.json`
   ///
   /// Falls die Remote-Datei nicht existiert, passiert nichts.
-  Future<void> _backupCurrentRemoteFileIfExists(webdav.Client client) async {
-    // Existiert die Datei überhaupt?
-    try {
-      await client.readProps(settings.remotePath);
-    } catch (_) {
-      return;
-    }
-
+  Future<void> _backupCurrentRemoteFileIfExists(
+    webdav.Client client, Uint8List? previousBytes, String? previousETag,
+  ) async {
+    if (previousBytes == null) return;
     final remotePath = _normalizePath(settings.remotePath);
     final parentDir = _parentDir(remotePath);
     final oldDir = _joinPath(parentDir, 'old');
@@ -175,18 +184,31 @@ class WebDavSync {
     final backupFileName = _backupFileName(_baseName(remotePath));
     final backupPath = _joinPath(oldDir, backupFileName);
 
-    // Prefer server-side COPY when available; fallback to read+write.
+    // Preserve the exact representation read before migration. Prefer the
+    // existing server-side COPY, conditioned on the source snapshot's ETag.
     try {
-      await client.copy(remotePath, backupPath, true);
+      final response = await client.c.req(
+        client, 'COPY', remotePath,
+        optionsHandler: (options) {
+          final base = settings.baseUrl.replaceAll(RegExp(r'/+$'), '');
+          options.headers?['destination'] = Uri.encodeFull('$base$backupPath');
+          options.headers?['overwrite'] = 'F';
+          options.headers?['If-Match'] = previousETag;
+        },
+      );
+      if (![200, 201, 204].contains(response.statusCode)) {
+        throw StateError('Remote backup COPY failed');
+      }
     } catch (_) {
-      final bytes = await client.read(remotePath);
-      final data = Uint8List.fromList(bytes);
-      await client.write(backupPath, data);
+      // A changed source or unsupported COPY still permits backing up our
+      // original bytes. The conditional PUT below will reject a changed source.
+      await client.write(backupPath, previousBytes);
     }
   }
 
   String _backupFileName(String originalName) {
-    final ts = _timestampForFileName(DateTime.now());
+    final now = DateTime.now();
+    final ts = '${_timestampForFileName(now)}_${now.microsecondsSinceEpoch}';
     final dot = originalName.lastIndexOf('.');
     if (dot <= 0 || dot == originalName.length - 1) {
       return '${originalName}_$ts';
@@ -248,32 +270,6 @@ class WebDavSync {
     return '$left/$right'.replaceAll('//', '/');
   }
 
-  
-/*
-  /// Einfache Union-Strategie (nur zur Rückwärtskompatibilität):
-  /// Remote + Local nach id gemerged, lokal gewinnt.
-  ///
-  /// Für "vernünftigen" Sync zwischen mehreren Systemen solltest du
-  /// stattdessen [CruiseSyncService] verwenden.
-  Future<List<Cruise>> mergeRemoteIntoLocal(List<Cruise> local) async {
-    final remote = await downloadCruises();
-    final byId = {for (final c in remote) c.id: c};
-    for (final c in local) {
-      byId[c.id] = c;
-    }
-    final merged = byId.values.toList(growable: false);
-    await uploadCruises(merged);
-    return merged;
-  }
-  */
-   Future<List<Cruise>> cruiseSyncService(List<Cruise> local) async {
-    final remote = await downloadCruises();
-    final byId = {for (final c in remote) c.id: c};
-    for (final c in local) {
-      byId[c.id] = c;
-    }
-    final merged = byId.values.toList(growable: false);
-    await uploadCruises(merged);
-    return merged;
-  }
+  Future<List<Cruise>> cruiseSyncService(List<Cruise> local) =>
+      CruiseSyncService(this).sync(local);
 }

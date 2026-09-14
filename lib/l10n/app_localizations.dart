@@ -95,1249 +95,1307 @@ abstract class AppLocalizations {
     Locale('en')
   ];
 
-  /// Main application title
+  /// Meldung bei fehlender oder gelöschter Kreuzfahrt
   ///
-  /// In en, this message translates to:
-  /// **'Cruise Planner'**
+  /// In de, this message translates to:
+  /// **'Kreuzfahrt nicht gefunden'**
+  String get cruiseNotFound;
+
+  /// Meldung bei einem Fehler beim Lesen der lokalen Kreuzfahrtdaten
+  ///
+  /// In de, this message translates to:
+  /// **'Kreuzfahrt konnte nicht geladen werden. Bitte versuche es später erneut.'**
+  String get cruiseLoadFailed;
+
+  /// Haupttitel der App
+  ///
+  /// In de, this message translates to:
+  /// **'Kreuzfahrtplaner'**
   String get appTitle;
 
-  /// Title of the home screen app bar
+  /// Titel der Home-Seite in der AppBar
   ///
-  /// In en, this message translates to:
-  /// **'Your cruises'**
+  /// In de, this message translates to:
+  /// **'Deine Reisen'**
   String get homeTitle;
 
-  /// Empty state text when there are no cruises
+  /// Text für den Leeres-Zustand auf dem Home Screen
   ///
-  /// In en, this message translates to:
-  /// **'No cruises yet. Tap + to add one.'**
+  /// In de, this message translates to:
+  /// **'Noch keine Reisen. Tippe auf +, um eine anzulegen.'**
   String get homeNoCruises;
 
-  /// Label of the FAB to add a cruise
+  /// Label des FAB zum Anlegen einer neuen Reise
   ///
-  /// In en, this message translates to:
-  /// **'New cruise'**
+  /// In de, this message translates to:
+  /// **'Neue Kreuzfahrt'**
   String get homeNewCruiseLabel;
 
-  /// Tooltip for the WebDAV settings icon button
+  /// Tooltip für den WebDAV-Settings-Button
   ///
-  /// In en, this message translates to:
-  /// **'WebDAV settings'**
+  /// In de, this message translates to:
+  /// **'WebDAV-Einstellungen'**
   String get homeWebdavSettingsTooltip;
 
-  /// Tooltip for the cloud sync icon button
+  /// Tooltip für den Cloud-Sync-Button
   ///
-  /// In en, this message translates to:
-  /// **'Cloud sync'**
+  /// In de, this message translates to:
+  /// **'Cloud-Sync'**
   String get homeCloudSyncTooltip;
 
-  /// Snack bar message when store is null during sync
+  /// SnackBar-Meldung, wenn der Store null ist
   ///
-  /// In en, this message translates to:
-  /// **'Cruise store not available – sync not possible.'**
+  /// In de, this message translates to:
+  /// **'Kein CruiseStore verfügbar – Sync nicht möglich.'**
   String get homeCloudSyncNoStore;
 
-  /// Snack bar message when WebDAV is not configured
+  /// SnackBar-Meldung, wenn WebDAV noch nicht konfiguriert ist
   ///
-  /// In en, this message translates to:
-  /// **'Please save WebDAV settings first.'**
+  /// In de, this message translates to:
+  /// **'Bitte zuerst WebDAV-Einstellungen speichern.'**
   String get homeCloudSyncNoWebdav;
 
-  /// Snack bar when cloud sync succeeded
+  /// SnackBar-Meldung bei erfolgreichem Sync
   ///
-  /// In en, this message translates to:
-  /// **'Cloud sync finished.'**
+  /// In de, this message translates to:
+  /// **'Cloud-Sync abgeschlossen.'**
   String get homeCloudSyncDone;
 
-  /// Snack bar when cloud sync throws an exception
+  /// SnackBar-Meldung bei fehlerhaftem Sync
   ///
-  /// In en, this message translates to:
-  /// **'Cloud sync failed: {error}'**
+  /// In de, this message translates to:
+  /// **'Cloud-Sync fehlgeschlagen: {error}'**
   String homeCloudSyncFailed(String error);
 
-  /// Edit Travel
+  /// An- Abreise bearbeiten
   ///
-  /// In en, this message translates to:
-  /// **'Delete'**
+  /// In de, this message translates to:
+  /// **'Löschen'**
   String get homeDeleteTooltip;
-
-  /// No description provided for @cruisePlanner.
-  ///
-  /// In en, this message translates to:
-  /// **'Cruise Planer'**
-  String get cruisePlanner;
 
   /// No description provided for @ship.
   ///
-  /// In en, this message translates to:
-  /// **'Ship'**
+  /// In de, this message translates to:
+  /// **'Schiff'**
   String get ship;
 
   /// No description provided for @cruise.
   ///
-  /// In en, this message translates to:
-  /// **'Cruise'**
+  /// In de, this message translates to:
+  /// **'Kreuzfahrt'**
   String get cruise;
 
   /// No description provided for @route.
   ///
-  /// In en, this message translates to:
-  /// **'Itinerary'**
+  /// In de, this message translates to:
+  /// **'Route'**
   String get route;
 
   /// No description provided for @excursion.
   ///
-  /// In en, this message translates to:
-  /// **'Shore excursion'**
+  /// In de, this message translates to:
+  /// **'Ausflug'**
   String get excursion;
 
   /// No description provided for @travel.
   ///
-  /// In en, this message translates to:
-  /// **'Travel'**
+  /// In de, this message translates to:
+  /// **'An- Abreise'**
   String get travel;
 
   /// No description provided for @cruiseDetails.
   ///
-  /// In en, this message translates to:
-  /// **'Cruise Details'**
+  /// In de, this message translates to:
+  /// **'Kreuzfahrtdetails'**
   String get cruiseDetails;
 
   /// No description provided for @unknownHarbour.
   ///
-  /// In en, this message translates to:
-  /// **'Unknown Harbour'**
+  /// In de, this message translates to:
+  /// **'Unbekannter Hafen'**
   String get unknownHarbour;
 
   /// No description provided for @noHarbour.
   ///
-  /// In en, this message translates to:
-  /// **'No Harbour today or in Future'**
+  /// In de, this message translates to:
+  /// **'Keine Häfen für heute oder zukünftig'**
   String get noHarbour;
 
   /// No description provided for @arrival.
   ///
-  /// In en, this message translates to:
-  /// **'Arrival'**
+  /// In de, this message translates to:
+  /// **'Ankunft'**
   String get arrival;
 
   /// No description provided for @departure.
   ///
-  /// In en, this message translates to:
-  /// **'Departure'**
+  /// In de, this message translates to:
+  /// **'Abfahrt'**
   String get departure;
 
   /// No description provided for @allOnBoard.
   ///
-  /// In en, this message translates to:
-  /// **'All on Board'**
+  /// In de, this message translates to:
+  /// **'Alle an Bord'**
   String get allOnBoard;
 
   /// No description provided for @noFutureExcursions.
   ///
-  /// In en, this message translates to:
-  /// **'No Excursion'**
+  /// In de, this message translates to:
+  /// **'Keine kommenden Ausflüge'**
   String get noFutureExcursions;
+
+  /// No description provided for @noExcursions.
+  ///
+  /// In de, this message translates to:
+  /// **'Keine Ausflüge'**
+  String get noExcursions;
 
   /// No description provided for @today.
   ///
-  /// In en, this message translates to:
-  /// **'Today'**
+  /// In de, this message translates to:
+  /// **'Heute'**
   String get today;
 
   /// No description provided for @pastStatusIconSemanticLabel.
   ///
-  /// In en, this message translates to:
-  /// **'Past item'**
+  /// In de, this message translates to:
+  /// **'Vergangener Eintrag'**
   String get pastStatusIconSemanticLabel;
 
   /// No description provided for @harbour.
   ///
-  /// In en, this message translates to:
-  /// **'Port'**
+  /// In de, this message translates to:
+  /// **'Hafen'**
   String get harbour;
 
   /// No description provided for @meetingPoint.
   ///
-  /// In en, this message translates to:
-  /// **'Meeting Point'**
+  /// In de, this message translates to:
+  /// **'Treffpunkt'**
   String get meetingPoint;
 
   /// No description provided for @price.
   ///
-  /// In en, this message translates to:
-  /// **'Price'**
+  /// In de, this message translates to:
+  /// **'Preis'**
   String get price;
 
   /// No description provided for @noTravelItem.
   ///
-  /// In en, this message translates to:
-  /// **'No Travel Item'**
+  /// In de, this message translates to:
+  /// **'Keine An- Abreise Teile'**
   String get noTravelItem;
 
   /// No description provided for @start.
   ///
-  /// In en, this message translates to:
-  /// **'Departure'**
+  /// In de, this message translates to:
+  /// **'Start'**
   String get start;
 
   /// No description provided for @end.
   ///
-  /// In en, this message translates to:
-  /// **'End'**
+  /// In de, this message translates to:
+  /// **'Ende'**
   String get end;
 
   /// No description provided for @from.
   ///
-  /// In en, this message translates to:
-  /// **'From'**
+  /// In de, this message translates to:
+  /// **'Von'**
   String get from;
 
   /// No description provided for @to.
   ///
-  /// In en, this message translates to:
-  /// **'To'**
+  /// In de, this message translates to:
+  /// **'Nach'**
   String get to;
 
   /// No description provided for @flight.
   ///
-  /// In en, this message translates to:
-  /// **'Flight'**
+  /// In de, this message translates to:
+  /// **'Flug'**
   String get flight;
 
   /// No description provided for @train.
   ///
-  /// In en, this message translates to:
-  /// **'Train'**
+  /// In de, this message translates to:
+  /// **'Zug'**
   String get train;
 
   /// No description provided for @transfer.
   ///
-  /// In en, this message translates to:
-  /// **'Transfer service'**
+  /// In de, this message translates to:
+  /// **'Transfer'**
   String get transfer;
 
   /// No description provided for @rentalCar.
   ///
-  /// In en, this message translates to:
-  /// **'Rental Car'**
+  /// In de, this message translates to:
+  /// **'Mietwagen'**
   String get rentalCar;
 
   /// No description provided for @flightnumber.
   ///
-  /// In en, this message translates to:
-  /// **'Flight Number'**
+  /// In de, this message translates to:
+  /// **'Flugnummer'**
   String get flightnumber;
 
   /// No description provided for @rentalCarCompany.
   ///
-  /// In en, this message translates to:
-  /// **'Rental Car Company'**
+  /// In de, this message translates to:
+  /// **'Vermieter'**
   String get rentalCarCompany;
 
   /// No description provided for @title.
   ///
-  /// In en, this message translates to:
-  /// **'Title'**
+  /// In de, this message translates to:
+  /// **'Titel'**
   String get title;
 
   /// No description provided for @requiredField.
   ///
-  /// In en, this message translates to:
-  /// **'Required Field'**
+  /// In de, this message translates to:
+  /// **'Pflichtfeld'**
   String get requiredField;
 
   /// No description provided for @chatterOptional.
   ///
-  /// In en, this message translates to:
-  /// **'Chatter (optional)'**
+  /// In de, this message translates to:
+  /// **'Reederei (optional)'**
   String get chatterOptional;
 
   /// No description provided for @save.
   ///
-  /// In en, this message translates to:
-  /// **'Save'**
+  /// In de, this message translates to:
+  /// **'Speichern'**
   String get save;
 
   /// No description provided for @seaDay.
   ///
-  /// In en, this message translates to:
-  /// **'Sea Day'**
+  /// In de, this message translates to:
+  /// **'Seetag'**
   String get seaDay;
 
   /// No description provided for @editPort.
   ///
-  /// In en, this message translates to:
-  /// **'Edit Port'**
+  /// In de, this message translates to:
+  /// **'Hafen bearbeiten'**
   String get editPort;
 
   /// No description provided for @editSeaDay.
   ///
-  /// In en, this message translates to:
-  /// **'Edit Seaday'**
+  /// In de, this message translates to:
+  /// **'Seetag bearbeiten'**
   String get editSeaDay;
 
   /// No description provided for @date.
   ///
-  /// In en, this message translates to:
-  /// **'Date'**
+  /// In de, this message translates to:
+  /// **'Datum'**
   String get date;
 
   /// No description provided for @arrivalOptional.
   ///
-  /// In en, this message translates to:
-  /// **'Arrival (optional)'**
+  /// In de, this message translates to:
+  /// **'Ankunft (optional)'**
   String get arrivalOptional;
 
   /// No description provided for @departureOptional.
   ///
-  /// In en, this message translates to:
-  /// **'Departure (optional)'**
+  /// In de, this message translates to:
+  /// **'Abfahrt (optional)'**
   String get departureOptional;
 
   /// No description provided for @dateAndTime.
   ///
-  /// In en, this message translates to:
-  /// **'Date & Time'**
+  /// In de, this message translates to:
+  /// **'Datum & Uhrzeit'**
   String get dateAndTime;
 
   /// No description provided for @allOnBoardOptional.
   ///
-  /// In en, this message translates to:
-  /// **'All on Board (optional)'**
+  /// In de, this message translates to:
+  /// **'Alle an Bord (optional)'**
   String get allOnBoardOptional;
 
   /// No description provided for @notesOptional.
   ///
-  /// In en, this message translates to:
-  /// **'Notes (optional)'**
+  /// In de, this message translates to:
+  /// **'Notizen (optional)'**
   String get notesOptional;
 
   /// No description provided for @newExcursion.
   ///
-  /// In en, this message translates to:
-  /// **'New Excursion'**
+  /// In de, this message translates to:
+  /// **'Neuer Ausflug'**
   String get newExcursion;
 
-  /// No description provided for @noPort.
+  /// Hinweistext, wenn kein Hafen gesetzt ist
   ///
-  /// In en, this message translates to:
-  /// **'No Port'**
+  /// In de, this message translates to:
+  /// **'Kein Hafen'**
   String get noPort;
 
-  /// Label for a single excursion stop
+  /// Bezeichnung für einen einzelnen Ausflugsstopp
   ///
-  /// In en, this message translates to:
-  /// **'Stop'**
+  /// In de, this message translates to:
+  /// **'Stopp'**
   String get stop;
 
-  /// Section title for the editable excursion stops list
+  /// Abschnittstitel für die bearbeitbare Liste der Ausflugsstopps
   ///
-  /// In en, this message translates to:
-  /// **'Stops'**
+  /// In de, this message translates to:
+  /// **'Stopps'**
   String get stops;
 
-  /// Button label to add a new excursion stop
+  /// Beschriftung für die Aktion zum Hinzufügen eines Ausflugsstopps
   ///
-  /// In en, this message translates to:
-  /// **'Add stop'**
+  /// In de, this message translates to:
+  /// **'Stopp hinzufügen'**
   String get addStop;
 
-  /// Input label for the excursion stop name
+  /// Eingabefeld für den Namen eines Ausflugsstopps
   ///
-  /// In en, this message translates to:
+  /// In de, this message translates to:
   /// **'Name'**
   String get stopName;
 
-  /// Checkbox label indicating whether an excursion stop was visited
+  /// Checkbox für den Besuchsstatus eines Ausflugsstopps
   ///
-  /// In en, this message translates to:
-  /// **'Visited'**
+  /// In de, this message translates to:
+  /// **'Besucht'**
   String get visited;
 
-  /// Message shown when the requested excursion could not be loaded
+  /// Hinweis, wenn der angeforderte Ausflug nicht geladen werden konnte
   ///
-  /// In en, this message translates to:
-  /// **'Excursion not found'**
+  /// In de, this message translates to:
+  /// **'Ausflug nicht gefunden'**
   String get excursionNotFound;
-
-  /// Message when the requested cruise is missing or deleted.
-  ///
-  /// In en, this message translates to:
-  /// **'Cruise not found'**
-  String get cruiseNotFound;
-
-  /// Message when reading the local cruise data fails.
-  ///
-  /// In en, this message translates to:
-  /// **'Could not load cruise. Please try again later.'**
-  String get cruiseLoadFailed;
 
   /// No description provided for @excursions.
   ///
-  /// In en, this message translates to:
-  /// **'Excursions'**
+  /// In de, this message translates to:
+  /// **'Ausflüge'**
   String get excursions;
 
   /// No description provided for @editExcursion.
   ///
-  /// In en, this message translates to:
-  /// **'Edit Excursion'**
+  /// In de, this message translates to:
+  /// **'Ausflug bearbeiten'**
   String get editExcursion;
 
   /// No description provided for @currencyOptional.
   ///
-  /// In en, this message translates to:
-  /// **'Currency (optional)'**
+  /// In de, this message translates to:
+  /// **'Währung (optional)'**
   String get currencyOptional;
 
   /// No description provided for @editTravel.
   ///
-  /// In en, this message translates to:
-  /// **'Edit Travel'**
+  /// In de, this message translates to:
+  /// **'Reise bearbeiten'**
   String get editTravel;
 
-  /// No description provided for @editCruise.
+  /// Aktion zum Bearbeiten der Kreuzfahrt
   ///
-  /// In en, this message translates to:
-  /// **'Edit Cruise'**
+  /// In de, this message translates to:
+  /// **'Kreuzfahrt bearbeiten'**
   String get editCruise;
 
   /// No description provided for @airlineOptional.
   ///
-  /// In en, this message translates to:
-  /// **'Airline (optional)'**
+  /// In de, this message translates to:
+  /// **'Fluggesellschaft (optional)'**
   String get airlineOptional;
-
-  /// No description provided for @bookingNumberOptional.
-  ///
-  /// In en, this message translates to:
-  /// **'Booking number (optional)'**
-  String get bookingNumberOptional;
 
   /// No description provided for @modeOptional.
   ///
-  /// In en, this message translates to:
-  /// **'Mode (optional)'**
+  /// In de, this message translates to:
+  /// **'Modus (optional)'**
   String get modeOptional;
 
-  /// Label for a company associated with a travel item in read-only detail view
+  /// Label für ein Unternehmen in der schreibgeschützten Reise-Detailansicht
   ///
-  /// In en, this message translates to:
-  /// **'Company'**
+  /// In de, this message translates to:
+  /// **'Unternehmen'**
   String get travelCompany;
 
-  /// Label for a detailed address shown for a travel item in read-only detail view
+  /// Label für eine detaillierte Adresse in der schreibgeschützten Reise-Detailansicht
   ///
-  /// In en, this message translates to:
-  /// **'Address details'**
+  /// In de, this message translates to:
+  /// **'Adressdetails'**
   String get travelAddressDetails;
 
-  /// Read-only label for transfer mode shuttle
+  /// Schreibgeschützte Bezeichnung für Transfermodus Shuttle
   ///
-  /// In en, this message translates to:
+  /// In de, this message translates to:
   /// **'Shuttle'**
   String get transferModeShuttle;
 
-  /// Read-only label for transfer mode taxi
+  /// Schreibgeschützte Bezeichnung für Transfermodus Taxi
   ///
-  /// In en, this message translates to:
+  /// In de, this message translates to:
   /// **'Taxi'**
   String get transferModeTaxi;
 
-  /// Read-only label for transfer mode private driver
+  /// Schreibgeschützte Bezeichnung für Transfermodus Privatfahrer
   ///
-  /// In en, this message translates to:
-  /// **'Private Driver'**
+  /// In de, this message translates to:
+  /// **'Privatfahrer'**
   String get transferModePrivateDriver;
 
-  /// Read-only label for transfer mode rideshare
+  /// Schreibgeschützte Bezeichnung für Transfermodus Mitfahrdienst
   ///
-  /// In en, this message translates to:
-  /// **'Rideshare'**
+  /// In de, this message translates to:
+  /// **'Mitfahrdienst'**
   String get transferModeRideshare;
+
+  /// No description provided for @bookingNumberOptional.
+  ///
+  /// In de, this message translates to:
+  /// **'Buchungsnummer (optional)'**
+  String get bookingNumberOptional;
 
   /// No description provided for @editFlight.
   ///
-  /// In en, this message translates to:
-  /// **'Edit Flight'**
+  /// In de, this message translates to:
+  /// **'Flug bearbeiten'**
   String get editFlight;
 
   /// No description provided for @editTrain.
   ///
-  /// In en, this message translates to:
-  /// **'Edit Train'**
+  /// In de, this message translates to:
+  /// **'Zugfahrt bearbeiten'**
   String get editTrain;
 
   /// No description provided for @editRentalCar.
   ///
-  /// In en, this message translates to:
-  /// **'Edit Rental Car'**
+  /// In de, this message translates to:
+  /// **'Mietwagen bearbeiten'**
   String get editRentalCar;
 
   /// No description provided for @editTransfer.
   ///
-  /// In en, this message translates to:
-  /// **'Edit Travel'**
+  /// In de, this message translates to:
+  /// **'An- Abreise bearbeiten'**
   String get editTransfer;
 
-  /// Cruise Check-In
+  /// Kreuzfahrt Check-In
   ///
-  /// In en, this message translates to:
-  /// **'Cruise Check-In'**
+  /// In de, this message translates to:
+  /// **'Kreuzfahrt Check-In'**
   String get cruiseCheckIn;
 
-  /// Cruise Check-Out
+  /// Kreuzfahrt Check-Out
   ///
-  /// In en, this message translates to:
-  /// **'Cruise Check-Out'**
+  /// In de, this message translates to:
+  /// **'Kreuzfahrt Check-Out'**
   String get cruiseCheckOut;
 
   /// Hotel
   ///
-  /// In en, this message translates to:
+  /// In de, this message translates to:
   /// **'Hotel'**
   String get hotel;
 
-  /// Cabin Number
+  /// Kabinen Nummer
   ///
-  /// In en, this message translates to:
-  /// **'Cabin Number'**
+  /// In de, this message translates to:
+  /// **'Kabinen Nummer'**
   String get cabinNumber;
 
-  /// Deck Number
+  /// Deck Nummer
   ///
-  /// In en, this message translates to:
-  /// **'Deck Number'**
+  /// In de, this message translates to:
+  /// **'Deck Nummer'**
   String get deckNumber;
 
-  /// Deck Name
+  /// Deck Nummer
   ///
-  /// In en, this message translates to:
-  /// **'Deck name'**
+  /// In de, this message translates to:
+  /// **'Deck Name'**
   String get deckname;
 
-  /// Final Payment
+  /// Restzahlung
   ///
-  /// In en, this message translates to:
-  /// **'Deposit'**
+  /// In de, this message translates to:
+  /// **'Anzahlung'**
   String get deposit;
 
   /// No description provided for @finalPayment.
   ///
-  /// In en, this message translates to:
-  /// **'Final Payment'**
+  /// In de, this message translates to:
+  /// **'Restzahlung'**
   String get finalPayment;
 
-  /// No payment information
+  /// Keine Zahlungsinformationen hinterlegt
   ///
-  /// In en, this message translates to:
-  /// **'No payment information'**
+  /// In de, this message translates to:
+  /// **'Keine Zahlungsinformationen hinterlegt'**
   String get noPaymentInformation;
 
-  /// Pay on Booking
+  /// Bei Buchung zu zahlen
   ///
-  /// In en, this message translates to:
-  /// **'Fully paied'**
+  /// In de, this message translates to:
+  /// **'Vollständig bezahlt'**
   String get fullyPayed;
 
   /// No description provided for @payOnBooking.
   ///
-  /// In en, this message translates to:
-  /// **'Pay on Booking'**
+  /// In de, this message translates to:
+  /// **'Bei Buchung zu zahlen'**
   String get payOnBooking;
 
-  /// still open
+  /// noch offen
   ///
-  /// In en, this message translates to:
-  /// **'still open'**
+  /// In de, this message translates to:
+  /// **'noch offen'**
   String get stillOpen;
 
-  /// without Date
+  /// ohne Datum
   ///
-  /// In en, this message translates to:
-  /// **'without Date'**
+  /// In de, this message translates to:
+  /// **'ohne Datum'**
   String get withoutDate;
 
-  /// payed
+  /// bezahlt
   ///
-  /// In en, this message translates to:
-  /// **'payed'**
+  /// In de, this message translates to:
+  /// **'bezahlt'**
   String get payed;
 
-  /// open
+  /// offen
   ///
-  /// In en, this message translates to:
-  /// **'open'**
+  /// In de, this message translates to:
+  /// **'offen'**
   String get open;
 
-  /// on side
+  /// vor Ort
   ///
-  /// In en, this message translates to:
-  /// **'on side'**
+  /// In de, this message translates to:
+  /// **'vor Ort'**
   String get onSide;
 
-  /// The total amount is payable on-site
+  /// vor Ort
   ///
-  /// In en, this message translates to:
-  /// **'The total amount is payable on-site'**
+  /// In de, this message translates to:
+  /// **'Gesamter Betrag vor Ort zu zahlen'**
   String get amountPayableOnSide;
 
-  /// The total amount is on-site
+  /// Gesamter Betrag vor Ort
   ///
-  /// In en, this message translates to:
-  /// **'The total amount is on-site'**
+  /// In de, this message translates to:
+  /// **'Gesamter Betrag vor Ort'**
   String get amountOnSide;
 
-  /// Payment
+  /// Zahlung
   ///
-  /// In en, this message translates to:
-  /// **'Payment'**
+  /// In de, this message translates to:
+  /// **'Zahlung'**
   String get payment;
 
-  /// Payment Type
+  /// Zahlungsart
   ///
-  /// In en, this message translates to:
-  /// **'Payment Type'**
+  /// In de, this message translates to:
+  /// **'Zahlungsart'**
   String get paymentType;
 
-  /// Final Payment on Date
+  /// Restzahlung zu Termin
   ///
-  /// In en, this message translates to:
-  /// **'Final Payment on Date'**
+  /// In de, this message translates to:
+  /// **'Restzahlung zu Termin'**
   String get finalPaymentOnDate;
 
-  /// Final Payment on Side
+  /// Restzahlung vor Ort
   ///
-  /// In en, this message translates to:
-  /// **'Final Payment on Side'**
+  /// In de, this message translates to:
+  /// **'Restzahlung vor Ort'**
   String get finalPaymentOnSide;
 
-  /// Remaining amount (optional)
+  /// Restbetrag (optional)
   ///
-  /// In en, this message translates to:
-  /// **'Amount already paied'**
+  /// In de, this message translates to:
+  /// **'Betrag bereits bezahlt'**
   String get amountAlreadyPayed;
 
   /// No description provided for @depositAlreadyPayed.
   ///
-  /// In en, this message translates to:
-  /// **'Deposit already paied'**
+  /// In de, this message translates to:
+  /// **'Anzahlung bereits bezahlt'**
   String get depositAlreadyPayed;
 
   /// No description provided for @remainingAmountOptional.
   ///
-  /// In en, this message translates to:
-  /// **'Remaining amount (optional)'**
+  /// In de, this message translates to:
+  /// **'Restbetrag (optional)'**
   String get remainingAmountOptional;
 
-  /// Leave empty for automatic calculation
+  /// Leer lassen, um aus Gesamtpreis - Anzahlung zu berechnen
   ///
-  /// In en, this message translates to:
-  /// **'Leave empty for automatic calculation'**
+  /// In de, this message translates to:
+  /// **'Leer lassen, um aus Gesamtpreis - Anzahlung zu berechnen'**
   String get leaveEmptyForAutomaticCalculation;
 
-  /// remaining amount due untill
+  /// Restzahlung fällig bis
   ///
-  /// In en, this message translates to:
-  /// **'remaining amount due untill'**
+  /// In de, this message translates to:
+  /// **'Restzahlung fällig bis'**
   String get remainingAmountDueUntill;
 
-  /// No date selected
+  /// Kein Datum gewählt
   ///
-  /// In en, this message translates to:
-  /// **'No date selected'**
+  /// In de, this message translates to:
+  /// **'Kein Datum gewählt'**
   String get noDateSelected;
 
-  /// remaining amount already paied
+  /// Restbetrag bereits bezahlt
   ///
-  /// In en, this message translates to:
-  /// **'remaining amount already paied'**
+  /// In de, this message translates to:
+  /// **'Restbetrag bereits bezahlt'**
   String get remainingAmountAlreadyPaied;
 
-  /// Remaining amount on side
+  /// Restbetrag vor Ort
   ///
-  /// In en, this message translates to:
-  /// **'Remaining amount on side'**
+  /// In de, this message translates to:
+  /// **'Restbetrag vor Ort'**
   String get remainingAmountOnSide;
 
-  /// Payment types on side
+  /// Zahlungsarten vor Ort
   ///
-  /// In en, this message translates to:
-  /// **'Payment types on side'**
+  /// In de, this message translates to:
+  /// **'Zahlungsarten vor Ort'**
   String get paymentTypesOnSide;
 
-  /// Cash
+  /// Bargeld
   ///
-  /// In en, this message translates to:
-  /// **'Cash'**
+  /// In de, this message translates to:
+  /// **'Bargeld'**
   String get cash;
 
-  /// Credit
+  /// Kreditkarte
   ///
-  /// In en, this message translates to:
-  /// **'Credit'**
+  /// In de, this message translates to:
+  /// **'Kreditkarte'**
   String get credit;
 
-  /// Cash-currency
+  /// Bargeld-Währung
   ///
-  /// In en, this message translates to:
-  /// **'Cash-currency'**
+  /// In de, this message translates to:
+  /// **'Bargeld-Währung'**
   String get cashCurrency;
 
-  /// Only local currency
+  /// Nur Landeswährung
   ///
-  /// In en, this message translates to:
-  /// **'Only local currency'**
+  /// In de, this message translates to:
+  /// **'Nur Landeswährung'**
   String get onlyLocalCurrency;
 
-  /// Final payment already paied
+  /// Landeswährung oder eigene Währung
   ///
-  /// In en, this message translates to:
-  /// **'Local currency or own currency'**
+  /// In de, this message translates to:
+  /// **'Landeswährung oder eigene Währung'**
   String get localCurrencyOrOwnCurrency;
 
   /// No description provided for @finalPaymentAlreadyPayed.
   ///
-  /// In en, this message translates to:
-  /// **'Final payment already paied'**
+  /// In de, this message translates to:
+  /// **'Restbetrag bereits bezahlt'**
   String get finalPaymentAlreadyPayed;
 
-  /// Full payment on side
+  /// Gesamter Betrag wird vor Ort bezahlt
   ///
-  /// In en, this message translates to:
-  /// **'Full payment on side'**
+  /// In de, this message translates to:
+  /// **'Gesamter Betrag wird vor Ort bezahlt'**
   String get fullPaymentOnSide;
 
-  /// Default title for generic confirmation dialogs
+  /// Standardtitel für generische Bestätigungsdialoge
   ///
-  /// In en, this message translates to:
-  /// **'Confirm'**
+  /// In de, this message translates to:
+  /// **'Bestätigung'**
   String get confirmDefaultTitle;
 
-  /// Default message for generic confirmation dialogs
+  /// Standardtext für generische Bestätigungsdialoge
   ///
-  /// In en, this message translates to:
-  /// **'Do you want to proceed?'**
+  /// In de, this message translates to:
+  /// **'Möchtest du diese Aktion wirklich durchführen?'**
   String get confirmDefaultMessage;
 
-  /// Default OK/confirm button label for generic dialogs
+  /// Standardtext für OK/Bestätigen-Button in generischen Dialogen
   ///
-  /// In en, this message translates to:
+  /// In de, this message translates to:
   /// **'OK'**
   String get confirmOk;
 
-  /// Default cancel button label for generic dialogs
+  /// Standardtext für Abbrechen-Button in generischen Dialogen
   ///
-  /// In en, this message translates to:
-  /// **'Cancel'**
+  /// In de, this message translates to:
+  /// **'Abbrechen'**
   String get confirmCancel;
 
   /// No description provided for @deleteExcursionTitle.
   ///
-  /// In en, this message translates to:
-  /// **'Delete Excursion'**
+  /// In de, this message translates to:
+  /// **'Ausflug löschen'**
   String get deleteExcursionTitle;
 
   /// No description provided for @deleteExcursionQuestionmark.
   ///
-  /// In en, this message translates to:
-  /// **'Really delete excursion?'**
+  /// In de, this message translates to:
+  /// **'Diesen Ausflug wirklich löschen?'**
   String get deleteExcursionQuestionmark;
 
   /// No description provided for @delete.
   ///
-  /// In en, this message translates to:
-  /// **'delete'**
+  /// In de, this message translates to:
+  /// **'Löschen'**
   String get delete;
 
   /// No description provided for @deleteCruiseTitle.
   ///
-  /// In en, this message translates to:
-  /// **'Delete Cruise'**
+  /// In de, this message translates to:
+  /// **'Kreuzfahrt löschen'**
   String get deleteCruiseTitle;
 
   /// No description provided for @deleteCruiseQuestionmark.
   ///
-  /// In en, this message translates to:
-  /// **'Really delete this cruise?'**
+  /// In de, this message translates to:
+  /// **'Diese Kreuzfahrt wirklich löschen?'**
   String get deleteCruiseQuestionmark;
 
   /// No description provided for @deleteRouteItemTitle.
   ///
-  /// In en, this message translates to:
-  /// **'Delete Port / Seeday'**
+  /// In de, this message translates to:
+  /// **'Hafen / Seetag löschen'**
   String get deleteRouteItemTitle;
 
   /// No description provided for @deleteRouteItemQuestionmark.
   ///
-  /// In en, this message translates to:
-  /// **'Really delete this Port / Seeday?'**
+  /// In de, this message translates to:
+  /// **'Diesen Hafen / Seetag wirklich löschen?'**
   String get deleteRouteItemQuestionmark;
 
   /// No description provided for @deleteTravelItemTitle.
   ///
-  /// In en, this message translates to:
-  /// **'Delete travel item'**
+  /// In de, this message translates to:
+  /// **'Lösche An- Abreise Teil'**
   String get deleteTravelItemTitle;
 
   /// No description provided for @deleteTravelItemQuestionmark.
   ///
-  /// In en, this message translates to:
-  /// **'Really delete this travel item?'**
+  /// In de, this message translates to:
+  /// **'An- Abreiseteil löschen?'**
   String get deleteTravelItemQuestionmark;
 
   /// No description provided for @location.
   ///
-  /// In en, this message translates to:
-  /// **'Address'**
+  /// In de, this message translates to:
+  /// **'Adresse'**
   String get location;
 
   /// No description provided for @startNavigation.
   ///
-  /// In en, this message translates to:
-  /// **'Start Navigation'**
+  /// In de, this message translates to:
+  /// **'Navigation starten'**
   String get startNavigation;
 
-  /// Section title for linked documents
+  /// Abschnittstitel für verknüpfte Dokumente
   ///
-  /// In en, this message translates to:
-  /// **'Documents'**
+  /// In de, this message translates to:
+  /// **'Dokumente'**
   String get documents;
 
-  /// Action label to attach an existing document
+  /// Aktion zum Verknüpfen eines bestehenden Dokuments
   ///
-  /// In en, this message translates to:
-  /// **'Attach existing document'**
+  /// In de, this message translates to:
+  /// **'Vorhandenes Dokument verknüpfen'**
   String get attachExistingDocument;
 
-  /// Action label to import a new document for the current cruise
+  /// Aktion zum Importieren eines neuen Dokuments für die aktuelle Kreuzfahrt
   ///
-  /// In en, this message translates to:
-  /// **'Import document'**
+  /// In de, this message translates to:
+  /// **'Dokument importieren'**
   String get importDocument;
 
-  /// Generic empty state when no documents are linked
+  /// Allgemeiner Leerzustand, wenn keine Dokumente verknüpft sind
   ///
-  /// In en, this message translates to:
-  /// **'No linked documents.'**
+  /// In de, this message translates to:
+  /// **'Keine verknüpften Dokumente.'**
   String get noLinkedDocuments;
 
-  /// Empty state when no documents are linked to the cruise
+  /// Leerzustand, wenn keine Dokumente mit der Kreuzfahrt verknüpft sind
   ///
-  /// In en, this message translates to:
-  /// **'No documents linked to this cruise yet.'**
+  /// In de, this message translates to:
+  /// **'Dieser Kreuzfahrt sind noch keine Dokumente zugeordnet.'**
   String get noLinkedDocumentsForCruise;
 
-  /// Empty state when no documents are linked to the excursion in edit mode
+  /// Leerzustand, wenn keine Dokumente mit dem Ausflug verknüpft sind
   ///
-  /// In en, this message translates to:
-  /// **'No documents linked to this excursion yet.'**
+  /// In de, this message translates to:
+  /// **'Diesem Ausflug sind noch keine Dokumente zugeordnet.'**
   String get noLinkedDocumentsForExcursion;
 
-  /// Empty state when there are no unattached documents available
+  /// Leerzustand, wenn keine unverknüpften Dokumente verfügbar sind
   ///
-  /// In en, this message translates to:
-  /// **'No existing documents are available to attach.'**
+  /// In de, this message translates to:
+  /// **'Keine vorhandenen Dokumente zum Verknüpfen verfügbar.'**
   String get noAvailableDocumentsToAttach;
 
-  /// Tooltip for detaching a linked document
+  /// Tooltip zum Lösen einer Dokumentverknüpfung
   ///
-  /// In en, this message translates to:
-  /// **'Detach document'**
+  /// In de, this message translates to:
+  /// **'Dokument lösen'**
   String get detachDocument;
 
-  /// Snack bar shown after attaching a document
+  /// SnackBar nach dem Verknüpfen eines Dokuments
   ///
-  /// In en, this message translates to:
-  /// **'Document attached.'**
+  /// In de, this message translates to:
+  /// **'Dokument verknüpft.'**
   String get documentAttached;
 
-  /// Snack bar shown after importing and attaching a document
+  /// SnackBar nach dem Importieren und Verknüpfen eines Dokuments
   ///
-  /// In en, this message translates to:
-  /// **'Document imported.'**
+  /// In de, this message translates to:
+  /// **'Dokument importiert.'**
   String get documentImported;
 
-  /// Snack bar shown after linking an existing matching document instead of importing again
+  /// SnackBar nach dem Verknüpfen eines bereits vorhandenen passenden Dokuments statt erneutem Import
   ///
-  /// In en, this message translates to:
-  /// **'Existing document linked.'**
+  /// In de, this message translates to:
+  /// **'Vorhandenes Dokument verknüpft.'**
   String get documentLinkedExisting;
 
-  /// Snack bar shown when the matching document is already linked to the current target
+  /// SnackBar, wenn das passende Dokument bereits mit dem aktuellen Ziel verknüpft ist
   ///
-  /// In en, this message translates to:
-  /// **'Document already linked.'**
+  /// In de, this message translates to:
+  /// **'Dokument bereits verknüpft.'**
   String get documentAlreadyLinked;
 
-  /// Snack bar shown when importing or attaching a document fails
+  /// SnackBar, wenn Import oder Verknüpfen eines Dokuments fehlschlägt
   ///
-  /// In en, this message translates to:
-  /// **'Document import failed.'**
+  /// In de, this message translates to:
+  /// **'Dokumentimport fehlgeschlagen.'**
   String get documentImportFailed;
 
-  /// Snack bar shown when opening a linked document fails
+  /// SnackBar, wenn ein verknüpftes Dokument nicht geöffnet werden kann
   ///
-  /// In en, this message translates to:
-  /// **'Document could not be opened.'**
+  /// In de, this message translates to:
+  /// **'Dokument konnte nicht geöffnet werden.'**
   String get documentOpenFailed;
 
-  /// Label for PDF documents
+  /// Titel des Screens zum manuellen Speichern einer Webseite als PDF
   ///
-  /// In en, this message translates to:
-  /// **'PDF'**
-  String get documentKindPdf;
-
-  /// Label for email documents
-  ///
-  /// In en, this message translates to:
-  /// **'Email'**
-  String get documentKindEmail;
-
-  /// Label for image documents
-  ///
-  /// In en, this message translates to:
-  /// **'Image'**
-  String get documentKindImage;
-
-  /// Fallback label for unknown document kinds
-  ///
-  /// In en, this message translates to:
-  /// **'Document'**
-  String get documentKindUnknown;
-
-  /// Title of the manual webpage-to-PDF capture screen
-  ///
-  /// In en, this message translates to:
-  /// **'Save webpage as PDF'**
+  /// In de, this message translates to:
+  /// **'Webseite als PDF speichern'**
   String get urlSnapshotTitle;
 
-  /// Short helper text for the URL snapshot capture screen
+  /// Kurzer Hilfetext für den URL-Snapshot-Screen
   ///
-  /// In en, this message translates to:
-  /// **'Open the relevant webpage in the app. When the visible state looks right, save it as a PDF document.'**
+  /// In de, this message translates to:
+  /// **'Lade die gewünschte Webseite in der App. Wenn der sichtbare Stand passt, speichere ihn als PDF-Dokument.'**
   String get urlSnapshotHint;
 
-  /// Label for the URL input field on the URL snapshot screen
+  /// Beschriftung des URL-Eingabefelds im URL-Snapshot-Screen
   ///
-  /// In en, this message translates to:
+  /// In de, this message translates to:
   /// **'URL'**
   String get urlSnapshotUrlLabel;
 
-  /// Action label to load a URL on the URL snapshot screen
+  /// Aktion zum Laden einer URL im URL-Snapshot-Screen
   ///
-  /// In en, this message translates to:
-  /// **'Open webpage'**
+  /// In de, this message translates to:
+  /// **'Webseite öffnen'**
   String get urlSnapshotOpen;
 
-  /// Action label to reload the currently open URL on the URL snapshot screen
+  /// Aktion zum Neuladen der aktuell geöffneten URL im URL-Snapshot-Screen
   ///
-  /// In en, this message translates to:
-  /// **'Reload'**
+  /// In de, this message translates to:
+  /// **'Neu laden'**
   String get urlSnapshotReload;
 
-  /// Action label to best-effort expand additional visible page content
-
-  /// Primary action label to save the visible web view content as a PDF
+  /// Primäre Aktion zum Speichern des sichtbaren WebView-Inhalts als PDF
   ///
-  /// In en, this message translates to:
-  /// **'Save as PDF'**
+  /// In de, this message translates to:
+  /// **'Als PDF speichern'**
   String get urlSnapshotSaveAsPdf;
 
-  /// Short action label in document sections to start the URL snapshot flow
+  /// Kurzes Label für die Dokument-Sektionsaktion zum Starten des URL-Snapshot-Flows
   ///
-  /// In en, this message translates to:
-  /// **'URL as PDF'**
+  /// In de, this message translates to:
+  /// **'URL als PDF'**
   String get urlSnapshotSaveAsPdfShort;
 
-  /// Error shown when no valid URL is available for a URL snapshot
+  /// Fehlermeldung, wenn keine gültige URL für den URL-Snapshot vorliegt
   ///
-  /// In en, this message translates to:
-  /// **'Please enter a valid URL.'**
+  /// In de, this message translates to:
+  /// **'Bitte eine gültige URL angeben.'**
   String get urlSnapshotMissingUrl;
 
-  /// Error shown when there is no loaded page available for capture
+  /// Fehlermeldung, wenn noch keine geladene Seite für den Snapshot vorliegt
   ///
-  /// In en, this message translates to:
-  /// **'The page has not finished loading yet and cannot be saved as a PDF.'**
+  /// In de, this message translates to:
+  /// **'Die Seite ist noch nicht geladen und kann noch nicht als PDF gespeichert werden.'**
   String get urlSnapshotPageNotLoaded;
 
-  /// Generic error shown when loading a webpage fails in the URL snapshot screen
+  /// Generische Fehlermeldung bei Ladefehlern im URL-Snapshot-Screen
   ///
-  /// In en, this message translates to:
-  /// **'The webpage could not be loaded.'**
+  /// In de, this message translates to:
+  /// **'Die Webseite konnte nicht geladen werden.'**
   String get urlSnapshotLoadFailed;
 
-  /// Generic error shown when PDF generation or document creation fails
+  /// Generische Fehlermeldung bei fehlgeschlagener PDF-Erzeugung oder Dokumentanlage
   ///
-  /// In en, this message translates to:
-  /// **'The PDF could not be saved.'**
+  /// In de, this message translates to:
+  /// **'Das PDF konnte nicht gespeichert werden.'**
   String get urlSnapshotSaveFailed;
 
-  /// Message shown when URL snapshots are not supported on the current platform
+  /// Hinweis, wenn URL-Snapshots auf der aktuellen Plattform nicht unterstützt werden
   ///
-  /// In en, this message translates to:
-  /// **'This feature is currently only available on Android and iOS.'**
+  /// In de, this message translates to:
+  /// **'Diese Funktion ist derzeit nur auf Android und iOS verfügbar.'**
   String get urlSnapshotUnsupportedPlatform;
 
-  /// Title for the lightweight pending share handoff card
+  /// Bezeichnung für PDF-Dokumente
   ///
-  /// In en, this message translates to:
-  /// **'Pending shared items'**
+  /// In de, this message translates to:
+  /// **'PDF'**
+  String get documentKindPdf;
+
+  /// Bezeichnung für E-Mail-Dokumente
+  ///
+  /// In de, this message translates to:
+  /// **'E-Mail'**
+  String get documentKindEmail;
+
+  /// Bezeichnung für Bilddokumente
+  ///
+  /// In de, this message translates to:
+  /// **'Bild'**
+  String get documentKindImage;
+
+  /// Fallback-Bezeichnung für unbekannte Dokumenttypen
+  ///
+  /// In de, this message translates to:
+  /// **'Dokument'**
+  String get documentKindUnknown;
+
+  /// Titel der kompakten Karte für ausstehende geteilte Inhalte
+  ///
+  /// In de, this message translates to:
+  /// **'Geteilte Inhalte warten'**
   String get sharePendingTitle;
 
-  /// Summary of pending share batches and items
+  /// Zusammenfassung ausstehender Share-Stapel und Elemente
   ///
-  /// In en, this message translates to:
-  /// **'{batchCount} batches waiting with {itemCount} items.'**
+  /// In de, this message translates to:
+  /// **'{batchCount} Stapel mit {itemCount} Elementen warten.'**
   String sharePendingSummary(int batchCount, int itemCount);
 
-  /// Summary of the latest pending shared content
+  /// Kurzinfo zum zuletzt empfangenen ausstehenden Share-Inhalt
   ///
-  /// In en, this message translates to:
-  /// **'Latest: {summary}'**
+  /// In de, this message translates to:
+  /// **'Zuletzt: {summary}'**
   String sharePendingLatest(String summary);
 
-  /// Action to open the pending share review screen
+  /// Aktion zum Öffnen des Pending-Share-Review-Screens
   ///
-  /// In en, this message translates to:
-  /// **'Review'**
+  /// In de, this message translates to:
+  /// **'Ansehen'**
   String get sharePendingReviewAction;
 
-  /// Action to clear all pending shared items
+  /// Aktion zum Entfernen aller ausstehenden Share-Inhalte
   ///
-  /// In en, this message translates to:
-  /// **'Clear all'**
+  /// In de, this message translates to:
+  /// **'Alle entfernen'**
   String get sharePendingClearAllAction;
 
-  /// Summary for a batch with more than one item
+  /// Kurzinfo für einen Share-Stapel mit mehr als einem Element
   ///
-  /// In en, this message translates to:
-  /// **'{label} and {count} more'**
+  /// In de, this message translates to:
+  /// **'{label} und {count} weitere'**
   String sharePendingAdditionalItems(String label, int count);
 
-  /// Title of the pending share review screen
+  /// Titel des Pending-Share-Review-Screens
   ///
-  /// In en, this message translates to:
-  /// **'Shared items'**
+  /// In de, this message translates to:
+  /// **'Geteilte Inhalte'**
   String get shareReviewTitle;
 
-  /// Empty state for the pending share review screen
+  /// Leerzustand für den Pending-Share-Review-Screen
   ///
-  /// In en, this message translates to:
-  /// **'No pending shared items right now.'**
+  /// In de, this message translates to:
+  /// **'Aktuell gibt es keine ausstehenden geteilten Inhalte.'**
   String get shareReviewEmpty;
 
-  /// Title for a single batch in the pending share review screen
+  /// Titel für einen einzelnen Share-Stapel im Review-Screen
   ///
-  /// In en, this message translates to:
-  /// **'{itemCount} shared items'**
+  /// In de, this message translates to:
+  /// **'{itemCount} geteilte Elemente'**
   String shareReviewBatchTitle(int itemCount);
 
-  /// Timestamp label for a received shared batch
+  /// Zeitstempel für einen empfangenen Share-Stapel
   ///
-  /// In en, this message translates to:
-  /// **'Received {receivedAt}'**
+  /// In de, this message translates to:
+  /// **'Empfangen {receivedAt}'**
   String shareReviewReceivedAt(String receivedAt);
 
-  /// Action to clear a single pending share batch
+  /// Aktion zum Entfernen eines einzelnen ausstehenden Share-Stapels
   ///
-  /// In en, this message translates to:
-  /// **'Clear'**
+  /// In de, this message translates to:
+  /// **'Entfernen'**
   String get shareReviewClearBatchAction;
 
-  /// Action to start assigning a pending shared item to an existing target
+  /// Aktion zum Starten der Zuweisung eines geteilten Elements zu einem bestehenden Ziel
   ///
-  /// In en, this message translates to:
-  /// **'Assign'**
+  /// In de, this message translates to:
+  /// **'Zuweisen'**
   String get shareAssignAction;
 
-  /// Title of the pending share assignment screen
+  /// Titel des Screens für die Zuweisung geteilter Elemente
   ///
-  /// In en, this message translates to:
-  /// **'Assign shared item'**
+  /// In de, this message translates to:
+  /// **'Geteiltes Element zuweisen'**
   String get shareAssignTitle;
 
-  /// Helper text above the list of assignment targets
+  /// Hilfstext über der Liste der Zuweisungsziele
   ///
-  /// In en, this message translates to:
-  /// **'Choose where this shared item should go.'**
+  /// In de, this message translates to:
+  /// **'Wähle aus, wohin dieses geteilte Element zugeordnet werden soll.'**
   String get shareAssignSelectTarget;
 
-  /// Message shown when a pending shared item is not yet supported by the assignment flow
+  /// Hinweis für noch nicht unterstützte Typen geteilter Inhalte
   ///
-  /// In en, this message translates to:
-  /// **'This shared item type cannot be assigned yet.'**
+  /// In de, this message translates to:
+  /// **'Dieser Typ geteilter Inhalte kann in diesem Schritt noch nicht zugewiesen werden.'**
   String get shareAssignUnsupported;
 
-  /// Short disabled action label for unsupported pending shared item types
+  /// Kurze deaktivierte Aktionsbeschriftung für noch nicht unterstützte Share-Typen
   ///
-  /// In en, this message translates to:
-  /// **'Not yet supported'**
+  /// In de, this message translates to:
+  /// **'Noch nicht unterstützt'**
   String get shareAssignUnsupportedShort;
 
-  /// Message shown when a pending shared item cannot be found anymore during assignment
+  /// Hinweis, wenn ein geteiltes Element während der Zuweisung nicht mehr gefunden wird
   ///
-  /// In en, this message translates to:
-  /// **'This shared item is no longer available.'**
+  /// In de, this message translates to:
+  /// **'Dieses geteilte Element ist nicht mehr verfügbar.'**
   String get shareAssignItemUnavailable;
 
-  /// Message shown when there are no existing cruise targets to assign a shared item to
+  /// Hinweis, wenn noch keine bestehenden Ziele für eine Zuweisung vorhanden sind
   ///
-  /// In en, this message translates to:
-  /// **'No assignable targets are available yet.'**
+  /// In de, this message translates to:
+  /// **'Es sind noch keine zuweisbaren Ziele verfügbar.'**
   String get shareAssignNoTargets;
 
-  /// Title for choosing how a shared URL should be assigned
+  /// Titel für die Auswahl, wie eine geteilte URL zugeordnet werden soll
   ///
-  /// In en, this message translates to:
-  /// **'How should this URL be added?'**
+  /// In de, this message translates to:
+  /// **'Wie soll diese URL hinzugefügt werden?'**
   String get shareAssignUrlOptionsTitle;
 
-  /// Helper text for the shared URL assignment options
+  /// Hilfetext für die Auswahl im URL-Zuweisungsdialog
   ///
-  /// In en, this message translates to:
-  /// **'You can attach the link as a document or also open the webpage and save the visible state as a PDF.'**
+  /// In de, this message translates to:
+  /// **'Du kannst den Link als Dokument anhängen oder zusätzlich die Webseite öffnen und den sichtbaren Stand als PDF speichern.'**
   String get shareAssignUrlOptionsHint;
 
-  /// Action to attach a shared URL as a link-only document
+  /// Aktion, um eine geteilte URL nur als Link-Dokument anzuhängen
   ///
-  /// In en, this message translates to:
-  /// **'Add link only'**
+  /// In de, this message translates to:
+  /// **'Nur Link hinzufügen'**
   String get shareAssignAddLinkOnly;
 
-  /// Action to attach a shared URL and then capture it as a PDF
+  /// Aktion, um eine geteilte URL anzuhängen und zusätzlich als PDF zu speichern
   ///
-  /// In en, this message translates to:
-  /// **'Add link and save PDF'**
+  /// In de, this message translates to:
+  /// **'Link hinzufügen und PDF speichern'**
   String get shareAssignAddLinkAndSavePdf;
 
-  /// Hint shown before entering the shared URL snapshot flow
+  /// Hinweis vor dem Einstieg in den URL-Snapshot-Flow aus dem Share-Screen
   ///
-  /// In en, this message translates to:
-  /// **'The webpage will open. Review the visible state and then save it as a PDF.'**
+  /// In de, this message translates to:
+  /// **'Die Webseite wird geöffnet. Prüfe den sichtbaren Stand und speichere sie dann als PDF.'**
   String get shareAssignUrlOpenBeforeSaveHint;
 
-  /// Success message after a shared URL was attached as a link and saved as a PDF
+  /// Erfolgsmeldung nach dem Anhängen einer geteilten URL als Link und PDF
   ///
-  /// In en, this message translates to:
-  /// **'Link and PDF saved.'**
+  /// In de, this message translates to:
+  /// **'Link und PDF gespeichert.'**
   String get shareAssignUrlAndPdfSaved;
 
-  /// Title of the dedicated sync progress screen
+  /// Titel des dedizierten Screens fÃ¼r den Synchronisationsfortschritt
   ///
-  /// In en, this message translates to:
-  /// **'Sync progress'**
+  /// In de, this message translates to:
+  /// **'Synchronisationsfortschritt'**
   String get syncProgressTitle;
 
-  /// Headline while a sync is still running
+  /// Ãœberschrift, solange eine Synchronisierung aktiv ist
   ///
-  /// In en, this message translates to:
-  /// **'Synchronization in progress'**
+  /// In de, this message translates to:
+  /// **'Synchronisierung läuft'**
   String get syncProgressRunning;
 
-  /// Short helper text while sync is active
+  /// Kurzer Hilfstext, solange der Sync aktiv ist
   ///
-  /// In en, this message translates to:
-  /// **'The current synchronization is continuing in the background.'**
+  /// In de, this message translates to:
+  /// **'Die aktuelle Synchronisierung läuft im Hintergrund weiter.'**
   String get syncProgressRunningDescription;
 
-  /// Headline after sync finished successfully
+  /// Ãœberschrift nach erfolgreichem Abschluss
   ///
-  /// In en, this message translates to:
-  /// **'Synchronization completed'**
+  /// In de, this message translates to:
+  /// **'Synchronisierung abgeschlossen'**
   String get syncProgressCompleted;
 
-  /// Short helper text after successful sync
+  /// Kurzer Hilfstext nach erfolgreichem Sync
   ///
-  /// In en, this message translates to:
-  /// **'All synchronization steps completed successfully.'**
+  /// In de, this message translates to:
+  /// **'Alle Synchronisierungsschritte wurden erfolgreich abgeschlossen.'**
   String get syncProgressCompletedDescription;
 
-  /// Headline after sync was skipped
+  /// Ãœberschrift, wenn der Sync Ã¼bersprungen wurde
   ///
-  /// In en, this message translates to:
-  /// **'Synchronization skipped'**
+  /// In de, this message translates to:
+  /// **'Synchronisierung übersprungen'**
   String get syncProgressSkipped;
 
-  /// Short helper text when sync was skipped because settings are not usable
+  /// Kurzer Hilfstext, wenn der Sync wegen fehlender Einstellungen Ã¼bersprungen wurde
   ///
-  /// In en, this message translates to:
-  /// **'WebDAV settings are missing or incomplete.'**
+  /// In de, this message translates to:
+  /// **'Die WebDAV-Einstellungen fehlen oder sind unvollständig.'**
   String get syncProgressSkippedDescription;
 
-  /// Headline after sync finished with failures
+  /// Ãœberschrift nach fehlgeschlagenem Sync
   ///
-  /// In en, this message translates to:
-  /// **'Synchronization failed'**
+  /// In de, this message translates to:
+  /// **'Synchronisierung fehlgeschlagen'**
   String get syncProgressFailed;
 
-  /// Short helper text after failed sync
+  /// Kurzer Hilfstext nach fehlgeschlagenem Sync
   ///
-  /// In en, this message translates to:
-  /// **'Synchronization ended with errors.'**
+  /// In de, this message translates to:
+  /// **'Die Synchronisierung wurde mit Fehlern beendet.'**
   String get syncProgressFailedDescription;
 
-  /// Sync stage for preparing and validating settings
+  /// Sync-Phase fÃ¼r Vorbereitung und EinstellungsprÃ¼fung
   ///
-  /// In en, this message translates to:
-  /// **'Checking settings'**
+  /// In de, this message translates to:
+  /// **'Einstellungen prüfen'**
   String get syncProgressPreparing;
 
-  /// Sync stage for cruise JSON synchronization
+  /// Sync-Phase fÃ¼r die Synchronisierung der Cruise-JSON
   ///
-  /// In en, this message translates to:
-  /// **'Synchronizing cruise data'**
+  /// In de, this message translates to:
+  /// **'Kreuzfahrtdaten synchronisieren'**
   String get syncProgressCruiseDataSync;
 
-  /// Sync stage for document analysis and metadata reconciliation
+  /// Sync-Phase fÃ¼r Dokumentanalyse und Metadatenabgleich
   ///
-  /// In en, this message translates to:
-  /// **'Analyzing document metadata'**
+  /// In de, this message translates to:
+  /// **'Dokument-Metadaten analysieren'**
   String get syncProgressDocumentMetadataAnalysis;
 
-  /// Sync stage for document uploads
+  /// Sync-Phase fÃ¼r Dokument-Uploads
   ///
-  /// In en, this message translates to:
-  /// **'Uploading documents'**
+  /// In de, this message translates to:
+  /// **'Dokumente hochladen'**
   String get syncProgressDocumentUploads;
 
-  /// Sync stage for document downloads
+  /// Sync-Phase fÃ¼r Dokument-Downloads
   ///
-  /// In en, this message translates to:
-  /// **'Downloading documents'**
+  /// In de, this message translates to:
+  /// **'Dokumente herunterladen'**
   String get syncProgressDocumentDownloads;
 
-  /// Sync stage for local document recovery
+  /// Sync-Phase fÃ¼r lokale Dokument-Wiederherstellung
   ///
-  /// In en, this message translates to:
-  /// **'Recovering local document files'**
+  /// In de, this message translates to:
+  /// **'Lokale Dokumentdateien wiederherstellen'**
   String get syncProgressLocalDocumentRecovery;
 
-  /// Sync stage for deletion propagation
+  /// Sync-Phase fÃ¼r Delete-Propagation
   ///
-  /// In en, this message translates to:
-  /// **'Propagating deletions'**
+  /// In de, this message translates to:
+  /// **'Löschungen übertragen'**
   String get syncProgressDeletionPropagation;
 
-  /// Sync stage for cleanup
+  /// Sync-Phase fÃ¼r Cleanup
   ///
-  /// In en, this message translates to:
-  /// **'Cleaning up deleted documents'**
+  /// In de, this message translates to:
+  /// **'Gelöschte Dokumente bereinigen'**
   String get syncProgressCleanup;
 
-  /// Optional item count shown next to a sync stage
+  /// Optionale Elementanzahl neben einer Sync-Phase
   ///
-  /// In en, this message translates to:
-  /// **'{count} items'**
+  /// In de, this message translates to:
+  /// **'{count, plural, one {1 Element} other {{count} Elemente}}'**
   String syncProgressItemCount(int count);
 
-  /// Close button label on the sync progress screen
+  /// Beschriftung des SchlieÃŸen-Buttons im Sync-Fortschrittsscreen
   ///
-  /// In en, this message translates to:
-  /// **'Close'**
+  /// In de, this message translates to:
+  /// **'Schließen'**
   String get syncProgressClose;
+
+  /// No description provided for @cruiseLocation.
+  ///
+  /// In de, this message translates to:
+  /// **'Ort'**
+  String get cruiseLocation;
+
+  /// No description provided for @cruiseRouteLocations.
+  ///
+  /// In de, this message translates to:
+  /// **'Orte dieser Kreuzfahrt'**
+  String get cruiseRouteLocations;
+
+  /// No description provided for @cruiseOtherLocations.
+  ///
+  /// In de, this message translates to:
+  /// **'Weitere Orte'**
+  String get cruiseOtherLocations;
+
+  /// No description provided for @cruiseCreateLocation.
+  ///
+  /// In de, this message translates to:
+  /// **'Neuen Ort anlegen'**
+  String get cruiseCreateLocation;
+
+  /// No description provided for @cruiseSelectLocation.
+  ///
+  /// In de, this message translates to:
+  /// **'Ort auswählen'**
+  String get cruiseSelectLocation;
+
+  /// No description provided for @cruiseLocationName.
+  ///
+  /// In de, this message translates to:
+  /// **'Name'**
+  String get cruiseLocationName;
+
+  /// No description provided for @cruiseLocationNameRequired.
+  ///
+  /// In de, this message translates to:
+  /// **'Bitte einen Namen eingeben'**
+  String get cruiseLocationNameRequired;
+
+  /// No description provided for @cruiseLocationType.
+  ///
+  /// In de, this message translates to:
+  /// **'Typ'**
+  String get cruiseLocationType;
+
+  /// No description provided for @cruiseLocationStopPoint.
+  ///
+  /// In de, this message translates to:
+  /// **'Zwischenstopp'**
+  String get cruiseLocationStopPoint;
+
+  /// No description provided for @cruiseLocationSaveFailed.
+  ///
+  /// In de, this message translates to:
+  /// **'Ort konnte nicht gespeichert werden. Bitte erneut versuchen.'**
+  String get cruiseLocationSaveFailed;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {
@@ -1371,4 +1429,3 @@ AppLocalizations lookupAppLocalizations(Locale locale) {
     'that was used.'
   );
 }
-

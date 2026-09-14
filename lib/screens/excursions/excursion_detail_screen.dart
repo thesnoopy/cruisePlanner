@@ -145,7 +145,10 @@ class _ExcursionDetailScreenState extends State<ExcursionDetailScreen> {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          _InfoSection(excursion: excursion),
+          _InfoSection(
+            excursion: excursion,
+            locationName: cruise.locationName(excursion.locationId),
+          ),
           const SizedBox(height: 16),
           ExcursionDocumentsSection(
             key: ValueKey(
@@ -176,8 +179,9 @@ class _ExcursionDetailScreenState extends State<ExcursionDetailScreen> {
 
 class _InfoSection extends StatelessWidget {
   final Excursion excursion;
+  final String locationName;
 
-  const _InfoSection({required this.excursion});
+  const _InfoSection({required this.excursion, required this.locationName});
 
   @override
   Widget build(BuildContext context) {
@@ -204,8 +208,8 @@ class _InfoSection extends StatelessWidget {
             ListTile(
               contentPadding: EdgeInsets.zero,
               leading: const Icon(Icons.location_on),
-              title: Text(loc.harbour),
-              subtitle: Text(excursion.port?.isNotEmpty == true ? excursion.port! : '-'),
+              title: Text(loc.cruiseLocation),
+              subtitle: Text(locationName.trim().isEmpty ? '-' : locationName),
             ),
             ListTile(
               contentPadding: EdgeInsets.zero,

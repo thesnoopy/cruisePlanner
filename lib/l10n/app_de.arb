@@ -939,10 +939,15 @@
   "syncProgressClose": "Schlie\u00dfen",
   "@syncProgressClose": {
     "description": "Beschriftung des SchlieÃŸen-Buttons im Sync-Fortschrittsscreen"
-  }
+  },
+  "cruiseLocation": "Ort",
+  "cruiseRouteLocations": "Orte dieser Kreuzfahrt",
+  "cruiseOtherLocations": "Weitere Orte",
+  "cruiseCreateLocation": "Neuen Ort anlegen",
+  "cruiseSelectLocation": "Ort auswählen",
+  "cruiseLocationName": "Name",
+  "cruiseLocationNameRequired": "Bitte einen Namen eingeben",
+  "cruiseLocationType": "Typ",
+  "cruiseLocationStopPoint": "Zwischenstopp",
+  "cruiseLocationSaveFailed": "Ort konnte nicht gespeichert werden. Bitte erneut versuchen."
 }
-
-
-
-
-

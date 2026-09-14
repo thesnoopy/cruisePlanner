@@ -87,7 +87,7 @@ class _ExcursionListScreenState extends State<ExcursionListScreen> {
       id: Identifiable.newId(),
       title: '',
       date: cruise.period.start,
-      port: null,
+      locationId: null,
       meetingPoint: null,
       notes: null,
       price: null,
@@ -294,7 +294,7 @@ class _ExcursionListScreenState extends State<ExcursionListScreen> {
     required TemporalListItemStatus status,
   }) {
     final dateLine = fmtDate(context, ex.date, includeTime: true);
-    final portLine = ex.port?.isNotEmpty == true ? ex.port! : null;
+    final portLine = _cruise?.locationById(ex.locationId)?.name;
     final paymentText = ex.paymentStatusText(context);
     final paymentIcons = _buildPaymentIcons(ex, status: status);
 

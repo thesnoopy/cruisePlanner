@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/cruise.dart';
+import '../models/cruise_location.dart';
 import '../models/excursion.dart';
 import '../models/route/factory.dart' as route_factory;
 import '../models/route/route_item.dart';
@@ -34,30 +35,20 @@ class CruiseSyncService {
       return const <Cruise>[];
     }
 
-    try {
-      final normalized = normalizeCruisePersistenceData(
-        _decodeBaseline(legacyJsonStr),
-        nowUtc: DateTime.now().toUtc(),
-      );
-      await _saveBaseline(normalized);
-      return normalized;
-    } catch (_) {
-      return const <Cruise>[];
-    }
+    return _decodeBaseline(legacyJsonStr, legacyVersion: 1);
   }
 
   Future<void> _saveBaseline(List<Cruise> cruises) async {
     final prefs = await SharedPreferences.getInstance();
-    final list = cruises.map((c) => c.toMap()).toList(growable: false);
-    final jsonStr = jsonEncode(list);
+    final jsonStr = jsonEncode(cruiseStoragePayload(cruises));
     await prefs.setString(_baselineKeyV3, jsonStr);
   }
 
-  List<Cruise> _decodeBaseline(String jsonStr) {
-    final decoded = jsonDecode(jsonStr) as List<dynamic>;
-    return decoded
-        .map((e) => Cruise.fromMap(Map<String, dynamic>.from(e as Map)))
-        .toList(growable: false);
+  List<Cruise> _decodeBaseline(String jsonStr, {int legacyVersion = 3}) {
+    final decoded = jsonDecode(jsonStr);
+    return decodeCruisePersistenceData(decoded is List
+        ? {'schemaVersion': legacyVersion, 'cruises': decoded}
+        : decoded).cruises;
   }
 
   Future<List<Cruise>> sync(List<Cruise> local) async {
@@ -111,6 +102,7 @@ class CruiseSyncService {
       }
     }
 
+    validateCruiseLocations(result);
     return List<Cruise>.unmodifiable(result);
   }
 
@@ -187,6 +179,7 @@ class CruiseSyncService {
         excursions: mergedExcursions,
         travel: mergedTravel,
         route: mergedRoute,
+        locations: _mergeLocations(base, local, null),
       );
     }
 
@@ -265,11 +258,29 @@ class CruiseSyncService {
     );
 
     return rootWinner.copyWith(
+      locations: _mergeLocations(base, local, remote),
       excursions: mergedExcursions,
       travel: mergedTravel,
       route: mergedRoute,
     );
   }
+
+  static List<CruiseLocation> _mergeLocations(
+    Cruise? base, Cruise local, Cruise? remote,
+  ) => _mergeEntityCollection<CruiseLocation>(
+    base: base?.locations ?? const [],
+    local: local.locations,
+    remote: remote?.locations ?? const [],
+    idOf: (entity) => entity.id,
+    updatedAtOf: (entity) => entity.updatedAtUtc,
+    deletedAtOf: (entity) => entity.deletedAtUtc,
+    legacyMerge: (base, local, remote) => base == null ? local :
+        _mergeLegacyEntity(
+          base: base, local: local, remote: remote,
+          toMap: (entity) => entity.toMap(),
+          fromMap: CruiseLocation.fromMap,
+        ),
+  );
 
   static List<T> _mergeEntityCollection<T extends Object>({
     required List<T> base,
@@ -485,7 +496,7 @@ class CruiseSyncService {
       remote: remote,
       toMap: (entity) => entity.toMap(),
       fromMap: Cruise.fromMap,
-      excludedKeys: const {'excursions', 'travel', 'route'},
+      excludedKeys: const {'excursions', 'travel', 'route', 'locations'},
     );
   }
 

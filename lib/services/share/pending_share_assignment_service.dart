@@ -311,14 +311,14 @@ class PendingShareAssignmentService {
         title: cruiseTitle,
       ),
       excursions: cruise.excursions
-          .map((excursion) => _buildExcursionTarget(excursion, loc))
+          .map((excursion) => _buildExcursionTarget(excursion, loc, cruise))
           .toList(growable: false),
       travelItems: cruise.travel
           .map((travelItem) => _buildTravelTarget(travelItem, loc))
           .toList(growable: false),
       portCalls: cruise.route
           .whereType<PortCallItem>()
-          .map((portCall) => _buildPortCallTarget(portCall, loc))
+          .map((portCall) => _buildPortCallTarget(portCall, loc, cruise))
           .toList(growable: false),
       seaDays: cruise.route
           .whereType<SeaDayItem>()
@@ -330,6 +330,7 @@ class PendingShareAssignmentService {
   PendingShareAssignmentTarget _buildExcursionTarget(
     Excursion excursion,
     AppLocalizations loc,
+    Cruise cruise,
   ) {
     final title = excursion.title.trim().isEmpty
         ? loc.excursion
@@ -339,8 +340,8 @@ class PendingShareAssignmentService {
       type: PendingShareAssignmentTargetType.excursion,
       id: excursion.id,
       title: title,
-      subtitle: excursion.port?.trim().isNotEmpty == true
-          ? excursion.port!.trim()
+      subtitle: cruise.locationName(excursion.locationId).trim().isNotEmpty
+          ? cruise.locationName(excursion.locationId).trim()
           : null,
     );
   }
@@ -360,8 +361,9 @@ class PendingShareAssignmentService {
   PendingShareAssignmentTarget _buildPortCallTarget(
     PortCallItem portCall,
     AppLocalizations loc,
+    Cruise cruise,
   ) {
-    final portName = portCall.portName.trim();
+    final portName = cruise.locationName(portCall.locationId).trim();
     return PendingShareAssignmentTarget(
       type: PendingShareAssignmentTargetType.portCall,
       id: portCall.id,

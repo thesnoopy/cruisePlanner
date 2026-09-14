@@ -165,7 +165,7 @@ void main() {
 Future<void> _seedCruise(Cruise cruise) async {
   SharedPreferences.setMockInitialValues(<String, Object>{
     'cruises_json_v3': jsonEncode(<String, Object>{
-      'schemaVersion': 3,
+      'schemaVersion': 4,
       'cruises': <Map<String, dynamic>>[cruise.toMap()],
     }),
   });

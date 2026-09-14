@@ -70,6 +70,7 @@
   "departure": "Departure",
   "allOnBoard": "All on Board",
   "noFutureExcursions": "No Excursion",
+  "noExcursions": "No excursions",
   "today": "Today",
   "pastStatusIconSemanticLabel": "Past item",
   "harbour": "Port",
@@ -652,6 +653,15 @@
   "syncProgressClose": "Close",
   "@syncProgressClose": {
     "description": "Close button label on the sync progress screen"
-  }
+  },
+  "cruiseLocation": "Location",
+  "cruiseRouteLocations": "Locations of this cruise",
+  "cruiseOtherLocations": "Other locations",
+  "cruiseCreateLocation": "Create new location",
+  "cruiseSelectLocation": "Select a location",
+  "cruiseLocationName": "Name",
+  "cruiseLocationNameRequired": "Enter a name",
+  "cruiseLocationType": "Type",
+  "cruiseLocationStopPoint": "Stop point",
+  "cruiseLocationSaveFailed": "Could not save location. Please try again."
 }
-

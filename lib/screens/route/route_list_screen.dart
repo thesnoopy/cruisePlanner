@@ -1,5 +1,6 @@
 // RouteListScreen – list & edit route items with rich subtitles.
 import 'package:flutter/material.dart';
+import '../../widgets/cruise_location_selector.dart';
 import '../../store/cruise_store.dart';
 import '../../models/cruise.dart';
 import '../../models/route/port_call_item.dart';
@@ -86,10 +87,40 @@ class _RouteListScreenState extends State<RouteListScreen> {
     final date = cruise.period.start;
 
     if (type == 'port') {
+      if (!mounted) return;
+      String? selectedId;
+      final formKey = GlobalKey<FormState>();
+      final locationId = await showDialog<String>(
+        context: context,
+        builder: (dialogContext) => AlertDialog(
+          title: Text(loc.harbour),
+          content: Form(
+            key: formKey,
+            child: StatefulBuilder(builder: (context, update) =>
+              CruiseLocationSelector(
+                cruiseId: cruise.id,
+                locationId: selectedId,
+                onChanged: (id) => update(() => selectedId = id),
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(dialogContext),
+                child: Text(loc.confirmCancel)),
+            FilledButton(onPressed: () {
+              if (formKey.currentState!.validate()) {
+                Navigator.pop(dialogContext, selectedId);
+              }
+            }, child: Text(loc.save)),
+          ],
+        ),
+      );
+      if (locationId == null) return;
+      await s.load();
       final item = PortCallItem(
         id: id,
         date: date,
-        portName: '',
+        locationId: locationId,
         arrival: null,
         departure: null,
         allAboard: null,
@@ -229,7 +260,7 @@ class _RouteListScreenState extends State<RouteListScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        r.portName,
+                        _cruise?.locationName(r.locationId) ?? '',
                         style: Theme.of(context).textTheme.titleMedium
                             ?.copyWith(color: contentColor),
                         overflow: TextOverflow.ellipsis,

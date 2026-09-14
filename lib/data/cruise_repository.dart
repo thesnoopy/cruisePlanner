@@ -1,7 +1,7 @@
 // lib/data/cruise_repository.dart
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:flutter/foundation.dart';
+import '../sync/cruise_persistence_migration.dart';
 import '../models/cruise.dart';
 
 class CruiseRepository {
@@ -20,42 +20,17 @@ class CruiseRepository {
     final jsonStr = prefs.getString(_keyData);
     if (jsonStr == null || jsonStr.trim().isEmpty) return <Cruise>[];
 
-    try {
-      final decoded = jsonDecode(jsonStr);
-      List<dynamic> list;
-      if (decoded is List) {
-        list = decoded;
-      } else if (decoded is Map<String, dynamic>) {
-        if (decoded['cruises'] is List) {
-          list = decoded['cruises'] as List<dynamic>;
-        } else if (decoded.values.every((v) => v is Map)) {
-          list = decoded.values.toList();
-        } else if (decoded.isNotEmpty) {
-          list = [decoded];
-        } else {
-          list = const [];
-        }
-      } else {
-        list = const [];
-      }
-
-      final result = <Cruise>[];
-      for (final e in list) {
-        if (e is Map) {
-          try {
-            result.add(Cruise.fromMap(Map<String, dynamic>.from(e)));
-          } catch (inner) {
-            debugPrint('Skip invalid cruise entry: $inner | entry=$e');
-          }
-        } else {
-          debugPrint('Skip non-map cruise entry: $e');
-        }
-      }
-      return result;
-    } catch (e) {
-      debugPrint('CruiseRepository.load parse error: $e');
-      return <Cruise>[];
+    var decoded = jsonDecode(jsonStr);
+    // Preserve the repository's older single-cruise / ID-keyed shapes.
+    if (decoded is Map<String, dynamic> && !decoded.containsKey('cruises') &&
+        !decoded.containsKey('schemaVersion')) {
+      decoded = decoded.containsKey('id') ? [decoded] : decoded.values.toList();
     }
+    final data = decodeCruisePersistenceData(decoded);
+    if (data.wasMigrated) {
+      await prefs.setString(_keyData, jsonEncode(cruiseStoragePayload(data.cruises)));
+    }
+    return data.cruises;
   }
 
   Future<DateTime?> localModifiedAt() async {
@@ -102,7 +77,7 @@ class CruiseRepository {
   // remoteETag optional mitschreiben (nach Upload/Download)
   Future<void> save(List<Cruise> cruises, {DateTime? modifiedAtUtc, String? remoteETag}) async {
     final prefs = await SharedPreferences.getInstance();
-    final obj = {'cruises': cruises.map((c) => c.toMap()).toList(growable: false)};
+    final obj = cruiseStoragePayload(cruises);
     await prefs.setString(_keyData, jsonEncode(obj));
 
     final ts = _roundToSecondUtc(modifiedAtUtc ?? DateTime.now().toUtc()).toIso8601String();

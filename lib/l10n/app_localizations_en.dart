@@ -9,6 +9,12 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
+  String get cruiseNotFound => 'Cruise not found';
+
+  @override
+  String get cruiseLoadFailed => 'Could not load cruise. Please try again later.';
+
+  @override
   String get appTitle => 'Cruise Planner';
 
   @override
@@ -42,9 +48,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get homeDeleteTooltip => 'Delete';
-
-  @override
-  String get cruisePlanner => 'Cruise Planer';
 
   @override
   String get ship => 'Ship';
@@ -81,6 +84,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get noFutureExcursions => 'No Excursion';
+
+  @override
+  String get noExcursions => 'No excursions';
 
   @override
   String get today => 'Today';
@@ -194,13 +200,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get excursionNotFound => 'Excursion not found';
 
   @override
-  String get cruiseNotFound => 'Cruise not found';
-
-  @override
-  String get cruiseLoadFailed =>
-      'Could not load cruise. Please try again later.';
-
-  @override
   String get excursions => 'Excursions';
 
   @override
@@ -217,9 +216,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get airlineOptional => 'Airline (optional)';
-
-  @override
-  String get bookingNumberOptional => 'Booking number (optional)';
 
   @override
   String get modeOptional => 'Mode (optional)';
@@ -241,6 +237,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get transferModeRideshare => 'Rideshare';
+
+  @override
+  String get bookingNumberOptional => 'Booking number (optional)';
 
   @override
   String get editFlight => 'Edit Flight';
@@ -456,23 +455,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get documentOpenFailed => 'Document could not be opened.';
 
   @override
-  String get documentKindPdf => 'PDF';
-
-  @override
-  String get documentKindEmail => 'Email';
-
-  @override
-  String get documentKindImage => 'Image';
-
-  @override
-  String get documentKindUnknown => 'Document';
-
-  @override
   String get urlSnapshotTitle => 'Save webpage as PDF';
 
   @override
-  String get urlSnapshotHint =>
-      'Open the relevant webpage in the app. When the visible state looks right, save it as a PDF document.';
+  String get urlSnapshotHint => 'Open the relevant webpage in the app. When the visible state looks right, save it as a PDF document.';
 
   @override
   String get urlSnapshotUrlLabel => 'URL';
@@ -493,17 +479,28 @@ class AppLocalizationsEn extends AppLocalizations {
   String get urlSnapshotMissingUrl => 'Please enter a valid URL.';
 
   @override
-  String get urlSnapshotPageNotLoaded =>
-      'The page has not finished loading yet and cannot be saved as a PDF.';
+  String get urlSnapshotPageNotLoaded => 'The page has not finished loading yet and cannot be saved as a PDF.';
 
   @override
   String get urlSnapshotLoadFailed => 'The webpage could not be loaded.';
+
   @override
   String get urlSnapshotSaveFailed => 'The PDF could not be saved.';
 
   @override
-  String get urlSnapshotUnsupportedPlatform =>
-      'This feature is currently only available on Android and iOS.';
+  String get urlSnapshotUnsupportedPlatform => 'This feature is currently only available on Android and iOS.';
+
+  @override
+  String get documentKindPdf => 'PDF';
+
+  @override
+  String get documentKindEmail => 'Email';
+
+  @override
+  String get documentKindImage => 'Image';
+
+  @override
+  String get documentKindUnknown => 'Document';
 
   @override
   String get sharePendingTitle => 'Pending shared items';
@@ -573,8 +570,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get shareAssignUrlOptionsTitle => 'How should this URL be added?';
 
   @override
-  String get shareAssignUrlOptionsHint =>
-      'You can attach the link as a document or also open the webpage and save the visible state as a PDF.';
+  String get shareAssignUrlOptionsHint => 'You can attach the link as a document or also open the webpage and save the visible state as a PDF.';
 
   @override
   String get shareAssignAddLinkOnly => 'Add link only';
@@ -583,8 +579,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get shareAssignAddLinkAndSavePdf => 'Add link and save PDF';
 
   @override
-  String get shareAssignUrlOpenBeforeSaveHint =>
-      'The webpage will open. Review the visible state and then save it as a PDF.';
+  String get shareAssignUrlOpenBeforeSaveHint => 'The webpage will open. Review the visible state and then save it as a PDF.';
 
   @override
   String get shareAssignUrlAndPdfSaved => 'Link and PDF saved.';
@@ -596,29 +591,25 @@ class AppLocalizationsEn extends AppLocalizations {
   String get syncProgressRunning => 'Synchronization in progress';
 
   @override
-  String get syncProgressRunningDescription =>
-      'The current synchronization is continuing in the background.';
+  String get syncProgressRunningDescription => 'The current synchronization is continuing in the background.';
 
   @override
   String get syncProgressCompleted => 'Synchronization completed';
 
   @override
-  String get syncProgressCompletedDescription =>
-      'All synchronization steps completed successfully.';
+  String get syncProgressCompletedDescription => 'All synchronization steps completed successfully.';
 
   @override
   String get syncProgressSkipped => 'Synchronization skipped';
 
   @override
-  String get syncProgressSkippedDescription =>
-      'WebDAV settings are missing or incomplete.';
+  String get syncProgressSkippedDescription => 'WebDAV settings are missing or incomplete.';
 
   @override
   String get syncProgressFailed => 'Synchronization failed';
 
   @override
-  String get syncProgressFailedDescription =>
-      'Synchronization ended with errors.';
+  String get syncProgressFailedDescription => 'Synchronization ended with errors.';
 
   @override
   String get syncProgressPreparing => 'Checking settings';
@@ -627,8 +618,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get syncProgressCruiseDataSync => 'Synchronizing cruise data';
 
   @override
-  String get syncProgressDocumentMetadataAnalysis =>
-      'Analyzing document metadata';
+  String get syncProgressDocumentMetadataAnalysis => 'Analyzing document metadata';
 
   @override
   String get syncProgressDocumentUploads => 'Uploading documents';
@@ -637,8 +627,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get syncProgressDocumentDownloads => 'Downloading documents';
 
   @override
-  String get syncProgressLocalDocumentRecovery =>
-      'Recovering local document files';
+  String get syncProgressLocalDocumentRecovery => 'Recovering local document files';
 
   @override
   String get syncProgressDeletionPropagation => 'Propagating deletions';
@@ -648,15 +637,45 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String syncProgressItemCount(int count) {
-    return intl.Intl.pluralLogic(
+    String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      one: '1 item',
       other: '$count items',
+      one: '1 item',
     );
+    return '$_temp0';
   }
 
   @override
   String get syncProgressClose => 'Close';
-}
 
+  @override
+  String get cruiseLocation => 'Location';
+
+  @override
+  String get cruiseRouteLocations => 'Locations of this cruise';
+
+  @override
+  String get cruiseOtherLocations => 'Other locations';
+
+  @override
+  String get cruiseCreateLocation => 'Create new location';
+
+  @override
+  String get cruiseSelectLocation => 'Select a location';
+
+  @override
+  String get cruiseLocationName => 'Name';
+
+  @override
+  String get cruiseLocationNameRequired => 'Enter a name';
+
+  @override
+  String get cruiseLocationType => 'Type';
+
+  @override
+  String get cruiseLocationStopPoint => 'Stop point';
+
+  @override
+  String get cruiseLocationSaveFailed => 'Could not save location. Please try again.';
+}

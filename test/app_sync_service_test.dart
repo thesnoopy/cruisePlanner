@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:cruiseplanner/models/cruise.dart';
+import 'package:cruiseplanner/models/cruise_location.dart';
 import 'package:cruiseplanner/models/documents/document_full_sync_execution_result.dart';
 import 'package:cruiseplanner/models/documents/document_kind.dart';
 import 'package:cruiseplanner/models/documents/document_record.dart';
@@ -19,6 +20,7 @@ import 'package:cruiseplanner/store/cruise_store.dart';
 import 'package:cruiseplanner/store/document_store.dart';
 import 'package:cruiseplanner/sync/app_sync_progress.dart';
 import 'package:cruiseplanner/sync/app_sync_service.dart';
+import 'package:cruiseplanner/sync/cruise_persistence_migration.dart';
 import 'package:cruiseplanner/sync/cruise_sync_service.dart';
 import 'package:cruiseplanner/sync/webdav_sync.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -344,7 +346,7 @@ void main() {
   });
 
   test('keeps locally known excursions when the remote snapshot is stale or empty', () {
-    final service = CruiseSyncService(const WebDavSync(_validSettings));
+    final service = CruiseSyncService(WebDavSync(_validSettings));
     final baseCruise = _sampleCruise().copyWith(
       id: 'cruise-1',
       excursions: <Excursion>[
@@ -372,12 +374,12 @@ void main() {
   });
 
   test('keeps excursions from different port calls when remote is missing them', () {
-    final service = CruiseSyncService(const WebDavSync(_validSettings));
+    final service = CruiseSyncService(WebDavSync(_validSettings));
     final baseCruise = _sampleCruise().copyWith(
       id: 'cruise-ports',
       route: <PortCallItem>[
-        PortCallItem(id: 'port-a', date: DateTime.utc(2026, 1, 2), portName: 'Port A'),
-        PortCallItem(id: 'port-b', date: DateTime.utc(2026, 1, 3), portName: 'Port B'),
+        PortCallItem(id: 'port-a', date: DateTime.utc(2026, 1, 2), locationId: 'Port A'),
+        PortCallItem(id: 'port-b', date: DateTime.utc(2026, 1, 3), locationId: 'Port B'),
       ],
       excursions: <Excursion>[
         _excursion('A', 'Port A'),
@@ -402,13 +404,13 @@ void main() {
       <String>['A', 'B', 'C'],
     );
     expect(
-      merged.single.excursions.map((excursion) => excursion.port).toList(),
+      merged.single.excursions.map((excursion) => excursion.locationId).toList(),
       <String>['Port A', 'Port A', 'Port B'],
     );
   });
 
   test('keeps real local deletes when remote is stale or missing', () {
-    final service = CruiseSyncService(const WebDavSync(_validSettings));
+    final service = CruiseSyncService(WebDavSync(_validSettings));
     final baseCruise = _sampleCruise().copyWith(
       id: 'cruise-delete',
       excursions: <Excursion>[
@@ -455,7 +457,7 @@ void main() {
       <String>['A', 'B', 'C'],
     );
     expect(
-      reloaded.excursions.map((excursion) => excursion.port).toList(),
+      reloaded.excursions.map((excursion) => excursion.locationId).toList(),
       <String>['Port A', 'Port B', 'Port C'],
     );
   });
@@ -478,7 +480,7 @@ void main() {
             PortCallItem(
               id: 'port-b',
               date: DateTime.utc(2026, 1, 2),
-              portName: 'Port B',
+              locationId: 'Port B',
             ),
           ],
           travel: <HotelItem>[
@@ -491,7 +493,7 @@ void main() {
         );
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('cruises_json_v3', jsonEncode(<String, Object>{
-          'schemaVersion': 3,
+          'schemaVersion': 4,
           'cruises': <Object>[cruiseA.toMap()],
         }));
         final webDav = _MemoryCruiseWebDav(<Cruise>[cruiseA, cruiseB]);
@@ -751,7 +753,7 @@ void main() {
     });
 
     test('preserves multiple cruise documents after merge when remote snapshot is stale', () {
-      final service = CruiseSyncService(const WebDavSync(_validSettings));
+      final service = CruiseSyncService(WebDavSync(_validSettings));
       final baseCruise = _sampleCruise().copyWith(
         id: 'cruise-merge',
         documentIds: const <String>['doc-a'],
@@ -774,7 +776,7 @@ void main() {
 
     for (final timestamp in <DateTime?>[null, DateTime.utc(2026, 1, 2)]) {
       test('merges local document additions with a remote title ($timestamp)', () {
-        final service = CruiseSyncService(const WebDavSync(_validSettings));
+        final service = CruiseSyncService(WebDavSync(_validSettings));
         final base = _sampleCruise().copyWith(
           documentIds: const <String>['doc-a'],
           updatedAtUtc: timestamp,
@@ -793,7 +795,7 @@ void main() {
       });
 
       test('does not resurrect an unlinked document in a conflict ($timestamp)', () {
-        final service = CruiseSyncService(const WebDavSync(_validSettings));
+        final service = CruiseSyncService(WebDavSync(_validSettings));
         final base = _sampleCruise().copyWith(
           documentIds: const <String>['doc-a', 'doc-b', 'doc-c'],
           updatedAtUtc: timestamp,
@@ -812,7 +814,7 @@ void main() {
 
     for (final changeIsLocal in <bool>[true, false]) {
       test('keeps all documents for a one-sided change (local: $changeIsLocal)', () {
-        final service = CruiseSyncService(const WebDavSync(_validSettings));
+        final service = CruiseSyncService(WebDavSync(_validSettings));
         final base = _sampleCruise().copyWith(documentIds: const <String>['doc-a']);
         final changed = base.copyWith(
           documentIds: const <String>['doc-a', 'doc-b', 'doc-c'],
@@ -828,7 +830,7 @@ void main() {
       for (final deleteIsNewer in <bool>[true, false]) {
         test('respects newer edit versus delete (local edit: $changeIsLocal, '
             'newer delete: $deleteIsNewer)', () {
-          final service = CruiseSyncService(const WebDavSync(_validSettings));
+          final service = CruiseSyncService(WebDavSync(_validSettings));
           final base = _sampleCruise().copyWith(
             documentIds: const <String>['doc-a'],
             updatedAtUtc: DateTime.utc(2026, 1, 1),
@@ -861,6 +863,7 @@ void main() {
         documentIds: const <String>['doc-a', 'doc-b', 'doc-c'],
       );
       final prefs = await SharedPreferences.getInstance();
+      // Retain coverage for upgrading the former V3 bare-list baseline.
       await prefs.setString('cruises_sync_baseline_v3', jsonEncode(<Object>[base.toMap()]));
       final webDav = _MemoryCruiseWebDav(<Cruise>[
         base.copyWith(title: 'Remote title'),
@@ -889,7 +892,10 @@ void main() {
       expect(result.mergedCruises!.single.documentIds,
           <String>['doc-a', 'doc-b', 'doc-c']);
       expect(webDav.remote.single.documentIds, <String>['doc-a', 'doc-b', 'doc-c']);
-      final baseline = jsonDecode(prefs.getString('cruises_sync_baseline_v3')!) as List;
+      final payload = jsonDecode(prefs.getString('cruises_sync_baseline_v3')!)
+          as Map<String, dynamic>;
+      expect(payload['schemaVersion'], 4);
+      final baseline = payload['cruises'] as List<dynamic>;
       expect(baseline.single['documentIds'], <String>['doc-a', 'doc-b', 'doc-c']);
       await reloaded.load();
       expect(reloaded.getCruise('cruise-1')?.documentIds,
@@ -1112,12 +1118,8 @@ class _MemoryCruiseWebDav extends WebDavSync {
 
   @override
   Future<void> uploadCruises(List<Cruise> cruises) async {
-    final payload = jsonDecode(
-      jsonEncode(cruises.map((cruise) => cruise.toMap()).toList()),
-    ) as List;
-    remote = payload
-        .map((value) => Cruise.fromMap(Map<String, dynamic>.from(value as Map)))
-        .toList();
+    final payload = jsonDecode(jsonEncode(cruiseStoragePayload(cruises)));
+    remote = decodeCruisePersistenceData(payload).cruises;
   }
 }
 
@@ -1208,6 +1210,10 @@ Cruise _sampleCruise() {
   return Cruise(
     id: 'cruise-1',
     title: 'Test Cruise',
+    locations: [
+      for (final name in ['Port A', 'Port B', 'Port C'])
+        CruiseLocation(id: name, name: name, type: CruiseLocationType.port),
+    ],
     ship: Ship(name: 'Test Ship'),
     period: Period(
       start: now,
@@ -1224,7 +1230,7 @@ Excursion _excursion(String title, String port) {
     id: 'excursion-${title.toLowerCase()}-${port.toLowerCase()}',
     title: title,
     date: DateTime.utc(2026, 1, 2),
-    port: port,
+    locationId: port,
   );
 }
 

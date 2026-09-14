@@ -1,5 +1,7 @@
 import 'dart:convert';
 
+import 'package:cruiseplanner/models/cruise_location.dart';
+
 import 'package:cruiseplanner/l10n/app_localizations.dart';
 import 'package:cruiseplanner/models/cruise.dart';
 import 'package:cruiseplanner/models/excursion.dart';
@@ -36,7 +38,7 @@ void main() {
         PortCallItem(
           id: 'port-0',
           date: DateTime(2026, 7, 1),
-          portName: 'Past Port',
+          locationId: 'Past Port',
           arrival: DateTime(2026, 7, 1, 8, 0),
           departure: DateTime(2026, 7, 1, 17, 0),
         ),
@@ -44,7 +46,7 @@ void main() {
           PortCallItem(
             id: 'port-$i',
             date: DateTime(2026, 7, i + 1),
-            portName: i == 5 ? 'Current Port' : 'Port $i',
+            locationId: i == 5 ? 'Current Port' : 'Port $i',
             arrival: DateTime(2026, 7, i + 1, 8, 0),
             departure: DateTime(2026, 7, i + 1, 17, 0),
           ),
@@ -163,7 +165,7 @@ void main() {
             PortCallItem(
               id: 'past-$i',
               date: DateTime(2026, 7, i + 1),
-              portName: 'Past $i',
+              locationId: 'Past $i',
               arrival: DateTime(2026, 7, i + 1, 8, 0),
               departure: DateTime(2026, 7, i + 1, 17, 0),
             ),
@@ -225,19 +227,19 @@ void main() {
             id: 'exc-1',
             title: 'Past Excursion',
             date: DateTime(2026, 7, 4),
-            port: 'Palma',
+            locationId: 'Palma',
           ),
           Excursion(
             id: 'exc-2',
             title: 'Current Excursion',
             date: DateTime(2026, 7, 5, 10, 0),
-            port: 'Barcelona',
+            locationId: 'Barcelona',
           ),
           Excursion(
             id: 'exc-3',
             title: 'Upcoming Excursion',
             date: DateTime(2026, 7, 6, 10, 0),
-            port: 'Marseille',
+            locationId: 'Marseille',
           ),
         ],
       );
@@ -345,14 +347,14 @@ void main() {
           PortCallItem(
             id: 'past-long-$i',
             date: DateTime(2026, 6, i + 1),
-            portName: 'Past Long $i',
+            locationId: 'Past Long $i',
             arrival: DateTime(2026, 6, i + 1, 8, 0),
             departure: DateTime(2026, 6, i + 1, 17, 0),
           ),
         PortCallItem(
           id: 'current-offscreen',
           date: DateTime(2026, 7, 6),
-          portName: 'Current Offscreen Port',
+          locationId: 'Current Offscreen Port',
           arrival: DateTime(2026, 7, 6, 8, 0),
           departure: DateTime(2026, 7, 6, 17, 0),
         ),
@@ -360,7 +362,7 @@ void main() {
           PortCallItem(
             id: 'future-$i',
             date: DateTime(2026, 7, 7 + i),
-            portName: 'Future $i',
+            locationId: 'Future $i',
             arrival: DateTime(2026, 7, 7 + i, 8, 0),
             departure: DateTime(2026, 7, 7 + i, 17, 0),
           ),
@@ -476,7 +478,7 @@ Future<void> _setSurfaceSize(WidgetTester tester, Size size) async {
 Future<void> _seedCruise(Cruise cruise) async {
   SharedPreferences.setMockInitialValues(<String, Object>{
     'cruises_json_v3': jsonEncode(<String, Object>{
-      'schemaVersion': 3,
+      'schemaVersion': 4,
       'cruises': <Map<String, dynamic>>[cruise.toMap()],
     }),
   });
@@ -495,6 +497,13 @@ Cruise _sampleCruise({
       start: DateTime(2026, 7, 1),
       end: DateTime(2026, 7, 14),
     ),
+    locations: [
+      for (final id in {
+        ...route.whereType<PortCallItem>().map((item) => item.locationId),
+        ...excursions.map((item) => item.locationId).whereType<String>(),
+      })
+        CruiseLocation(id: id, name: id, type: CruiseLocationType.port),
+    ],
     excursions: excursions,
     route: route,
     travel: travel,
